@@ -1,0 +1,657 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.itl.mes.core.provider.mapper.CommonBrowserMapper">
+    <!--模糊查询车间数据site,workShop,state,workShopDesc-->
+    <select id="selectPageWorkShop" parameterType="java.util.Map" resultType="java.util.Map">
+        SELECT BO,WORK_SHOP,WORK_SHOP_DESC,STATE FROM M_WORK_SHOP WHERE SITE =#{ params.site }
+        <if test=" params.workShop != null and  params.workShop != '' ">
+            AND WORK_SHOP LIKE '${ params.workShop }%'
+        </if>
+        <if test=" params.state != null and  params.state != '' ">
+            AND STATE LIKE '${ params.state }%'
+        </if>
+        <if test=" params.workShopDesc != null and  params.workShopDesc != ''  ">
+            AND WORK_SHOP_DESC LIKE '${ params.workShopDesc }%'
+        </if>
+    </select>
+    <select id="selectPageWorkShopByState" parameterType="java.util.Map" resultType="java.util.Map">
+        SELECT BO,WORK_SHOP,WORK_SHOP_DESC,STATE FROM M_WORK_SHOP WHERE SITE =#{ params.site }
+        <if test=" params.workShop != null and  params.workShop != '' ">
+            AND WORK_SHOP LIKE '${ params.workShop }%'
+        </if>
+        AND STATE ='1'
+        <if test=" params.workShopDesc != null and  params.workShopDesc != ''  ">
+            AND WORK_SHOP_DESC LIKE '${ params.workShopDesc }%'
+        </if>
+    </select>
+
+    <!--模糊查询工厂数据site,siteDesc,siteType,enableFlag-->
+    <select id="selectPageSite" parameterType="java.util.Map" resultType="java.util.Map">
+        SELECT SITE,SITE_DESC,SITE_TYPE,ENABLE_FLAG FROM M_SITE
+        WHERE 1=1
+        <if test=" params.site != null and  params.site != '' ">
+            AND SITE LIKE '${ params.site }%'
+        </if>
+        <if test=" params.siteDesc != null and  params.siteDesc != '' ">
+            AND SITE_DESC LIKE '${ params.siteDesc }%'
+        </if>
+        <if test=" params.siteType != null and  params.siteType != ''  ">
+            AND SITE_TYPE LIKE '${ params.siteType }%'
+        </if>
+        <if test=" params.enableFlag != null and  params.enableFlag != ''  ">
+            AND ENABLE_FLAG LIKE '${ params.enableFlag }%'
+        </if>
+    </select>
+
+    <select id="selectPageSiteByState" parameterType="java.util.Map" resultType="java.util.Map">
+        SELECT SITE,SITE_DESC,SITE_TYPE,ENABLE_FLAG FROM M_SITE
+        WHERE 1=1
+        <if test=" params.site != null and  params.site != '' ">
+            AND SITE LIKE '${ params.site }%'
+        </if>
+        <if test=" params.siteDesc != null and  params.siteDesc != '' ">
+            AND SITE_DESC LIKE '${ params.siteDesc }%'
+        </if>
+        <if test=" params.siteType != null and  params.siteType != ''  ">
+            AND SITE_TYPE LIKE '${ params.siteType }%'
+        </if>
+        AND ENABLE_FLAG = '1'
+    </select>
+
+    <!--模糊查询供应商 查询条件 vend,vendName-->
+    <select id="selectPageVendor" parameterType="java.util.Map" resultType="java.util.Map">
+        SELECT SITE,VEND,VEND_NAME,VEND_DESC,CONTACT,TEL,ADDRESS FROM M_VENDOR
+        WHERE SITE =#{params.site}
+        <if test="params.vend != null and params.vend != '' ">
+            AND VEND LIKE '${ params.vend }%'
+        </if>
+        <if test="params.vendName !=null and params.vendName !='' ">
+            AND VEND_NAME LIKE '${params.vendName}%'
+        </if>
+    </select>
+
+    <!--查询物料清单 bom bomDesc version-->
+    <select id="selectPageBom" parameterType="java.util.Map" resultType="java.util.Map">
+        SELECT BO,BOM,BOM_DESC,VERSION,STATE FROM M_BOM WHERE SITE=#{params.site}
+        <if test="params.bom != null and params.bom !='' ">
+            AND BOM LIKE '${params.bom}%'
+        </if>
+        <if test="params.bomDesc != null and params.bomDesc != '' ">
+            AND BOM_DESC LIKE '${params.bomDesc}%'
+        </if>
+        <if test="params.version != null and params.version != '' ">
+            AND VERSION LIKE '${params.version}%'
+        </if>
+        <if test="params.state != null and params.state !='' ">
+            AND STATE = '${params.state}'
+        </if>
+    </select>
+
+
+    <!--模糊查询物料组数据site,itemGroup,groupName,groupDesc-->
+    <select id="selectPageItemGroup" parameterType="java.util.Map" resultType="java.util.Map">
+        SELECT ITEM_GROUP,GROUP_NAME,GROUP_DESC FROM M_ITEM_GROUP
+        WHERE SITE=#{ params.site }
+        <if test=" params.itemGroup != null and  params.itemGroup != '' ">
+            AND ITEM_GROUP LIKE '${ params.itemGroup }%'
+        </if>
+        <if test=" params.groupName != null and  params.groupName != '' ">
+            AND GROUP_NAME LIKE '${ params.groupName }%'
+        </if>
+        <if test=" params.groupDesc != null and  params.groupDesc != ''  ">
+            AND GROUP_DESC LIKE '${ params.groupDesc }%'
+        </if>
+        order by CREATE_DATE DESC
+    </select>
+
+    <!--模糊查询工位信息 station stationName stanameDesc state-->
+    <select id="selectPageStation" parameterType="java.util.Map" resultType="java.util.Map">
+        SELECT STATION,STATION_NAME,STATION_DESC,STATE FROM M_STATION WHERE SITE =#{params.site}
+        <if test="params.station != null and params.station !='' ">
+            AND STATION LIKE '${params.station}%'
+        </if>
+        <if test="params.stationDesc != null and params.stationDesc != '' ">
+            AND STATION_DESC LIKE '${params.stationDesc}%'
+        </if>
+    </select>
+    <select id="selectPageStationByState" parameterType="java.util.Map" resultType="java.util.Map">
+        SELECT STATION,STATION_NAME,STATION_DESC,STATE FROM M_STATION WHERE SITE =#{params.site}
+        <if test="params.station != null and params.station !='' ">
+            AND STATION LIKE '${params.station}%'
+        </if>
+        <if test="params.stationDesc != null and params.stationDesc != '' ">
+            AND STATION_DESC LIKE '${params.stationDesc}%'
+        </if>
+        AND STATE ='1'
+    </select>
+
+    <!--模糊查询工序信息 operation  operationDesc productLine state isCurrentVersion-->
+    <select id="selectPageOperation" parameterType="java.util.Map" resultType="java.util.Map">
+        SELECT
+        a.BO,
+        a.OPERATION,
+        a.OPERATION_NAME,
+        a.OPERATION_DESC,
+        a.OPERATION_TYPE,
+        a.STATE,
+        PRODUCT_LINE,
+        a.VERSION,
+        a.STATION_TYPE_BO
+        FROM M_OPERATION a
+        left join m_product_line b ON a.PRODUCTION_LINE_BO = b.BO WHERE a.SITE=#{params.site}
+        <if test="params.operation != null and params.operation != '' ">
+            AND OPERATION LIKE '${params.operation}%'
+        </if>
+        <if test="params.operationName != null and params.operationName != '' ">
+            AND OPERATION_NAME LIKE '${params.operationName}%'
+        </if>
+        <if test="params.operationDesc != null and params.operationDesc != '' ">
+            AND OPERATION_DESC LIKE '${params.operationDesc}%'
+        </if>
+        <if test="params.productLine != null and params.productLine != '' ">
+            AND PRODUCTION_LINE_BO LIKE '%${params.productLine}%'
+        </if>
+        <if test="params.state != null and params.state != '' ">
+            AND a.STATE ='${params.state}'
+        </if>
+        <if test="params.operationType != null and params.operationType != ''">
+            AND a.OPERATION_TYPE ='${params.operationType}'
+        </if>
+        <if test="params.isCurrentVersion != null and params.isCurrentVersion != ''">
+            AND a.IS_CURRENT_VERSION =#{params.isCurrentVersion}
+        </if>
+        <if test="params.workShop != null and params.workShop != ''">
+            AND a.work_shop =#{params.workShop}
+        </if>
+        ORDER BY a.CREATE_DATE DESC
+    </select>
+
+    <!--模糊查询工步信息 workStepCode  workStepName workStepDesc workingProcess state isCurrentVersion-->
+    <select id="selectPageWorkstation" parameterType="java.util.Map" resultType="java.util.Map">
+        SELECT
+        a.BO,
+        a.WORK_STEP_CODE,
+        a.WORK_STEP_NAME,
+        a.WORK_STEP_DESC,
+        a.WORKING_PROCESS,
+        a.UPDATE_TIME,
+        a.UPDATED_BY
+        FROM D_DY_WORKSTATION a left join M_OPERATION b on a.WORKING_PROCESS = b.OPERATION WHERE a.SITE=#{params.site}
+        <if test="params.workStepCode != null and params.workStepCode != '' ">
+            AND WORK_STEP_CODE LIKE '${params.workStepCode}%'
+        </if>
+        <if test="params.workStepName != null and params.workStepName != '' ">
+            AND WORK_STEP_NAME LIKE '${params.workStepName}%'
+        </if>
+        <if test="params.workStepDesc != null and params.workStepDesc != '' ">
+            AND WORK_STEP_DESC LIKE '${params.operationDesc}%'
+        </if>
+        <if test="params.workingProcess != null and params.workingProcess != '' ">
+            AND a.WORKING_PROCESS ='${params.workingProcess}'
+        </if>
+        ORDER BY a.CREATE_DATE DESC
+    </select>
+
+    <!--模糊查询工艺路线工步配置信息 router  version-->
+    <select id="selectPageRoutestation" parameterType="java.util.Map" resultType="java.util.Map">
+        SELECT
+        a.BO,
+        a.PROCESS_ROUTE,
+        a.ROUTE_VER,
+        a.WORKING_PROCESS,
+        a.WORKING_PROCESS_NAME,
+        a.WORK_STEP_CODE,
+        a.WORK_STEP_NAME,
+        a.EFFECTIVE,
+        a.UPDATED_BY,
+        a.UPDATE_TIME
+        FROM D_DY_ROUTE_STATION a inner join M_OPERATION b on a.WORKING_PROCESS = b.OPERATION inner join m_router c on a.PROCESS_ROUTE = c.ROUTER WHERE a.SITE=#{params.site}
+        <if test="params.router != null and params.router != '' ">
+            AND a.PROCESS_ROUTE LIKE '${params.router}%'
+        </if>
+        <if test="params.operationName != null and params.operationName != '' ">
+            AND a.WORKING_PROCESS_NAME LIKE '${params.operationName}%'
+        </if>
+        <if test="params.workingProcess != null and params.workingProcess != '' ">
+            AND a.WORKING_PROCESS LIKE '${params.workingProcess}%'
+        </if>
+        <if test="params.workStepCode != null and params.workStepCode != '' ">
+            AND a.WORK_STEP_CODE LIKE '${params.workStepCode}%'
+        </if>
+        <if test="params.workStepName != null and params.workStepName != '' ">
+            AND a.WORK_STEP_NAME LIKE '${params.workStepNAME}%'
+        </if>
+        ORDER BY a.WORKING_PROCESS ASC
+    </select>
+
+    <!--模糊查询不合格代码弹框 ncCode ncDesc-->
+    <select id="selectPageNcCode" parameterType="java.util.Map" resultType="java.util.Map">
+        SELECT DISTINCT NC_CODE,NC_DESC,NC_NAME,NC.BO FROM M_NC_CODE NC LEFT JOIN M_NC_GROUP_MEMBER NGM ON NC.BO = NGM.NC_CODE_BO
+        LEFT JOIN M_NC_GROUP NG ON NGM.NC_GROUP_BO = NG.BO WHERE NC.SITE =#{params.site}
+        <if test="params.ncCode != null and params.ncCode != '' ">
+            AND NC.NC_CODE LIKE '${params.ncCode}%'
+        </if>
+        <if test="params.ncDesc != null and params.ncDesc != '' ">
+            AND NC.NC_DESC LIKE '${params.ncDesc}%'
+        </if>
+        <if test="params.ncName != null and params.ncName != '' ">
+            AND NC.NC_NAME LIKE '${params.ncName}%'
+        </if>
+        <if test="params.ncGroup != null and params.ncGroup !='' ">
+            AND NG.NC_GROUP = #{params.ncGroup}
+        </if>
+    </select>
+    <select id="selectPageNcCodeByState" parameterType="java.util.Map" resultType="java.util.Map">
+        SELECT DISTINCT NC_CODE,NC_DESC,NC.BO
+        FROM M_NC_CODE NC
+        LEFT JOIN M_NC_GROUP_MEMBER NGM ON NC.BO = NGM.NC_CODE_BO
+        LEFT JOIN M_NC_GROUP NG ON NGM.NC_GROUP_BO = NG.BO WHERE NC.SITE =#{params.site}
+        <if test="params.ncCode != null and params.ncCode != '' ">
+            AND NC.NC_CODE LIKE '${params.ncCode}%'
+        </if>
+        <if test="params.ncDesc != null and params.ncDesc != '' ">
+            AND NC.NC_DESC LIKE '${params.ncDesc}%'
+        </if>
+        <if test="params.ncGroup != null and params.ncGroup !='' ">
+            AND NG.NC_GROUP = #{params.ncGroup}
+        </if>
+            AND NC.state='1'
+    </select>
+
+    <select id="selectPageNcCodeByStateByNcGroup" resultType="java.util.Map">
+        select mng.bo AS ncBo,mng.NC_CODE ,mng.NC_DESC,mng.NC_NAME
+        from m_nc_code mng
+                     join m_nc_group_member mngm on mng.BO=mngm.NC_CODE_BO
+        where mngm.NC_GROUP_BO=#{bo}
+            and mng.SITE=#{site}
+          and mng.STATE='1';
+    </select>
+    <!--模糊查询不合格代码组 ncGroup ncGroupDesc-->
+    <select id="selectPageNcGroup" parameterType="java.util.Map" resultType="java.util.Map">
+        SELECT NC_GROUP,NC_GROUP_DESC FROM M_NC_GROUP WHERE SITE =#{params.site}
+        <if test="params.ncGroup != null and params.ncGroup != '' ">
+            AND NC_GROUP LIKE '${params.ncGroup}%'
+        </if>
+        <if test="params.ncGroupDesc != null and params.ncGroupDesc != ''">
+            AND NC_GROUP_DESC LIKE '${params.ncGroupDesc}%'
+        </if>
+    </select>
+
+    <!--模糊查询工位类型-->
+    <select id="selectPageStationType" parameterType="java.util.Map" resultType="java.util.Map">
+        SELECT STATION_TYPE,STATION_TYPE_DESC FROM M_STATION_TYPE WHERE SITE =#{params.site}
+        <if test="params.stationType != null and params.stationType != '' ">
+            AND STATION_TYPE LIKE '${params.stationType}%'
+        </if>
+        <if test="params.stationTypeDesc != null and params.stationTypeDesc != '' ">
+            AND STATION_TYPE_DESC LIKE '${params.stationTypeDesc}%'
+        </if>
+    </select>
+    <!--模糊查询产线数据site,productLine,state,productLineDesc-->
+    <select id="selectPageProductLine" parameterType="java.util.Map" resultType="java.util.Map">
+        SELECT BO,PRODUCT_LINE,STATE,PRODUCT_LINE_DESC,WORK_SHOP_BO FROM M_PRODUCT_LINE WHERE SITE =#{params.site}
+        <if test="params.productLine != null and params.productLine != '' ">
+            AND PRODUCT_LINE LIKE '${params.productLine}%'
+        </if>
+        <if test="params.state != null and params.state != ''">
+            AND STATE LIKE '${params.state}%'
+        </if>
+        <if test="params.productLineDesc != null and params.productLineDesc != ''">
+            AND PRODUCT_LINE_DESC LIKE '${params.productLineDesc}%'
+        </if>
+        <if test="params.workShop != null and params.workShop != ''">
+            AND WORK_SHOP_BO = #{params.workShop}
+        </if>
+    </select>
+    <select id="selectPageProductLineByState" parameterType="java.util.Map" resultType="java.util.Map">
+        SELECT BO,PRODUCT_LINE,STATE,PRODUCT_LINE_DESC,WORK_SHOP_BO FROM M_PRODUCT_LINE WHERE SITE =#{params.site}
+        <if test="params.productLine != null and params.productLine != '' ">
+            AND PRODUCT_LINE LIKE '${params.productLine}%'
+        </if>
+
+        AND STATE ='1'
+
+        <if test="params.productLineDesc != null and params.productLineDesc != ''">
+            AND PRODUCT_LINE_DESC LIKE '${params.productLineDesc}%'
+        </if>
+        <if test="params.workShop != null and params.workShop != ''">
+            AND WORK_SHOP_BO = #{params.workShop}
+        </if>
+    </select>
+
+    <!--模糊查询客户 查询条件 customer,customerName,customerDesc-->
+    <select id="selectPageCustomer" parameterType="java.util.Map" resultType="java.util.Map">
+        SELECT SITE,CUSTOMER,CUSTOMER_NAME,CUSTOMER_DESC,ADDRESS1 FROM M_CUSTOMER
+        WHERE SITE =#{ params.site }
+        <if test=" params.customer != null and  params.customer != '' ">
+            AND CUSTOMER LIKE '${ params.customer }%'
+        </if>
+        <if test=" params.customerName != null and  params.customerName != '' ">
+            AND CUSTOMER_NAME LIKE '${ params.customerName }%'
+        </if>
+        <if test=" params.customerDesc != null and  params.customerDesc != '' ">
+            AND CUSTOMER_DESC LIKE '${ params.customerDesc }%'
+        </if>
+    </select>
+
+    <!--模糊查询物料信息-->
+    <select id="selectPageItem" parameterType="java.util.Map" resultType="java.util.Map">
+        SELECT BO,ITEM,ITEM_NAME,ITEM_DESC,VERSION,ROUTER_NAME,ROUTER_VERSION,DRAWING_NO FROM M_ITEM WHERE SITE = #{params.site}
+        <if test="params.item != null and params.item != '' ">
+            AND ITEM LIKE '${params.item}%'
+        </if>
+        <if test="params.itemName != null and params.itemName != '' ">
+            AND ITEM_NAME LIKE '${params.itemName}%'
+        </if>
+        <if test="params.itemDesc != null and params.itemDesc != '' ">
+            AND ITEM_DESC LIKE '${params.itemDesc}%'
+        </if>
+        <if test="params.drawingNo != null and params.drawingNo != '' ">
+            AND DRAWING_NO LIKE concat('%',#{params.drawingNo},'%')
+        </if>
+        <if test="params.version != null and params.version !='' ">
+            AND VERSION LIKE '${params.version}%'
+        </if>
+        <if test="params.itemType != null and params.itemType !='' ">
+            AND ITEM_TYPE = #{params.itemType}
+        </if>
+        order by ITEM asc, VERSION asc
+    </select>
+
+
+    <!--模糊查询客户订单信息 customer  customerOrder  state-->
+    <select id="selectPageCustomerOrder" parameterType="java.util.Map" resultType="java.util.Map">
+        SELECT CUSTOMER,CUSTOMER_ORDER,STATE,PLAN_START_DATE,PLAN_END_DATE FROM M_CUSTOMER_ORDER a left join M_CUSTOMER
+        b ON a.CUSTOMER_BO = b.BO
+        WHERE a.SITE=#{params.site}
+        <if test="params.customer != null and params.customer != '' ">
+            AND CUSTOMER LIKE '${params.customer}%'
+        </if>
+        <if test="params.customerOrder != null and params.customerOrder != '' ">
+            AND CUSTOMER_ORDER LIKE '${params.customerOrder}%'
+        </if>
+        <if test="params.state != null and params.state != '' ">
+            AND STATE = #{params.state}
+        </if>
+    </select>
+
+    <!--模糊查询数据列表 查询条件 dataList,listName-->
+    <select id="selectPageDataList" parameterType="java.util.Map" resultType="java.util.Map">
+        SELECT DATA_LIST,LIST_NAME,LIST_DESC FROM M_DATA_LIST
+        WHERE 1 = 1
+        <if test=" params.dataList != null and  params.dataList != '' ">
+            AND DATA_LIST LIKE '${ params.dataList }%'
+        </if>
+        <if test=" params.listName != null and  params.listName != '' ">
+            AND LIST_NAME LIKE '${ params.listName }%'
+        </if>
+    </select>
+
+    <!--模糊查询数据收集组信息 dcGroup  dcName state-->
+    <select id="selectPageDcGroup" parameterType="java.util.Map" resultType="java.util.Map">
+        SELECT DC_GROUP,DC_NAME,DC_DESC,STATE FROM M_DC_GROUP
+        WHERE SITE=#{params.site}
+        <if test="params.dcGroup != null and params.dcGroup != '' ">
+            AND DC_GROUP LIKE '${params.dcGroup}%'
+        </if>
+        <if test="params.dcName != null and params.dcName != '' ">
+            AND DC_NAME LIKE '${params.dcName}%'
+        </if>
+        <if test="params.state != null and params.state != '' ">
+            AND STATE =#{params.state}
+        </if>
+    </select>
+    <!--模糊查询作业指导书弹出框-->
+    <select id="selectPageInstructor" parameterType="java.util.Map" resultType="java.util.Map">
+        SELECT INSTRUCTOR,INSTRUCTOR_NAME,INSTRUCTOR_DESC,STATE,VERSION FROM M_INSTRUCTOR WHERE SITE =#{params.site}
+        <if test="params.instructor !=null and params.instructor != '' ">
+            AND INSTRUCTOR LIKE '${params.instructor}%'
+        </if>
+        <if test="params.instructorName != null and params.instructorName != '' ">
+            AND INSTRUCTOR_NAME LIKE '${params.instructorName}%'
+        </if>
+        <if test="params.state != null and params.state != '' ">
+            AND STATE LIKE '${params.state}%'
+        </if>
+    </select>
+
+    <!-- 模糊查询工单数据 site,shopOrder,item,startDate,endDate-->
+    <select id="selectPageShopOrder" parameterType="java.util.Map" resultType="java.util.Map">
+        SELECT MSO.BO,MSO.SHOP_ORDER,MSO.ORDER_DESC,MSO.ORDER_QTY,MIT.ITEM,MIT.ITEM_DESC,MIT.ITEM_NAME,MIT.VERSION,dbo.SPLIT(MSO.STATE_BO,1)
+        STATE,MSO.PLAN_END_DATE,t.WORK_SHOP_DESC
+        FROM M_SHOP_ORDER MSO INNER JOIN M_ITEM MIT
+        ON MSO.ITEM_BO = MIT.BO
+        left join m_work_shop t on mso.work_shop = t.work_shop
+        WHERE MSO.SITE=#{params.site}
+        <if test="params.shopOrder !=null and params.shopOrder != '' ">
+            AND MSO.SHOP_ORDER LIKE '%${params.shopOrder}%'
+        </if>
+        <if test="params.item != null and params.item != '' ">
+            AND MIT.ITEM LIKE '%${params.item}%'
+        </if>
+        <if test="params.itemName != null and params.itemName != '' ">
+            AND MIT.ITEM_NAME LIKE '%${params.itemName}%'
+        </if>
+        <if test="params.itemDescKeyWordList != null and params.itemDescKeyWordList.size() > 0">
+            <foreach collection="params.itemDescKeyWordList" item="keyword">
+                AND CONTAINS ( MIT.item_desc, #{keyword} )
+            </foreach>
+        </if>
+        <if test="params.workShopDesc != null and params.workShopDesc != '' ">
+            AND t.work_shop_desc LIKE concat('%',#{params.workShopDesc},'%')
+        </if>
+        <if test="params.startDate != null and params.startDate != '' ">
+            AND MSO.CREATE_DATE >= #{params.startDate}
+        </if>
+        <if test="params.endDate != null and params.endDate != '' ">
+            AND MSO.CREATE_DATE &lt; #{params.endDate}
+        </if>
+    </select>
+
+
+    <!--模糊查询设备信息 device  deviceName -->
+    <select id="selectPageDevice" parameterType="java.util.Map" resultType="java.util.Map">
+        SELECT BO,DEVICE,DEVICE_NAME,STATE,DEVICE_MODEL,DEVICE_DESC,DEVICE_TYPE FROM M_DEVICE
+        WHERE SITE=#{params.site}
+        <if test="params.device != null and params.device != '' ">
+            AND DEVICE LIKE '${params.device}%'
+        </if>
+        <if test="params.deviceName != null and params.deviceName != '' ">
+            AND DEVICE_NAME LIKE '${params.deviceName}%'
+        </if>
+    </select>
+
+    <!--模糊查询线边仓弹出框-->
+    <select id="selectPageWarehouse" parameterType="java.util.Map" resultType="java.util.Map">
+        SELECT WAREHOUSE,WAREHOUSE_NAME,WAREHOUSE_DESC,WAREHOUSE_TYPE FROM W_WAREHOUSE WHERE SITE =#{params.site}
+        <if test="params.warehouse != null and params.warehouse != '' ">
+            AND WAREHOUSE LIKE '${params.warehouse}%'
+        </if>
+        <if test="params.warehouseName != null and params.warehouseName != '' ">
+            AND WAREHOUSE_NAME LIKE '${params.warehouseName}%'
+        </if>
+    </select>
+
+    <!--模糊查询班次信息-->
+    <select id="selectPageShift" parameterType="java.util.Map" resultType="java.util.Map">
+        SELECT SHIFT,SHIFT_NAME,SHIFT_DESC,WORK_TIME,IS_VALID FROM M_SHIFT WHERE SITE=#{params.site}
+        <if test="params.shift != null and params.shift != ''">
+            AND SHIFT LIKE '${params.shift}%'
+        </if>
+        <if test="params.shiftName != null and params.shiftName != '' ">
+            AND SHIFT_NAME LIKE '${params.shiftName}%'
+        </if>
+    </select>
+
+
+    <!--模糊查询设备类型信息 deviceType  deviceTypeName -->
+    <select id="selectPageDeviceType" parameterType="java.util.Map" resultType="java.util.Map">
+        SELECT DEVICE_TYPE,DEVICE_TYPE_NAME,DEVICE_TYPE_DESC,BO FROM M_DEVICE_TYPE
+        WHERE SITE=#{params.site}
+        <if test="params.deviceType != null and params.deviceType != '' ">
+            AND DEVICE_TYPE LIKE '${params.deviceType}%'
+        </if>
+        <if test="params.deviceTypeName != null and params.deviceTypeName != '' ">
+            AND DEVICE_TYPE_NAME LIKE '${params.deviceTypeName}%'
+        </if>
+        <if test="params.deviceTypeDesc != null and params.deviceTypeDesc != '' ">
+            AND DEVICE_TYPE_DESC LIKE '${params.deviceTypeDesc}%'
+        </if>
+    </select>
+
+    <!--模糊查询班组信息 -->
+    <select id="selectPageTeam" parameterType="java.util.Map" resultType="java.util.Map">
+        SELECT A.TEAM,A.TEAM_DESC,A.LEADER,B.PRODUCT_LINE,B.PRODUCT_LINE_DESC FROM M_TEAM A
+        LEFT JOIN M_PRODUCT_LINE B ON A.PRODUCT_LINE_BO = B.BO WHERE A.SITE = #{params.site}
+        <if test="params.team != null and params.team != '' ">
+            AND A.TEAM LIKE '${params.team}%'
+        </if>
+        <if test="params.teamDesc != null and params.teamDesc != '' ">
+            AND A.TEAM_DESC LIKE '${params.teamDesc}%'
+        </if>
+    </select>
+
+    <!--模糊查询员工信息-->
+    <select id="selectPageEmployee" parameterType="java.util.Map" resultType="java.util.Map">
+        SELECT user_name as EMPLOYEE_CODE,real_name as NAME,state as ENABLED_FLAG FROM iap_sys_user_t WHERE 1=1
+        <if test="params.employeeCode!=null and params.employeeCode != '' ">
+            AND user_name LIKE '${params.employeeCode}%'
+        </if>
+        <if test="params.name != null and params.name != '' ">
+            AND real_name LIKE '${params.name}%'
+        </if>
+    </select>
+
+    <!--POD查询SN-->
+    <select id="selectPageSN" parameterType="java.util.Map" resultType="java.util.Map">
+        SELECT sfc.sfc, i.item, so.shop_order, sfc.qty, sfc.MODIFY_USER
+        FROM p_sfc sfc,
+             m_shop_order so,
+             m_item i,
+             p_sfc_step ss,
+             p_sfc_router sr
+        WHERE sfc.shop_order_bo = so.bo
+          AND sfc.item_bo = i.bo
+          AND sfc.item_bo = i.bo
+          AND sfc.bo = sr.sfc_bo
+          AND sr.bo = ss.sfc_router_bo
+          AND sfc.site = #{params.site}
+          AND ss.operation_bo = #{params.operationBo}
+          AND ss.QTY_IN_QUEUE > 0
+    </select>
+
+
+    <!--模糊查询数据收集组参数表-->
+    <select id="selectPageDcParameters" parameterType="java.util.Map" resultType="java.util.Map">
+        SELECT DC_GROUP, PARAM_NAME,PARAM_DESC,PARAM_TYPE FROM M_DC_PARAMETER dp ,M_DC_GROUP dg
+        WHERE dp.SITE = #{params.site} AND dp.DC_GROUP_BO = dg.BO
+        <if test="params.paramName!=null and params.paramName != '' ">
+            AND PARAM_NAME LIKE '${params.paramName}%'
+        </if>
+    </select>
+
+
+    <!--模糊查询车间作业控制信息表弹出框-->
+    <select id="selectPageSfc" parameterType="java.util.Map" resultType="java.util.Map">
+        SELECT SFC, ITEM_BO,QTY,BOM_BO,SHOP_ORDER_BO,PRODUCT_LINE_BO,MODIFY_USER FROM P_SFC WHERE 1=1
+        <if test="params.sfc!=null and params.sfc != '' ">
+            AND SFC LIKE '${params.sfc}%'
+        </if>
+    </select>
+    <!--模糊查询工艺路线弹出框 router routerDesc -->
+    <select id="selectPageRouter" parameterType="java.util.Map" resultType="java.util.Map">
+        SELECT BO,ROUTER,ROUTER_NAME,ROUTER_DESC,STATE,VERSION FROM M_ROUTER
+        WHERE SITE=#{params.site}
+        <if test="params.router != null and params.router != '' ">
+            AND ROUTER LIKE concat('%',#{params.router},'%')
+        </if>
+        <if test="params.routerName != null and params.routerName != '' ">
+            AND ROUTER_NAME LIKE concat('%',#{params.routerName},'%')
+        </if>
+        <if test="params.routerDesc != null and params.routerDesc != '' ">
+            AND ROUTER_DESC LIKE concat('%',#{params.routerDesc},'%')
+        </if>
+    </select>
+
+    <!--模糊查询包装数据弹出框 packCode -->
+    <select id="selectPagePackData" parameterType="java.util.Map" resultType="java.util.Map">
+        SELECT B.PACK_CODE, A.PACK_NAME, A.PACK_DESC, B.STATE, SUM(C.QTY)
+        FROM P_PACKING A
+                     LEFT JOIN P_PACK_DATA B ON A.BO = B.PACKING_BO
+                     LEFT JOIN P_PACK_DATA_ITEM C
+                ON B.BO = C.PACK_DATA_BO
+        WHERE A.SITE = #{params.site}
+          AND A.PACK_NAME = #{params.packName}
+          AND B.PACK_CODE LIKE '%${params.packCode}%'
+        GROUP BY B.PACK_CODE, A.PACK_NAME, A.PACK_DESC, B.STATE
+    </select>
+
+
+    <select id="selectPagePacking" parameterType="java.util.Map" resultType="java.util.Map">
+        SELECT PACK_NAME,PACK_DESC,STATE,PACK_GRADE,MAX_QTY,MIN_QTY FROM P_PACKING WHERE SITE = #{params.site}
+        <if test="params.packName != null and params.packName != '' ">
+            AND PACK_NAME LIKE '${params.packName}%'
+        </if>
+        <if test="params.packDesc != null and params.packDesc != '' ">
+            AND PACK_DESC LIKE '${params.packDesc}%'
+        </if>
+        <if test="params.state != null and params.state != '' ">
+            AND STATE LIKE '${params.state}%'
+        </if>
+    </select>
+
+    <!--模糊查询载具类型维护-->
+    <select id="selectPageCarrierType" parameterType="java.util.Map" resultType="java.util.Map">
+        SELECT M.CARRIER_TYPE,M.DESCRIPTION,M.CAPACITY,M.ROW_SIZE,M.COLUMN_SIZE FROM M_CARRIER_TYPE M WHERE M.SITE =
+        #{params.site}
+        <if test="params.carrierType != null and params.carrierType != '' ">
+            AND M.CARRIER_TYPE LIKE '${params.carrierType}%'
+        </if>
+        <if test="params.description != null and params.description != '' ">
+            AND M.DESCRIPTION LIKE '${params.description}%'
+        </if>
+    </select>
+
+    <!--模糊查询载具维护信息-->
+    <select id="selectPageCarrier" parameterType="java.util.Map" resultType="java.util.Map">
+        SELECT C.CARRIER,C.DESCRIPTION,CT.CARRIER_TYPE,CT.DESCRIPTION AS CARRIER_TYPE_DESCRIPTION FROM M_CARRIER C LEFT
+        JOIN M_CARRIER_TYPE CT
+        ON C.CARRIER_TYPE_BO = CT.BO WHERE C.SITE =#{params.site}
+        <if test="params.carrier != null and params.carrier != ''">
+            AND C.CARRIER LIKE '${params.carrier}%'
+        </if>
+        <if test="params.description != null and params.description != ''">
+            AND C.DESCRIPTION LIKE '${params.description}%'
+        </if>
+        <if test="params.carrierType != null and params.carrierType != ''">
+            AND C.CARRIER_TYPE_BO LIKE '%${params.carrierType}%'
+        </if>
+    </select>
+
+
+    <select id="selectPageUser" resultType="java.util.Map">
+        select * from (SELECT
+        DISTINCT t.ID,
+        t.USER_NAME,
+        t.REAL_NAME,
+        t.STATE
+        FROM
+        iap_sys_user_t t
+        LEFT JOIN iap_sys_user_role_t y ON t.id = y.user_id
+        <trim prefix="WHERE" prefixOverrides="AND">
+            <if test="params.userName != null and params.userName != ''">
+                t.USER_NAME LIKE '%${params.userName}%'
+            </if>
+            <if test="params.realName != null and params.realName != ''">
+                AND t.REAL_NAME LIKE '%${params.realName}%'
+            </if>
+            <if test="params.state != null and params.state != ''">
+                AND t.STATE LIKE '%${params.state}%'
+            </if>
+            <if test="params.roleId != null and params.roleId != ''">
+                AND y.role_id LIKE '%${params.roleId}%'
+            </if>
+        </trim>) t
+    </select>
+    
+</mapper>

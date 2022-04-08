@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.itl.im.provider.mapper.IapImGroupMemberMapper">
+
+    <resultMap type="iap.im.api.dto.IapImGroupMemberDto" id="IapImGroupMemberTMap">
+        <result property="id" column="id" jdbcType="VARCHAR"/>
+        <result property="account" column="account" jdbcType="VARCHAR"/>
+        <result property="groupId" column="group_id" jdbcType="VARCHAR"/>
+        <result property="host" column="host" jdbcType="VARCHAR"/>
+        <result property="timestamp" column="timestamp" jdbcType="BIGINT"/>
+        <result property="muteTime" column="mute_time" jdbcType="SMALLINT"/>
+        <result property="muteType" column="mute_type" jdbcType="BIGINT"/>
+    </resultMap>
+
+    <!--通过实体作为筛选条件查询-->
+    <select id="pageQuery" resultMap="IapImGroupMemberTMap">
+        SELECT
+            id, account, group_id, host, timestamp, mute_time, mute_type
+        FROM iap_im_group_member_t
+        <where>
+            <if test="iapImGroupMemberTDto.id != null and iapImGroupMemberTDto.id != ''">
+                and id = #{iapImGroupMemberTDto.id}
+            </if>
+            <if test="iapImGroupMemberTDto.account != null and iapImGroupMemberTDto.account != ''">
+                and account = #{iapImGroupMemberTDto.account}
+            </if>
+            <if test="iapImGroupMemberTDto.groupid != null">
+                and groupId = #{iapImGroupMemberTDto.groupid}
+            </if>
+            <if test="iapImGroupMemberTDto.host != null and iapImGroupMemberTDto.host != ''">
+                and host = #{iapImGroupMemberTDto.host}
+            </if>
+            <if test="iapImGroupMemberTDto.timestamp != null">
+                and timestamp = #{iapImGroupMemberTDto.timestamp}
+            </if>
+            <if test="iapImGroupMemberTDto.muteTime != null">
+                and mute_time = #{iapImGroupMemberTDto.muteTime}
+            </if>
+            <if test="iapImGroupMemberTDto.muteType != null">
+                and mute_type = #{iapImGroupMemberTDto.muteType}
+            </if>
+        </where>
+    </select>
+
+    <!-- 批量插入群成员 -->
+    <insert id="insertList">
+        INSERT INTO iap_im_group_member_t (id,account,group_id,host,timestamp,mute_time,mute_type)
+        VALUES
+        <foreach collection="list" separator="," item="item">
+            (#{item.id},#{item.account},#{item.groupId},#{item.host},#{item.timestamp},#{item.muteTime},#{item.muteType})
+        </foreach>
+    </insert>
+
+    <!-- 通过群ID查询该群的群成员列表 -->
+    <select id="selectGroupMemberListByGroupId" resultType="iap.im.api.entity.IapImGroupMember">
+        SELECT
+            GM.id,GM.group_id,GM.account,GM.host,GM.`timestamp`,GM.mute_type,GM.mute_time
+        FROM
+	        iap_im_group_member_t AS GM
+	    WHERE GM.group_id = #{groupId}
+	    ORDER BY GM.`timestamp` ASC
+    </select>
+
+    <!-- 通过群ID和群成员账号删除群成员 -->
+    <delete id="removeGroupMemeberBatch">
+        DELETE FROM iap_im_group_member_t
+        WHERE iap_im_group_member_t.group_id = #{groupId}
+        <if test="groupMemberAccountList != null and groupMemberAccountList.size() > 0">
+            AND iap_im_group_member_t.account IN
+            <foreach item="item" index="index" collection="groupMemberAccountList" open="(" separator="," close=")">
+                #{item}
+            </foreach>
+        </if>
+    </delete>
+
+    <!-- 给下一位群成员当群主 -->
+    <update id="updateGroupHostToNext">
+        UPDATE `iap_im_group_member_t` SET host = 1
+        WHERE id = (SELECT id FROM (SELECT id FROM `iap_im_group_member_t` WHERE group_id = #{groupId} AND host = 0 ORDER BY `timestamp` LIMIT 1) as GM)
+    </update>
+
+
+</mapper>

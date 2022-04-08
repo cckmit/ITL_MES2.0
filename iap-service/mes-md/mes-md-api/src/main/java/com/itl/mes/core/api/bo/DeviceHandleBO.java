@@ -1,0 +1,49 @@
+package com.itl.mes.core.api.bo;
+
+
+import com.itl.mes.core.api.constant.BOPrefixEnum;
+
+/**
+ * @author sky,
+ * @date 2019/6/17
+ * @time 14:05
+ */
+public class DeviceHandleBO {
+    public static final long serialVersionUID=1L;
+
+    public static final String PREFIX = BOPrefixEnum.RES.getPrefix();
+
+    private String bo;
+    private String site;
+    private String device;
+
+    public DeviceHandleBO(String bo ){
+
+        this.bo = bo;
+        String[] boArr = bo.substring( PREFIX.length()+1 ).split( "," );
+        this.site = boArr[ 0 ];
+        this.device = boArr[ 1 ];
+
+    }
+
+    public DeviceHandleBO(String site, String device ){
+
+        this.bo = new StringBuilder( PREFIX ).append( ":" ).append( site ).append( "," ).append( device ).toString();
+        this.site = site;
+        this.device = device;
+
+
+    }
+
+    public String getBo() {
+        return bo;
+    }
+
+    public String getSite() {
+        return site;
+    }
+
+    public String getDevice() {
+        return device;
+    }
+}

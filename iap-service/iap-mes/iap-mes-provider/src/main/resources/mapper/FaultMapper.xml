@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.itl.iap.mes.provider.mapper.FaultMapper">
+
+    <resultMap type="com.itl.iap.mes.api.dto.FaultDto" id="FaultMap">
+        <id property="id" column="id"/>
+        <result property="planCode" column="planCode"/>
+        <result property="faultCode" column="faultCode"/>
+        <result property="remark" column="remark"/>
+        <result property="type" column="type"/>
+        <result property="state" column="state"/>
+        <result property="repairMethod" column="repairMethod"/>
+    </resultMap>
+
+    <!--通过实体作为筛选条件查询-->
+    <select id="pageQuery" parameterType="com.itl.iap.mes.api.dto.FaultDto" resultMap="FaultMap">
+        SELECT
+        A.id,
+        A.planCode,
+        A.faultCode,
+        A.remark,
+        A.type,
+        A.state,
+        A.repairMethod
+        FROM
+        m_repair_fault A
+        <where>
+            AND A.siteId = #{faultDto.siteId}
+            <if test="faultDto.faultCode != null and faultDto.faultCode !=''">
+                AND A.faultCode like concat('%',#{faultDto.faultCode},'%')
+            </if>
+            <if test="faultDto.state != null and faultDto.state !=''">
+                AND A.state = #{faultDto.state}
+            </if>
+        </where>
+
+        ORDER BY createTime DESC
+    </select>
+    <select id="pageQueryByState" parameterType="com.itl.iap.mes.api.dto.FaultDto" resultMap="FaultMap">
+        SELECT
+        A.id,
+        A.planCode,
+        A.faultCode,
+        A.remark,
+        A.type,
+        A.state,
+        A.repairMethod
+        FROM
+        m_repair_fault A
+        <where>
+            AND A.siteId = #{faultDto.siteId}
+            <if test="faultDto.faultCode != null and faultDto.faultCode !=''">
+                AND A.faultCode = #{faultDto.faultCode}
+            </if>
+            AND A.state = '0'
+        </where>
+
+        ORDER BY createTime DESC
+    </select>
+
+</mapper>

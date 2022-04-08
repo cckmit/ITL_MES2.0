@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.itl.iap.mes.provider.mapper.ProveMapper">
+
+
+
+
+    <select id="findStationProveList" resultType="com.itl.iap.mes.api.entity.prove.ProveEntity" parameterType="com.itl.iap.mes.api.dto.prove.StationProveQueryDTO">
+
+        select b.prove_id as proveId,b.prove_code as proveCode,b.prove_description as proveDescription
+        from m_station_prove a,sys_prove b
+        where a.prove_id = b.prove_id and a.station_bo = #{stationProve.stationBo}
+        and site = #{stationProve.site}
+        <if test="stationProve.proveCode != null and stationProve.proveCode != ''">
+
+            and  b.prove_code like concat(#{stationProve.proveCode},'%')
+
+        </if>
+
+    </select>
+
+
+    <select id="findNotStationProveList" resultType="com.itl.iap.mes.api.entity.prove.ProveEntity" parameterType="com.itl.iap.mes.api.dto.prove.StationProveQueryDTO">
+
+        select prove_id as proveId,prove_code as proveCode,prove_description as proveDescription
+        from  sys_prove
+        where not exists
+        (select 1 from m_station_prove
+        where sys_prove.prove_id = m_station_prove.prove_id
+        and m_station_prove.station_bo = #{stationProve.stationBo})
+        and site = #{stationProve.site}
+        and state = '0'
+        <if test="stationProve.proveCode != null and stationProve.proveCode != ''">
+
+            and  prove_code like concat(#{stationProve.proveCode},'%')
+
+        </if>
+
+    </select>
+
+
+
+    <select id="findUserProveList" resultType="com.itl.iap.mes.api.entity.prove.ProveEntity" parameterType="com.itl.iap.mes.api.dto.prove.UserProveQueryDTO">
+
+        select b.prove_id as proveId,b.prove_code as proveCode,b.prove_description as proveDescription
+        from iap_sys_user_prove_t a,sys_prove b
+        where a.prove_id = b.prove_id and a.user_id = #{userProve.userId}
+        and site = #{userProve.site}
+        <if test="userProve.proveCode != null and userProve.proveCode != ''">
+
+            and  b.prove_code like concat(#{userProve.proveCode},'%')
+
+        </if>
+
+    </select>
+
+
+    <select id="findNotUserProveList" resultType="com.itl.iap.mes.api.entity.prove.ProveEntity" parameterType="com.itl.iap.mes.api.dto.prove.UserProveQueryDTO">
+
+        select prove_id as proveId,prove_code as proveCode,prove_description as proveDescription
+        from sys_prove
+        where not exists (
+        select 1 from iap_sys_user_prove_t
+        where sys_prove.prove_id = iap_sys_user_prove_t.prove_id
+        and iap_sys_user_prove_t.user_id = #{userProve.userId}
+        )
+        and site = #{userProve.site}
+        <if test="userProve.proveCode != null and userProve.proveCode != ''">
+            and  prove_code like concat(#{userProve.proveCode},'%')
+        </if>
+
+    </select>
+
+
+</mapper>

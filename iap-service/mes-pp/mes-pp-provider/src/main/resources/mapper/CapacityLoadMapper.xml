@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.itl.mes.pp.provider.mapper.CapacityLoadMapper">
+
+    <select id="machineRatedTime" resultType="com.itl.mes.pp.api.dto.CapacityLoadRespDTO">
+
+        SELECT
+        a.PRODUCT_LINE AS productLine,
+        b.RATED_TIME AS ratedTime
+        FROM
+        m_product_line a
+        LEFT JOIN p_device_capacity b ON a.BO = b.PRODUCT_LINE_BO
+        WHERE  a.SITE = #{site}
+        <if test='capacityLoadQueryDTO.workShopBo != null and capacityLoadQueryDTO.workShopBo != ""'>
+           AND a.WORK_SHOP_BO = #{capacityLoadQueryDTO.workShopBo}
+        </if>
+    </select>
+
+    <select id="capacityLoadList" resultType="com.itl.mes.pp.api.dto.CapacityLoadRespDTO">
+
+        SELECT
+        a.PRODUCT_LINE AS productLine,
+        CASE
+        WHEN c.AVAILABLE_WORK_HOUR IS NULL THEN
+        0 ELSE c.AVAILABLE_WORK_HOUR
+        END AS availableWorkHour,
+        CASE
+        WHEN c.ARRANGED_WORK_HOUR IS NULL THEN
+        0 ELSE c.ARRANGED_WORK_HOUR
+        END AS arrangedWorkHour,
+        c.date
+        FROM
+        m_product_line a
+        LEFT JOIN p_capacity_load c ON a.BO = c.PRODUCT_LINE_BO
+        WHERE  a.SITE = #{site}
+		AND c.DATE BETWEEN #{startDate} AND #{endDate}
+    </select>
+</mapper>

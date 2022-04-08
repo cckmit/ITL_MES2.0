@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.itl.mes.me.provider.mapper.InstructorMapper">
+    <select id="queryList" resultType="com.itl.mes.me.api.entity.Instructor">
+        SELECT BO,
+               SITE,
+               INSTRUCTOR,
+               INSTRUCTOR_FILE,
+               INSTRUCTOR_NAME,
+               INSTRUCTOR_DESC,
+               VERSION,
+               EXPLAIN,
+               STATE,
+               CREATE_USER,
+               CREATE_DATE,
+               MODIFY_USER,
+               MODIFY_DATE
+        FROM m_instructor
+        WHERE SITE = #{queryDto.site}
+        <if test="queryDto.instructor != null and queryDto.instructor !=''">
+            AND INSTRUCTOR like '%${queryDto.instructor}%'
+        </if>
+        <if test="queryDto.instructorName != null and queryDto.instructorName !=''">
+            AND INSTRUCTOR_NAME like '%${queryDto.instructorName}%'
+        </if>
+    </select>
+
+    <select id="queryListByState" resultType="com.itl.mes.me.api.entity.Instructor">
+        SELECT BO,
+        SITE,
+        INSTRUCTOR,
+        INSTRUCTOR_FILE,
+        INSTRUCTOR_NAME,
+        INSTRUCTOR_DESC,
+        VERSION,
+        EXPLAIN,
+        STATE,
+        CREATE_USER,
+        CREATE_DATE,
+        MODIFY_USER,
+        MODIFY_DATE
+        FROM m_instructor
+        WHERE SITE = #{queryDto.site} AND STATE = '1'
+        <if test="queryDto.instructor != null and queryDto.instructor !=''">
+            AND INSTRUCTOR like '%${queryDto.instructor}%'
+        </if>
+        <if test="queryDto.instructorName != null and queryDto.instructorName !=''">
+            AND INSTRUCTOR_NAME like '%${queryDto.instructorName}%'
+        </if>
+    </select>
+</mapper>

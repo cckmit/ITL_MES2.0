@@ -1,0 +1,36 @@
+group-id: iap
+# 8.129.102.185  localhost  19011
+# Server user:root  password:1AxVpaNL
+# jenkins itl itl123
+NACOS_HOST: 192.168.6.68:8899
+spring:
+  aop:
+    proxy-target-class: true # 使用CGLIB
+  application:
+    name: mes-me-provider #设置项目名称
+  main:
+    allow-bean-definition-overriding: true
+  cloud:
+    nacos:
+      discovery:
+        server-addr: ${NACOS_HOST:192.168.6.68:8899}
+        namespace: ${NAME_SPACE:mesdev}
+      config:
+        server-addr: ${NACOS_HOST:192.168.6.68:8899}
+        file-extension: yml # 配置文件的格式，默认为properties
+        namespace: ${NAME_SPACE:mesdev}
+        group: ${group-id}
+#    sentinel:
+#      transport:
+#        port: 9901
+#        dashboard: ${SENTINEL_HOST:8.129.102.185:9901}
+#      # 服务启动直接建立心跳连接
+#      eager: true
+#      datasource:
+#        ds:
+#          nacos:
+#            server-addr: ${NACOS_HOST:8.129.102.185:8848}
+#            dataId: ${spring.application.name}-sentinel
+#            groupId: ${group-id}
+#            data-type: json
+#            rule-type: flow

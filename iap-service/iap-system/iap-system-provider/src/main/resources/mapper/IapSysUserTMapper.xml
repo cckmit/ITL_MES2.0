@@ -1,0 +1,591 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.itl.iap.system.provider.mapper.IapSysUserTMapper">
+
+    <resultMap type="com.itl.iap.system.api.dto.IapSysUserTDto" id="IapSysUserTMap">
+        <id property="id" column="id" jdbcType="VARCHAR"/>
+        <result property="userName" column="user_name" jdbcType="VARCHAR"/>
+        <result property="userPsw" column="user_psw" jdbcType="VARCHAR"/>
+        <result property="userMobile" column="user_mobile" jdbcType="VARCHAR"/>
+        <result property="userCode" column="user_code" jdbcType="VARCHAR"/>
+        <result property="realName" column="real_name" jdbcType="VARCHAR"/>
+        <result property="email" column="email" jdbcType="VARCHAR"/>
+        <result property="parentLeader" column="parent_leader" jdbcType="VARCHAR"/>
+        <result property="idCardNum" column="id_card_num" jdbcType="VARCHAR"/>
+        <result property="address" column="address" jdbcType="VARCHAR"/>
+        <result property="registerDate" column="register_date" jdbcType="TIMESTAMP"/>
+        <result property="gender" column="gender" jdbcType="SMALLINT"/>
+        <result property="birthday" column="birthday" jdbcType="TIMESTAMP"/>
+        <result property="signature" column="signature" jdbcType="VARCHAR"/>
+        <result property="pushToken" column="push_token" jdbcType="VARCHAR"/>
+        <result property="nickName" column="nick_name" jdbcType="VARCHAR"/>
+        <result property="avatar" column="avatar" jdbcType="VARCHAR"/>
+        <result property="fax" column="fax" jdbcType="VARCHAR"/>
+        <result property="mobilePhone" column="mobile_phone" jdbcType="VARCHAR"/>
+        <result property="officePhone" column="office_phone" jdbcType="VARCHAR"/>
+        <result property="state" column="state" jdbcType="SMALLINT"/>
+        <result property="userType" column="user_type" jdbcType="INTEGER"/>
+        <result property="pwdUpdateTime" column="pwd_update_time" jdbcType="TIMESTAMP"/>
+        <result property="creater" column="creater" jdbcType="VARCHAR"/>
+        <result property="createDate" column="create_date" jdbcType="TIMESTAMP"/>
+        <result property="createOrg" column="create_org" jdbcType="VARCHAR"/>
+        <result property="lastUpdateBy" column="last_update_by" jdbcType="VARCHAR"/>
+        <result property="lastUpdateDate" column="last_update_date" jdbcType="TIMESTAMP"/>
+        <result property="validity" column="validity" jdbcType="TIMESTAMP"/>
+        <result property="userCardNumber" column="user_card_number" jdbcType="VARCHAR"/>
+        <result property="insideNo" column="inside_no" jdbcType="VARCHAR"/>
+        <collection column="{id=user_id}" property="iapSysOrganizationT" select="queryOrganizationById"/>
+        <collection column="{id=user_id}" property="iapSysRoleTDtoList" select="queryByRole"/>
+        <collection column="{id=user_id}" property="positionTDtoList" select="queryPositionById"/>
+    </resultMap>
+
+    <resultMap type="com.itl.iap.system.api.dto.IapSysUserTDto" id="IapSysUserTDtos">
+        <id property="id" column="id" jdbcType="VARCHAR"/>
+        <result property="userName" column="user_name" jdbcType="VARCHAR"/>
+        <result property="userPsw" column="user_psw" jdbcType="VARCHAR"/>
+        <result property="userMobile" column="user_mobile" jdbcType="VARCHAR"/>
+        <result property="userCode" column="user_code" jdbcType="VARCHAR"/>
+        <result property="realName" column="real_name" jdbcType="VARCHAR"/>
+        <result property="email" column="email" jdbcType="VARCHAR"/>
+        <result property="parentLeader" column="parent_leader" jdbcType="VARCHAR"/>
+        <result property="idCardNum" column="id_card_num" jdbcType="VARCHAR"/>
+        <result property="address" column="address" jdbcType="VARCHAR"/>
+        <result property="registerDate" column="register_date" jdbcType="TIMESTAMP"/>
+        <result property="gender" column="gender" jdbcType="SMALLINT"/>
+        <result property="birthday" column="birthday" jdbcType="TIMESTAMP"/>
+        <result property="signature" column="signature" jdbcType="VARCHAR"/>
+        <result property="pushToken" column="push_token" jdbcType="VARCHAR"/>
+        <result property="nickName" column="nick_name" jdbcType="VARCHAR"/>
+        <result property="avatar" column="avatar" jdbcType="VARCHAR"/>
+        <result property="fax" column="fax" jdbcType="VARCHAR"/>
+        <result property="mobilePhone" column="mobile_phone" jdbcType="VARCHAR"/>
+        <result property="officePhone" column="office_phone" jdbcType="VARCHAR"/>
+        <result property="state" column="state" jdbcType="SMALLINT"/>
+        <result property="userType" column="user_type" jdbcType="INTEGER"/>
+        <result property="pwdUpdateTime" column="pwd_update_time" jdbcType="TIMESTAMP"/>
+        <result property="creater" column="creater" jdbcType="VARCHAR"/>
+        <result property="createDate" column="create_date" jdbcType="TIMESTAMP"/>
+        <result property="createOrg" column="create_org" jdbcType="VARCHAR"/>
+        <result property="lastUpdateBy" column="last_update_by" jdbcType="VARCHAR"/>
+        <result property="lastUpdateDate" column="last_update_date" jdbcType="TIMESTAMP"/>
+    </resultMap>
+
+    <resultMap id="iapSysRoleTDto" type="com.itl.iap.system.api.dto.IapSysRoleTDto">
+        <id column="role_id" property="id" jdbcType="VARCHAR"/>
+        <result column="role_name" property="roleName" jdbcType="VARCHAR"/>
+        <result column="role_type" property="roleCode" jdbcType="VARCHAR"/>
+        <result column="role_code" property="roleCode" jdbcType="VARCHAR"/>
+        <result column="description" property="description" jdbcType="VARCHAR"/>
+        <result column="sort" property="sort" jdbcType="SMALLINT"/>
+        <result column="state" property="state" jdbcType="SMALLINT"/>
+        <result column="creater" property="creater" jdbcType="VARCHAR"/>
+        <result column="create_date" property="createDate" jdbcType="TIMESTAMP"/>
+        <result column="last_update_date" property="lastUpdateDate" jdbcType="TIMESTAMP"/>
+        <result column="create_org" property="createOrg" jdbcType="TIMESTAMP"/>
+        <result column="last_update_by" property="lastUpdateBy" jdbcType="TIMESTAMP"/>
+        <result column="del_flag" property="delFlag" jdbcType="SMALLINT"/>
+    </resultMap>
+
+    <resultMap type="com.itl.iap.system.api.dto.IapSysUserTDto" id="UserInfoMap">
+        <id property="id" column="id" jdbcType="VARCHAR"/>
+        <result property="userName" column="user_name" jdbcType="VARCHAR"/>
+        <result property="userMobile" column="user_mobile" jdbcType="VARCHAR"/>
+        <result property="userCode" column="user_code" jdbcType="VARCHAR"/>
+        <result property="realName" column="real_name" jdbcType="VARCHAR"/>
+        <result property="email" column="email" jdbcType="VARCHAR"/>
+        <result property="parentLeader" column="parent_leader" jdbcType="VARCHAR"/>
+        <result property="idCardNum" column="id_card_num" jdbcType="VARCHAR"/>
+        <result property="address" column="address" jdbcType="VARCHAR"/>
+        <result property="registerDate" column="register_date" jdbcType="TIMESTAMP"/>
+        <result property="gender" column="gender" jdbcType="SMALLINT"/>
+        <result property="birthday" column="birthday" jdbcType="TIMESTAMP"/>
+        <result property="signature" column="signature" jdbcType="VARCHAR"/>
+        <result property="pushToken" column="push_token" jdbcType="VARCHAR"/>
+        <result property="nickName" column="nick_name" jdbcType="VARCHAR"/>
+        <result property="avatar" column="avatar" jdbcType="VARCHAR"/>
+        <result property="fax" column="fax" jdbcType="VARCHAR"/>
+        <result property="mobilePhone" column="mobile_phone" jdbcType="VARCHAR"/>
+        <result property="officePhone" column="office_phone" jdbcType="VARCHAR"/>
+        <result property="state" column="state" jdbcType="SMALLINT"/>
+        <result property="userType" column="user_type" jdbcType="INTEGER"/>
+        <result property="pwdUpdateTime" column="pwd_update_time" jdbcType="TIMESTAMP"/>
+        <result property="creater" column="creater" jdbcType="VARCHAR"/>
+        <result property="createDate" column="create_date" jdbcType="TIMESTAMP"/>
+        <result property="createOrg" column="create_org" jdbcType="VARCHAR"/>
+        <result property="lastUpdateBy" column="last_update_by" jdbcType="VARCHAR"/>
+        <result property="lastUpdateDate" column="last_update_date" jdbcType="TIMESTAMP"/>
+        <result property="validity" column="validity" jdbcType="TIMESTAMP"/>
+        <association property="employeeDto" column="{id=user_id}" select="queryEmployeeById" />
+        <collection property="iapSysOrganizationT" column="{id=user_id}" select="queryOrganizationById"/>
+        <collection property="iapSysRoleTDtoList" column="{id=user_id}" select="queryByRole"/>
+        <collection property="positionTDtoList" column="{id=user_id}" select="queryPositionById"/>
+    </resultMap>
+
+    <resultMap type="com.itl.iap.system.api.dto.IapSysUserTDto" id="groupMemberInfMap">
+        <id property="id" column="id" jdbcType="VARCHAR"/>
+        <result property="userName" column="user_name" jdbcType="VARCHAR"/>
+        <result property="userMobile" column="user_mobile" jdbcType="VARCHAR"/>
+        <result property="userCode" column="user_code" jdbcType="VARCHAR"/>
+        <result property="realName" column="real_name" jdbcType="VARCHAR"/>
+        <result property="email" column="email" jdbcType="VARCHAR"/>
+        <result property="gender" column="gender" jdbcType="SMALLINT"/>
+        <result property="birthday" column="birthday" jdbcType="TIMESTAMP"/>
+        <result property="signature" column="signature" jdbcType="VARCHAR"/>
+        <result property="nickName" column="nick_name" jdbcType="VARCHAR"/>
+        <result property="avatar" column="avatar" jdbcType="VARCHAR"/>
+        <result property="mobilePhone" column="mobile_phone" jdbcType="VARCHAR"/>
+        <result property="state" column="state" jdbcType="SMALLINT"/>
+        <result property="host" column="host" jdbcType="VARCHAR" />
+        <collection property="iapSysOrganizationT" column="{id=id}" select="queryOrganizationById"/>
+        <collection property="positionTDtoList" column="{id=id}" select="queryPositionById"/>
+    </resultMap>
+
+
+    <!--通过实体作为筛选条件查询-->
+    <select id="pageQuery" resultMap="IapSysUserTMap">
+        select * from (SELECT
+        DISTINCT
+        A.id,
+        A.user_name,
+        A.user_psw,
+        A.user_mobile,
+        A.user_code,
+        A.real_name,
+        A.email,
+        A.parent_leader,
+        A.id_card_num,
+        A.address,
+        A.register_date,
+        A.gender,
+        A.birthday,
+        A.signature,
+        A.push_token,
+        A.nick_name,
+        A.avatar,
+        A.fax,
+        A.mobile_phone,
+        A.office_phone,
+        A.state,
+        A.user_type,
+        A.pwd_update_time,
+        A.creater,
+        A.create_date,
+        A.create_org,
+        A.last_update_by,
+        A.last_update_date,
+        A.validity,
+        A.user_card_number,
+        emp.code as employeeCode,
+        A.id as user_id,
+        A.dispatch_ratio as dispatchRatio,
+        A.work_shop_bo as workShopBo,
+        M.WORK_SHOP_DESC as workShopName,
+        A.belong_work_shop_bo as belongWorkShopBo,
+        M2.WORK_SHOP_DESC as belongWorkShopName,
+        A.inside_no
+        FROM
+        iap_sys_user_t A
+        LEFT JOIN iap_sys_user_role_t B ON A.id = B.user_id
+        LEFT JOIN iap_sys_position_user_t C ON A.id = C.user_id
+        LEFT JOIN iap_sys_organization_position_t D ON D.position_id = C.position_id
+        LEFT JOIN iap_sys_employee_t emp ON emp.user_id = A.id
+        LEFT JOIN m_work_shop M on A.work_shop_bo=M.bo
+        LEFT JOIN m_work_shop M2 on A.belong_work_shop_bo=M2.bo
+        <where>
+            <if test="iapSysUserTDto.userName != null and iapSysUserTDto.userName != ''">
+                and A.user_name like concat('%', #{iapSysUserTDto.userName}, '%')
+            </if>
+            <if test="iapSysUserTDto.userMobile != null and iapSysUserTDto.userMobile != ''">
+                and A.user_mobile like concat('%', #{iapSysUserTDto.userMobile}, '%')
+            </if>
+            <if test="iapSysUserTDto.userCode != null and iapSysUserTDto.userCode != ''">
+                and A.user_code like concat('%', #{iapSysUserTDto.userCode}, '%')
+            </if>
+            <if test="iapSysUserTDto.realName != null and iapSysUserTDto.realName != ''">
+                and A.real_name like concat('%', #{iapSysUserTDto.realName}, '%')
+            </if>
+            <if test="iapSysUserTDto.email != null and iapSysUserTDto.email != ''">
+                and A.email like concat('%', #{iapSysUserTDto.email}, '%')
+            </if>
+            <if test="iapSysUserTDto.mobilePhone != null and iapSysUserTDto.mobilePhone != ''">
+                and A.mobile_phone like concat('%', #{iapSysUserTDto.mobilePhone}, '%')
+            </if>
+            <if test="iapSysUserTDto.officePhone != null and iapSysUserTDto.officePhone != ''">
+                and A.office_phone like concat('%', #{iapSysUserTDto.officePhone}, '%')
+            </if>
+            <if test="iapSysUserTDto.state != null">
+                and A.state = #{iapSysUserTDto.state}
+            </if>
+            <if test="iapSysUserTDto.userType != null">
+                and A.user_type = #{iapSysUserTDto.userType}
+            </if>
+            <if test="iapSysUserTDto.userCardNumber != null">
+                and A.user_card_number LIKE concat('%', #{iapSysUserTDto.userCardNumber},'%')
+            </if>
+            <if test="iapSysUserTDto.organizations != null  and iapSysUserTDto.organizations.size != 0">
+                and D.organization_id in
+                <foreach item="item" index="index" collection="iapSysUserTDto.organizations"
+                         open="(" separator="," close=")">
+                    #{item}
+                </foreach>
+            </if>
+            <if test="iapSysUserTDto.employeeCode != null  and iapSysUserTDto.employeeCode != ''">
+                and emp.code like concat('%', #{iapSysUserTDto.employeeCode},'%')
+            </if>
+        </where>) t
+        ORDER BY t.create_date desc
+    </select>
+
+    <select id="pageQueryByState" resultMap="IapSysUserTMap">
+        SELECT
+        DISTINCT
+        A.id,
+        A.user_name,
+        A.user_psw,
+        A.user_mobile,
+        A.user_code,
+        A.real_name,
+        A.email,
+        A.parent_leader,
+        A.id_card_num,
+        A.address,
+        A.register_date,
+        A.gender,
+        A.birthday,
+        A.signature,
+        A.push_token,
+        A.nick_name,
+        A.avatar,
+        A.fax,
+        A.mobile_phone,
+        A.office_phone,
+        A.state,
+        A.user_type,
+        A.pwd_update_time,
+        A.creater,
+        A.create_date,
+        A.create_org,
+        A.last_update_by,
+        A.last_update_date,
+        A.validity,
+        emp.code as employeeCode,
+        A.id as user_id
+        FROM
+        iap_sys_user_t A
+        LEFT JOIN iap_sys_user_role_t B ON A.id = B.user_id
+        LEFT JOIN iap_sys_position_user_t C ON A.id = C.user_id
+        LEFT JOIN iap_sys_organization_position_t D ON D.position_id = C.position_id
+        LEFT JOIN iap_sys_employee_t emp ON emp.user_id = A.id
+        <where>
+            <if test="iapSysUserTDto.userName != null and iapSysUserTDto.userName != ''">
+                and A.user_name like concat('%', #{iapSysUserTDto.userName}, '%')
+            </if>
+            <if test="iapSysUserTDto.userMobile != null and iapSysUserTDto.userMobile != ''">
+                and A.user_mobile like concat('%', #{iapSysUserTDto.userMobile}, '%')
+            </if>
+            <if test="iapSysUserTDto.userCode != null and iapSysUserTDto.userCode != ''">
+                and A.user_code like concat('%', #{iapSysUserTDto.userCode}, '%')
+            </if>
+            <if test="iapSysUserTDto.realName != null and iapSysUserTDto.realName != ''">
+                and A.real_name like concat('%', #{iapSysUserTDto.realName}, '%')
+            </if>
+            <if test="iapSysUserTDto.email != null and iapSysUserTDto.email != ''">
+                and A.email like concat('%', #{iapSysUserTDto.email}, '%')
+            </if>
+            <if test="iapSysUserTDto.mobilePhone != null and iapSysUserTDto.mobilePhone != ''">
+                and A.mobile_phone like concat('%', #{iapSysUserTDto.mobilePhone}, '%')
+            </if>
+            <if test="iapSysUserTDto.officePhone != null and iapSysUserTDto.officePhone != ''">
+                and A.office_phone like concat('%', #{iapSysUserTDto.officePhone}, '%')
+            </if>
+
+                and A.state = '0'
+
+            <if test="iapSysUserTDto.userType != null">
+                and A.user_type = #{iapSysUserTDto.userType}
+            </if>
+            <if test="iapSysUserTDto.organizations != null  and iapSysUserTDto.organizations.size != 0">
+                and D.organization_id in
+                <foreach item="item" index="index" collection="iapSysUserTDto.organizations"
+                         open="(" separator="," close=")">
+                    #{item}
+                </foreach>
+            </if>
+            <if test="iapSysUserTDto.employeeCode != null  and iapSysUserTDto.employeeCode != ''">
+                and emp.code like concat('%', #{iapSysUserTDto.employeeCode},'%')
+            </if>
+        </where>
+        ORDER BY A.create_date desc
+    </select>
+
+    <select id="getUserForEmp" resultMap="IapSysUserTDtos">
+        SELECT
+        A.id,
+        A.user_name,
+        A.user_psw,
+        A.user_mobile,
+        A.user_code,
+        A.real_name,
+        A.email,
+        A.parent_leader,
+        A.id_card_num,
+        A.address,
+        A.register_date,
+        A.gender,
+        A.birthday,
+        A.signature,
+        A.push_token,
+        A.nick_name,
+        A.avatar,
+        A.fax,
+        A.mobile_phone,
+        A.office_phone,
+        A.state,
+        A.user_type,
+        A.pwd_update_time,
+        A.creater,
+        A.create_date,
+        A.create_org,
+        A.last_update_by,
+        A.last_update_date,
+        A.id as user_id
+        FROM
+        iap_sys_user_t A
+        LEFT JOIN iap_sys_employee_t emp ON emp.user_id = A.id
+        <where>
+            <if test="iapSysUserTDto.userName != null and iapSysUserTDto.userName != ''">
+                and A.user_name like concat('%', #{iapSysUserTDto.userName}, '%')
+            </if>
+            <if test="iapSysUserTDto.userMobile != null and iapSysUserTDto.userMobile != ''">
+                and A.user_mobile like concat('%', #{iapSysUserTDto.userMobile}, '%')
+            </if>
+            <if test="iapSysUserTDto.userCode != null and iapSysUserTDto.userCode != ''">
+                and A.user_code like concat('%', #{iapSysUserTDto.userCode}, '%')
+            </if>
+            <if test="iapSysUserTDto.realName != null and iapSysUserTDto.realName != ''">
+                and A.real_name like concat('%', #{iapSysUserTDto.realName}, '%')
+            </if>
+            <if test="iapSysUserTDto.email != null and iapSysUserTDto.email != ''">
+                and A.email like concat('%', #{iapSysUserTDto.email}, '%')
+            </if>
+            <if test="iapSysUserTDto.mobilePhone != null and iapSysUserTDto.mobilePhone != ''">
+                and A.mobile_phone like concat('%', #{iapSysUserTDto.mobilePhone}, '%')
+            </if>
+            <if test="iapSysUserTDto.officePhone != null and iapSysUserTDto.officePhone != ''">
+                and A.office_phone like concat('%', #{iapSysUserTDto.officePhone}, '%')
+            </if>
+            <if test="iapSysUserTDto.state != null">
+                and A.state = #{iapSysUserTDto.state}
+            </if>
+            <if test="iapSysUserTDto.userType != null">
+                and A.user_type = #{iapSysUserTDto.userType}
+            </if>
+            and (emp.user_id IS NULL or emp.user_id = '')
+        </where>
+        ORDER BY A.create_date ASC
+    </select>
+
+    <select id="queryByRole" resultMap="iapSysRoleTDto">
+        SELECT
+            A.id AS role_id,
+            A.role_name,
+            A.role_code,
+            A.role_type,
+            A.description,
+            A.sort,
+            A.state,
+            A.creater,
+            A.create_date,
+            A.create_org,
+            A.last_update_by,
+            A.last_update_date,
+            A.del_flag
+        FROM
+            iap_sys_role_t A
+        LEFT JOIN iap_sys_user_role_t B ON A.id = B.role_id
+        WHERE
+            B.user_id = #{id}
+    </select>
+
+    <select id="queryPositionById" resultType="com.itl.iap.system.api.dto.IapPositionTDto">
+         SELECT
+            A.id,
+            A.name,
+            A.code,
+            A.type,
+            A.enabled,
+            A.remark
+        FROM
+             iap_sys_position_t A
+        LEFT JOIN iap_sys_position_user_t B ON A.id = B.position_id
+        WHERE
+            B.user_id = #{id} AND A.id IS NOT NULL
+    </select>
+    <select id="queryOrganizationById" resultType="com.itl.iap.system.api.entity.IapSysOrganizationT">
+        SELECT
+            C.*
+        FROM
+            iap_sys_position_user_t A
+            LEFT JOIN iap_sys_organization_position_t B ON A.position_id = B.position_id
+            LEFT JOIN iap_sys_organization_t C ON B.organization_id = C.id
+        WHERE
+            A.user_id = #{id}  AND C.id IS NOT NULL
+    </select>
+
+    <select id="queryAllRole" resultMap="iapSysRoleTDto">
+        SELECT
+            id as role_id,
+            role_name,
+            role_code,
+            role_type,
+            description,
+            sort,
+            state,
+            creater,
+            create_date,
+            create_org,
+            last_update_by,
+            last_update_date,
+            del_flag
+        FROM
+	    iap_sys_role_t
+	    where iap_sys_role_t.state = 0
+    </select>
+
+    <select id="queryUserById" resultMap="UserInfoMap">
+        SELECT
+            A.id,
+            A.user_name,
+            A.user_psw,
+            A.user_mobile,
+            A.user_code,
+            A.real_name,
+            A.email,
+            A.parent_leader,
+            A.id_card_num,
+            A.address,
+            A.register_date,
+            A.gender,
+            A.birthday,
+            A.signature,
+            A.push_token,
+            A.nick_name,
+            A.avatar,
+            A.fax,
+            A.mobile_phone,
+            A.office_phone,
+            A.state,
+            A.user_type,
+            A.pwd_update_time,
+            A.creater,
+            A.create_date,
+            A.create_org,
+            A.last_update_by,
+            A.last_update_date,
+            A.validity,
+            A.id AS user_id
+        FROM
+            iap_sys_user_t AS A
+        WHERE 1=1
+        <if test="iapSysUserTDto.id != null and iapSysUserTDto.userName != ''">
+            AND A.id = #{iapSysUserTDto.id}
+        </if>
+        <if test="iapSysUserTDto.userName != null and iapSysUserTDto.userName != ''">
+            AND A.user_name = #{iapSysUserTDto.userName}
+        </if>
+    </select>
+
+    <select id="queryEmployeeById" resultType="com.itl.iap.system.api.dto.IapEmployeeTDto">
+        SELECT
+            C.id,
+            C.name,
+            C.code,
+            C.contract,
+            C.email,
+            C.status,
+            C.type,
+            C.creater,
+            C.create_date AS createDate,
+            C.create_org AS createOrg,
+            C.last_update_by AS lastUpdateBy,
+            C.last_update_date AS lastUpdateDate,
+            C.remark,
+            C.user_id AS userId
+        FROM iap_sys_employee_t AS C
+        WHERE C.user_id = #{id}
+    </select>
+
+    <!--根据用户名称模糊查询用户信息-->
+    <select id="queryUserInfoByUserName" resultType="com.itl.iap.system.api.dto.IapSysUserTDto">
+        SELECT
+        A.id,
+        A.user_name as userName,
+        A.user_mobile as userMobile,
+        A.user_code as userCode,
+        A.real_name as realName,
+        A.gender,
+        A.avatar,
+        A.birthday,
+        A.email,
+        A.create_date,
+        B.position_id as positionId
+        FROM
+        iap_sys_user_t A
+        LEFT  JOIN iap_sys_position_user_t B ON A.id = B.user_id
+        <where>
+            <if test="username != null and username != ''">
+                and A.real_name like concat('%', #{username}, '%')
+            </if>
+        </where>
+        ORDER BY A.create_date ASC
+    </select>
+
+    <!-- 根据群ID，查询群成员信息 -->
+    <select id="getUserByGroupId" resultMap="groupMemberInfMap">
+        SELECT
+            U.id,
+            U.user_name,
+            U.user_mobile,
+            U.real_name,
+            U.avatar,
+            U.gender,
+            U.birthday,
+            GM.host
+        FROM
+            iap_sys_user_t AS U
+        LEFT JOIN im_group_member AS GM ON U.user_name = GM.account
+        LEFT JOIN im_group AS G ON GM.groupId = G.id
+        WHERE 1=1
+        <if test="groupId != null ">
+            AND G.id = #{groupId}
+        </if>
+    </select>
+
+    <select id="getRoleUserList" resultType="com.itl.iap.system.api.entity.IapSysUserT">
+
+        select a.user_name as userName,a.id,a.real_name as realName
+        from iap_sys_user_t a,iap_sys_user_role_t b
+        where a.id = b.user_id and b.role_id = #{iapRoleUserQueryDTO.roleId}
+        <if test="iapRoleUserQueryDTO.userName!=null">
+            and USER_NAME like concat('%',#{iapRoleUserQueryDTO.userName,jdbcType=VARCHAR}, '%')
+        </if>
+        order by b.last_update_date asc
+
+    </select>
+
+    <select id="getNotRoleUserList" resultType="com.itl.iap.system.api.entity.IapSysUserT">
+
+        select user_name as userName,id,real_name as realName from iap_sys_user_t
+        where not exists (
+        select 1 from iap_sys_user_role_t
+        where iap_sys_user_t.id = iap_sys_user_role_t.user_id
+        and iap_sys_user_role_t.role_id = #{iapRoleUserQueryDTO.roleId})
+        <if test="iapRoleUserQueryDTO.userName!=null">
+            and iap_sys_user_t.user_name like concat('%',#{iapRoleUserQueryDTO.userName,jdbcType=VARCHAR}, '%')
+        </if>
+        order by iap_sys_user_t.id DESC
+
+    </select>
+
+
+</mapper>

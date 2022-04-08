@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.itl.iap.mes.provider.mapper.UpkeepPlanMapper">
+
+    <sql id="FIELD">
+        t.id AS id,t.upkeepPlanName AS upkeepPlanName,t.code AS code,t.name AS name,t.type AS type,t.dataCollectionId AS dataCollectionId,t.dataCollectionName AS dataCollectionName,t.upkeepUserId AS upkeepUserId,t.upkeepUserName AS upkeepUserName,t.startTime AS startTime,t.endTime AS endTime,t.state AS state,t.cycle AS cycle,t.ytd AS ytd,t.remark AS remark,t.jobIds AS jobIds,t.runState AS runState,t.deviceTypeName,t.createName,t.createAccount,t.createTime
+    </sql>
+    <sql id="WHERE_FIELD">
+        <where>
+            <if test="upkeepPlan.code != null and upkeepPlan.code!=''">
+                AND t.code LIKE CONCAT('%',#{upkeepPlan.code},'%')
+            </if>
+            <if test="upkeepPlan.upkeepPlanName != null and upkeepPlan.upkeepPlanName !=''">
+                AND t.upkeepPlanName LIKE CONCAT('%',#{upkeepPlan.upkeepPlanName},'%')
+            </if>
+            <if test="upkeepPlan.dataCollectionName != null and upkeepPlan.dataCollectionName!=''">
+                AND t.dataCollectionName LIKE CONCAT('%',#{upkeepPlan.dataCollectionName},'%')
+            </if>
+            <if test="upkeepPlan.upkeepUserName != null and upkeepPlan.upkeepUserName !=''">
+                AND t.upkeepUserName LIKE CONCAT('%',#{upkeepPlan.upkeepUserName},'%')
+            </if>
+            <if test="upkeepPlan.type != null and upkeepPlan.type !=''">
+                AND t.type LIKE CONCAT('%',#{upkeepPlan.type},'%')
+            </if>
+            <if test="upkeepPlan.deviceTypeName != null and upkeepPlan.deviceTypeName !=''">
+                AND t.deviceTypeName LIKE CONCAT('%',#{upkeepPlan.deviceTypeName},'%')
+            </if>
+            <if test="upkeepPlan.state != null">
+                AND t.state = #{upkeepPlan.state}
+            </if>
+        </where>
+    </sql>
+    <select id="findList" parameterType="com.itl.iap.mes.api.entity.UpkeepPlan" resultType="com.itl.iap.mes.api.entity.UpkeepPlan">
+        SELECT <include refid="FIELD"/>
+        FROM m_repair_upkeep_plan t
+        <include refid="WHERE_FIELD"/>
+
+        order by t.createTime Desc
+    </select>
+    <select id="findListByState" parameterType="com.itl.iap.mes.api.entity.UpkeepPlan" resultType="com.itl.iap.mes.api.entity.UpkeepPlan">
+        SELECT <include refid="FIELD"/>
+        FROM m_repair_upkeep_plan t
+        <where>
+            <if test="upkeepPlan.code != null and upkeepPlan.code!=''">
+                AND t.code LIKE CONCAT('%',#{upkeepPlan.code},'%')
+            </if>
+            <if test="upkeepPlan.upkeepPlanName != null and upkeepPlan.upkeepPlanName !=''">
+                AND t.upkeepPlanName LIKE CONCAT('%',#{upkeepPlan.upkeepPlanName},'%')
+            </if>
+            <if test="upkeepPlan.dataCollectionName != null and upkeepPlan.dataCollectionName!=''">
+                AND t.dataCollectionName LIKE CONCAT('%',#{upkeepPlan.dataCollectionName},'%')
+            </if>
+            <if test="upkeepPlan.upkeepUserName != null and upkeepPlan.upkeepUserName !=''">
+                AND t.upkeepUserName LIKE CONCAT('%',#{upkeepPlan.upkeepUserName},'%')
+            </if>
+            AND t.state='1'
+        </where>
+
+        order by t.createTime Desc
+    </select>
+
+    <select id="selectByDeviceType" resultType="com.itl.iap.mes.api.entity.UpkeepPlan" parameterType="string">
+        select <include refid="FIELD"/>
+        from  m_repair_upkeep_plan t
+        where type=#{deviceType} and upkeepPlanName=#{upkeepPlanName} and createTime=(select min(createTime) from m_repair_upkeep_plan where type=#{deviceType} and upkeepPlanName=#{upkeepPlanName})
+    </select>
+    <select id="getByDeviceTypeWithOutupkeepPlanName" resultType="com.itl.iap.mes.api.entity.UpkeepPlan" parameterType="string">
+        select <include refid="FIELD"/>
+        from  m_repair_upkeep_plan t
+        where type=#{deviceType}
+    </select>
+
+</mapper>

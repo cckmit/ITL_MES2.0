@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.itl.mes.pp.provider.mapper.WorkOrderBindingMapper">
+
+    <select id="getProductLine" parameterType="map" resultType="map">
+        SELECT t.SCREW_COMBINATION AS screwCombination,t.PROCESS_CHARACTERISTICS AS processCharacteristics, t.PRODUCT_LINE_CODE AS productLineCode,v.PRODUCT_LINE_DESC AS productLineDesc
+        FROM m_process_parameters t
+		left join m_bom mb on t.PROCESS_CHARACTERISTICS = mb.PROCESS_CHARACTERISTICS
+		left join m_shop_order mo on  mo.BOM_BO = mb.BO
+        LEFT JOIN  m_product_line v ON t.PRODUCT_LINE_CODE = v.PRODUCT_LINE
+				left join m_device md on md.PRODUCT_LINE_BO = v.BO and md.SCREW_COMBINATION = t.SCREW_COMBINATION
+        where mb.SITE = #{params.site} and mo.SHOP_ORDER = #{params.shopOrder}
+				and md.SCREW_COMBINATION is not null and md.SCREW_COMBINATION !=''
+
+        <!--SELECT t.SCREW_COMBINATION AS screwCombination,t.PROCESS_CHARACTERISTICS AS processCharacteristics, t.PRODUCT_LINE_CODE AS productLineCode,v.PRODUCT_LINE_DESC AS productLineDesc
+        FROM m_process_parameters t
+		left join m_bom mb on t.PROCESS_CHARACTERISTICS = mb.PROCESS_CHARACTERISTICS
+		left join m_shop_order mo on  mo.BOM_BO = mb.BO
+        LEFT JOIN  m_product_line v ON t.PRODUCT_LINE_CODE = v.PRODUCT_LINE
+        where mb.SITE = #{params.site} and mo.SHOP_ORDER = #{params.shopOrder} -->
+
+    </select>
+
+    <select id="getAllCustVals" parameterType="string" resultType="map">
+        SELECT BO AS bo,CUSTOM_DATA_BO AS customDataBo,ATTRIBUTE AS attribute,VALS AS vals FROM m_custom_data_val WHERE ATTRIBUTE = #{machineProperties}
+    </select>
+
+    <select id="getWorkshop" parameterType="map" resultType="string">
+        SELECT WORK_SHOP_BO FROM m_product_line WHERE SITE = #{site} AND PRODUCT_LINE = #{line}
+    </select>
+
+</mapper>   

@@ -1,0 +1,10 @@
+org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
+com.itl.iap.common.base.config.IapSwaggerConfig,\
+com.itl.iap.common.base.config.MybatisPlusConfig,\
+com.itl.iap.common.base.utils.UserUtil,\
+com.itl.iap.common.base.utils.UserUtils,\
+com.itl.iap.common.base.interceptor.SqlInterceptor,\
+com.itl.iap.common.base.config.RedisTemplateConfig,\
+com.itl.iap.common.base.aop.JdbcConfig,\
+com.itl.iap.common.base.license.LicenseCheck,\
+com.itl.iap.common.base.interceptor.FeignRequestInterceptor

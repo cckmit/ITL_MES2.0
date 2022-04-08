@@ -1,0 +1,198 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.itl.mes.pp.provider.mapper.ScheduleReceiveMapper">
+
+
+    <select id="receiveList" resultType="com.itl.mes.pp.api.dto.schedule.ReceiveRespDTO">
+
+        SELECT
+        a.BO AS bo,
+        c.SHOP_ORDER AS shopOrder,
+        b.SCHEDULE_NO AS scheduleNo,
+        b.PRIORITY AS priority,
+        d.PRODUCT_LINE_DESC AS productionLineName,
+        a.RECEIVE_QTY AS receiveQty,
+        a.SCHEDULE_QTY AS scheduleQty,
+        NULL AS stationName
+        FROM
+        p_schedule_receive a,
+        p_schedule b,
+        m_shop_order c,
+        m_product_line d
+        WHERE
+        a.SCHEDULE_BO = b.BO
+        AND a.SHOP_ORDER_BO = c.BO
+        AND a.PRODUCTION_LINE_BO = d.BO
+        AND a.STATE = '1'
+        AND a.STATION_BO = '0'
+        <if test="scheduleReceive.workShopName != null and scheduleReceive.workShopName!=''">
+            AND d.WORK_SHOP_BO LIKE CONCAT('%',#{scheduleReceive.workShopName},'%')
+        </if>
+        <if test="scheduleReceive.productionLineName != null and scheduleReceive.productionLineName!=''">
+            AND (
+                d.PRODUCT_LINE LIKE CONCAT('%',#{scheduleReceive.productionLineName},'%')
+                OR d.PRODUCT_LINE_DESC LIKE CONCAT('%',#{scheduleReceive.productionLineName},'%')
+                )
+        </if>
+        <if test="scheduleReceive.shopOrderName != null and scheduleReceive.shopOrderName!=''">
+            AND c.SHOP_ORDER LIKE CONCAT('%',#{scheduleReceive.shopOrderName},'%')
+        </if>
+        <if test="scheduleReceive.scheduleNo != null and scheduleReceive.scheduleNo!=''">
+            AND b.SCHEDULE_NO LIKE CONCAT(#{scheduleReceive.scheduleNo},'%')
+        </if>
+        ORDER BY a.CREATE_DATE DESC
+<!--        UNION-->
+<!--        SELECT-->
+<!--        a.BO AS bo,-->
+<!--        c.SHOP_ORDER AS shopOrder,-->
+<!--        b.SCHEDULE_NO AS scheduleNo,-->
+<!--        b.PRIORITY AS priority,-->
+<!--        d.PRODUCT_LINE_DESC AS productionLineName,-->
+<!--        a.RECEIVE_QTY AS receiveQty,-->
+<!--        a.SCHEDULE_QTY AS scheduleQty,-->
+<!--        e.STATION_DESC AS stationName-->
+<!--        FROM-->
+<!--        p_schedule_receive a,-->
+<!--        p_schedule b,-->
+<!--        m_shop_order c,-->
+<!--        m_product_line d,-->
+<!--        m_station e-->
+<!--        WHERE-->
+<!--        a.SCHEDULE_BO = b.BO-->
+<!--        AND a.SHOP_ORDER_BO = c.BO-->
+<!--        AND a.PRODUCTION_LINE_BO = d.BO-->
+<!--        AND a.STATION_BO = e.BO-->
+<!--        AND a.STATE = '1'-->
+<!--        <if test="scheduleReceive.workShopBo != null and scheduleReceive.workShopBo!=''">-->
+<!--            a.WORK_SHOP_BO = #{scheduleReceive.workShopBo}-->
+<!--        </if>-->
+<!--        <if test="scheduleReceive.productionLineBo != null and scheduleReceive.productionLineBo!=''">-->
+<!--            a.PRODUCTION_LINE_BO = #{scheduleReceive.productionLineBo}-->
+<!--        </if>-->
+<!--        <if test="scheduleReceive.shopOrder != null and scheduleReceive.shopOrder!=''">-->
+<!--            a.SHOP_ORDER = #{scheduleReceive.shopOrder}-->
+<!--        </if>-->
+<!--        <if test="scheduleReceive.scheduleNo != null and scheduleReceive.scheduleNo!=''">-->
+<!--            a.SCHEDULE_NO = #{scheduleReceive.scheduleNo}-->
+<!--        </if>-->
+
+
+    </select>
+
+    <select id="scheduleReceiveList" resultType="com.itl.mes.pp.api.dto.schedule.ScheduleReceiveRespDTO">
+
+
+	SELECT
+		a.BO AS bo,
+		c.SHOP_ORDER AS shopOrder,
+		b.SCHEDULE_NO AS scheduleNo,
+		b.PRIORITY AS priority,
+		d.PRODUCT_LINE_DESC AS productionLineName,
+		a.RECEIVE_QTY AS receiveQty,
+		a.SCHEDULE_QTY AS scheduleQty,
+		NULL AS stationName,
+		e.BOM_DESC AS bom,
+		e.VERSION AS bomVersion,
+		f.ITEM_NAME AS item,
+		f.VERSION AS itemVersion,
+		g.ROUTER as router,
+		g.VERSION as routerVersion
+	FROM
+		p_schedule_receive a,
+		p_schedule b,
+		m_shop_order c,
+		m_product_line d,
+		m_bom e,
+		m_item f,
+		m_router g
+	WHERE
+		a.SCHEDULE_BO = b.BO
+		AND a.SHOP_ORDER_BO = c.BO
+		AND a.PRODUCTION_LINE_BO = d.BO
+		AND a.STATION_BO = '0'
+	    AND b.BOM_BO = e.BO
+		AND b.ITEM_BO = f.BO
+		AND b.ROUTER_BO = g.BO
+        <if test="scheduleReceive.workShopName != null and scheduleReceive.workShopName!=''">
+            AND d.WORK_SHOP_BO LIKE CONCAT('%',#{scheduleReceive.workShopName},'%')
+        </if>
+        <if test="scheduleReceive.productionLineName != null and scheduleReceive.productionLineName!=''">
+            AND (
+            d.PRODUCT_LINE LIKE CONCAT('%',#{scheduleReceive.productionLineName},'%')
+            OR d.PRODUCT_LINE_DESC LIKE CONCAT('%',#{scheduleReceive.productionLineName},'%')
+            )
+        </if>
+        <if test="scheduleReceive.shopOrderName != null and scheduleReceive.shopOrderName!=''">
+            AND c.SHOP_ORDER LIKE CONCAT('%',#{scheduleReceive.shopOrderName},'%')
+        </if>
+        <if test="scheduleReceive.scheduleNo != null and scheduleReceive.scheduleNo!=''">
+            AND b.SCHEDULE_NO LIKE CONCAT(#{scheduleReceive.scheduleNo},'%')
+        </if>
+        <if test="scheduleReceive.item != null and scheduleReceive.item!=''">
+            AND (
+                f.ITEM LIKE CONCAT('%',#{scheduleReceive.item},'%')
+                OR
+                f.ITEM_NAME LIKE CONCAT('%',#{scheduleReceive.item},'%')
+                )
+        </if>
+        <if test="scheduleReceive.receiveStartDate != null and scheduleReceive.receiveStartDate != null">
+            AND a.RECEIVE_DATE BETWEEN #{scheduleReceive.receiveStartDate} AND #{scheduleReceive.receiveStartDate}
+        </if>
+        <if test="scheduleReceive.isComplete == true">
+            and a.state = '2'
+        </if>
+        ORDER BY a.CREATE_DATE DESC
+<!--    UNION-->
+<!--	SELECT-->
+<!--		a.BO AS bo,-->
+<!--		c.SHOP_ORDER AS shopOrder,-->
+<!--		b.SCHEDULE_NO AS scheduleNo,-->
+<!--		b.PRIORITY AS priority,-->
+<!--		d.PRODUCT_LINE_DESC AS productionLineName,-->
+<!--		a.RECEIVE_QTY AS receiveQty,-->
+<!--		a.SCHEDULE_QTY AS scheduleQty,-->
+<!--		e.STATION_DESC AS stationName,-->
+<!--		f.BOM_DESC AS bom,-->
+<!--		f.VERSION AS bomVersion,-->
+<!--		g.ITEM_NAME AS item,-->
+<!--		g.VERSION AS itemVersion,-->
+<!--		h.ROUTER_NAME as router,-->
+<!--		h.VERSION as routerVersion-->
+<!--	FROM-->
+<!--		p_schedule_receive a,-->
+<!--		p_schedule b,-->
+<!--		m_shop_order c,-->
+<!--		m_product_line d,-->
+<!--		m_station e,-->
+<!--		m_bom f,-->
+<!--		m_item g,-->
+<!--		m_router h-->
+<!--	    WHERE-->
+<!--		a.SCHEDULE_BO = b.BO-->
+<!--		AND a.SHOP_ORDER_BO = c.BO-->
+<!--		AND a.PRODUCTION_LINE_BO = d.BO-->
+<!--		AND a.STATION_BO = e.BO-->
+<!--		AND b.BOM_BO = f.BO-->
+<!--		AND b.ITEM_BO = g.BO-->
+<!--		AND b.ROUTER_BO = h.BO-->
+<!--        <if test="scheduleReceive.workShopBo != null and scheduleReceive.workShopBo!=''">-->
+<!--            a.WORK_SHOP_BO = #{scheduleReceive.workShopBo}-->
+<!--        </if>-->
+<!--        <if test="scheduleReceive.productionLineBo != null and scheduleReceive.productionLineBo!=''">-->
+<!--            a.PRODUCTION_LINE_BO = #{scheduleReceive.productionLineBo}-->
+<!--        </if>-->
+<!--        <if test="scheduleReceive.shopOrder != null and scheduleReceive.shopOrder!=''">-->
+<!--            a.SHOP_ORDER = #{scheduleReceive.shopOrder}-->
+<!--        </if>-->
+<!--        <if test="scheduleReceive.scheduleNo != null and scheduleReceive.scheduleNo!=''">-->
+<!--            a.SCHEDULE_NO = #{scheduleReceive.scheduleNo}-->
+<!--        </if>-->
+<!--        <if test="scheduleReceive.receiveStartDate != null and scheduleReceive.receiveStartDate != null">-->
+<!--            AND a.RECEIVE_DATE BETWEEN #{scheduleReceive.receiveStartDate} AND #{scheduleReceive.receiveStartDate}-->
+<!--        </if>-->
+<!--        <if test="scheduleReceive.isComplete == true">-->
+<!--            and a.state = '2'-->
+<!--        </if>-->
+
+    </select>
+</mapper>

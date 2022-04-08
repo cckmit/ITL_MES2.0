@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.itl.iap.system.provider.mapper.IapOpsLogTMapper">
+
+    <resultMap type="com.itl.iap.system.api.dto.IapOpsLogTDto" id="IapOpsLogTMap">
+        <result property="id" column="id" jdbcType="VARCHAR"/>
+        <result property="serviceId" column="service_id" jdbcType="VARCHAR"/>
+        <result property="serviceName" column="service_name" jdbcType="VARCHAR"/>
+        <result property="serviceIp" column="service_ip" jdbcType="VARCHAR"/>
+        <result property="namespace" column="namespace" jdbcType="VARCHAR"/>
+        <result property="methodType" column="method_type" jdbcType="SMALLINT"/>
+        <result property="requestFunction" column="request_function" jdbcType="VARCHAR"/>
+        <result property="requestMethod" column="request_method" jdbcType="VARCHAR"/>
+        <result property="requestProxy" column="request_proxy" jdbcType="VARCHAR"/>
+        <result property="requestParams" column="request_params" jdbcType="VARCHAR"/>
+        <result property="logData" column="log_data" jdbcType="VARCHAR"/>
+        <result property="creater" column="creater" jdbcType="VARCHAR"/>
+        <result property="createDate" column="create_date" jdbcType="TIMESTAMP"/>
+        <result property="createOrg" column="create_org" jdbcType="VARCHAR"/>
+        <result property="lastUpdateBy" column="last_update_by" jdbcType="VARCHAR"/>
+        <result property="lastUpdateDate" column="last_update_date" jdbcType="TIMESTAMP"/>
+    </resultMap>
+
+    <!--通过实体作为筛选条件查询-->
+    <select id="pageQuery" resultMap="IapOpsLogTMap">
+        select
+          id, service_id, service_name, service_ip, namespace, method_type, request_function, request_method, request_proxy, request_params, log_data, creater, create_date, create_org, last_update_by, last_update_date, method_desc
+        from iap_ops_log_t
+        <where>
+            <if test="iapOpsLogTDto.id != null and iapOpsLogTDto.id != ''">
+                and id = #{iapOpsLogTDto.id}
+            </if>
+            <if test="iapOpsLogTDto.serviceId != null and iapOpsLogTDto.serviceId != ''">
+                and service_id = #{iapOpsLogTDto.serviceId}
+            </if>
+            <if test="iapOpsLogTDto.serviceName != null and iapOpsLogTDto.serviceName != ''">
+                and service_name = #{iapOpsLogTDto.serviceName}
+            </if>
+            <if test="iapOpsLogTDto.serviceIp != null and iapOpsLogTDto.serviceIp != ''">
+                and service_ip = #{iapOpsLogTDto.serviceIp}
+            </if>
+            <if test="iapOpsLogTDto.namespace != null and iapOpsLogTDto.namespace != ''">
+                and namespace = #{iapOpsLogTDto.namespace}
+            </if>
+            <if test="iapOpsLogTDto.methodType != null">
+                and method_type = #{iapOpsLogTDto.methodType}
+            </if>
+            <if test="iapOpsLogTDto.requestFunction != null and iapOpsLogTDto.requestFunction != ''">
+                and request_function = #{iapOpsLogTDto.requestFunction}
+            </if>
+            <if test="iapOpsLogTDto.requestMethod != null and iapOpsLogTDto.requestMethod != ''">
+                and request_method = #{iapOpsLogTDto.requestMethod}
+            </if>
+            <if test="iapOpsLogTDto.requestProxy != null and iapOpsLogTDto.requestProxy != ''">
+                and request_proxy = #{iapOpsLogTDto.requestProxy}
+            </if>
+            <if test="iapOpsLogTDto.requestParams != null and iapOpsLogTDto.requestParams != ''">
+                and request_params = #{iapOpsLogTDto.requestParams}
+            </if>
+            <if test="iapOpsLogTDto.logData != null and iapOpsLogTDto.logData != ''">
+                and log_data = #{iapOpsLogTDto.logData}
+            </if>
+            <if test="iapOpsLogTDto.createDateStart != null  and iapOpsLogTDto.createDateEnd != null ">
+                and  create_date <![CDATA[   >=  ]]>  #{iapOpsLogTDto.createDateStart} and  create_date  <![CDATA[   <=  ]]>  #{iapOpsLogTDto.createDateEnd}
+            </if>
+            <if test="iapOpsLogTDto.creater != null and iapOpsLogTDto.creater != ''">
+                and creater = #{iapOpsLogTDto.creater}
+            </if>
+            <if test="iapOpsLogTDto.createDate != null">
+                and create_date = #{iapOpsLogTDto.createDate}
+            </if>
+            <if test="iapOpsLogTDto.createOrg != null and iapOpsLogTDto.createOrg != ''">
+                and create_org = #{iapOpsLogTDto.createOrg}
+            </if>
+            <if test="iapOpsLogTDto.lastUpdateBy != null and iapOpsLogTDto.lastUpdateBy != ''">
+                and last_update_by = #{iapOpsLogTDto.lastUpdateBy}
+            </if>
+            <if test="iapOpsLogTDto.lastUpdateDate != null">
+                and last_update_date = #{iapOpsLogTDto.lastUpdateDate}
+            </if>
+        </where>
+        ORDER BY create_date DESC
+    </select>
+
+</mapper>

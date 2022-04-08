@@ -1,0 +1,156 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.itl.mes.core.provider.mapper.StepProduceMapper">
+<!--    <select id="getCanInputStationOpOrder" resultType="com.itl.mes.core.api.vo.StepProduceVo">-->
+<!--        SELECT-->
+<!--            md.shop_order_bo AS shopOrderBo,-->
+<!--            so.shop_order AS shopOrder,-->
+<!--            mi.item AS item,-->
+<!--            mi.bo AS itemBo,-->
+<!--            mi.item_name AS itemName,-->
+<!--            mi.item_desc AS itemDesc,-->
+<!--            md.operation_order_qty AS orderQty,-->
+<!--            md.create_date AS releaseTime,-->
+<!--            md.operation_order AS operationOrder,-->
+<!--            md.dispatch_code AS dispatchCode-->
+<!--        FROM-->
+<!--            m_dispatch md-->
+<!--                LEFT JOIN m_shop_order so ON md.shop_order_bo = so.bo-->
+<!--                LEFT JOIN m_item mi ON md.item = mi.item-->
+<!--        <where>-->
+<!--            md.operation_bo = #{stepProduceDTO.operationBo}-->
+<!--            and md.is_stem_input_finished = 0-->
+<!--            and md.device is null-->
+<!--            <if test="stepProduceDTO.shopOrderBo != null and stepProduceDTO.shopOrderBo != ''">-->
+<!--                and md.shop_order_bo = #{stepProduceDTO.shopOrderBo}-->
+<!--            </if>-->
+<!--            <if test="stepProduceDTO.shopOrder != null and stepProduceDTO.shopOrder != ''">-->
+<!--                and so.shop_order like CONCAT('%',#{stepProduceDTO.shopOrder},'%')-->
+<!--            </if>-->
+<!--            <if test="stepProduceDTO.item != null and stepProduceDTO.item != ''">-->
+<!--                and md.item like CONCAT('%',#{stepProduceDTO.item},'%')-->
+<!--            </if>-->
+<!--            <if test="stepProduceDTO.itemName != null and stepProduceDTO.itemName != ''">-->
+<!--                and mi.item_name like CONCAT('%',#{stepProduceDTO.itemName},'%')-->
+<!--            </if>-->
+<!--            <if test="stepProduceDTO.itemDesc != null and stepProduceDTO.itemDesc != ''">-->
+<!--                and mi.item_desc like CONCAT('%',#{stepProduceDTO.itemDesc},'%')-->
+<!--            </if>-->
+<!--        </where>-->
+<!--    </select>-->
+    <select id="getCanInputStationOpOrder" resultType="com.itl.mes.core.api.vo.StepProduceVo">
+        SELECT
+            so.bo AS shopOrderBo,
+            oo.shop_order AS shopOrder,
+            mi.item AS item,
+            mi.bo AS itemBo,
+            mi.item_name AS itemName,
+            mi.item_desc AS itemDesc,
+            oo.operation_order_qty AS orderQty,
+            oo.create_date AS releaseTime,
+            oo.operation_order AS operationOrder
+        FROM
+            m_operation_order oo
+                LEFT JOIN m_shop_order so ON oo.shop_order = so.shop_order
+                LEFT JOIN m_item mi ON oo.ITEM = mi.item
+        WHERE
+            oo.WORKSHOP = '544'
+          AND oo.IS_STEM_INPUT_FINISHED = '0'
+        <if test="stepProduceDTO.shopOrderBo != null and stepProduceDTO.shopOrderBo != ''">
+            and so.bo = #{stepProduceDTO.shopOrderBo}
+        </if>
+        <if test="stepProduceDTO.shopOrder != null and stepProduceDTO.shopOrder != ''">
+            and oo.shop_order like CONCAT('%',#{stepProduceDTO.shopOrder},'%')
+        </if>
+        <if test="stepProduceDTO.item != null and stepProduceDTO.item != ''">
+            and mi.item like CONCAT('%',#{stepProduceDTO.item},'%')
+        </if>
+        <if test="stepProduceDTO.itemName != null and stepProduceDTO.itemName != ''">
+            and mi.item_name like CONCAT('%',#{stepProduceDTO.itemName},'%')
+        </if>
+        <if test="stepProduceDTO.itemDesc != null and stepProduceDTO.itemDesc != ''">
+            and mi.item_desc like CONCAT('%',#{stepProduceDTO.itemDesc},'%')
+        </if>
+        <if test="stepProduceDTO.itemDescKeyWordList != null and stepProduceDTO.itemDescKeyWordList.size() > 0">
+            <foreach collection="stepProduceDTO.itemDescKeyWordList" item="keyword">
+                and CONTAINS ( mi.item_desc, #{keyword} )
+            </foreach>
+        </if>
+        order by oo.CREATE_DATE desc
+    </select>
+    <select id="getCanOutputStationOpOrder" resultType="com.itl.mes.core.api.vo.StepProduceVo">
+        SELECT
+            *
+        FROM
+            (
+                SELECT DISTINCT
+                    s.OPERATION_ORDER AS operationOrder,
+                    s.qty AS inputQty,
+                    sp.ITEM_BO AS itemBo,
+                    sp.SHOP_ORDER_BO AS shopOrderBo,
+                    so.shop_order AS shopOrder,
+                    mi.item AS item,
+                    mi.item_name AS itemName,
+                    mi.item_desc AS itemDesc
+                FROM
+                    d_dy_step_produce sp
+                        LEFT JOIN ( SELECT OPERATION_ORDER, SUM ( QTY ) AS qty FROM d_dy_step_produce WHERE STATE = '0' AND OPERATION_BO = #{ stepProduceDTO.operationBo} GROUP BY OPERATION_ORDER ) s ON sp.OPERATION_ORDER = s.OPERATION_ORDER
+                        LEFT JOIN m_item mi ON mi.bo = sp.item_bo
+                        LEFT JOIN m_shop_order so ON so.bo = sp.SHOP_ORDER_BO
+                WHERE
+                    sp.STATE = '0'
+                  AND OPERATION_BO = #{ stepProduceDTO.operationBo}
+                  AND sp.IS_STEM_OUTPUT_FINISHED = 0
+                <if test="stepProduceDTO.item != null and stepProduceDTO.item != ''">
+                    AND mi.item like concat('%',#{stepProduceDTO.item},'%')
+                </if>
+                <if test="stepProduceDTO.shopOrder != null and stepProduceDTO.shopOrder != ''">
+                    AND so.shop_order like concat('%',#{stepProduceDTO.shopOrder},'%')
+                </if>
+                <if test="stepProduceDTO.itemDescKeyWordList != null and stepProduceDTO.itemDescKeyWordList.size() > 0">
+                    <foreach collection="stepProduceDTO.itemDescKeyWordList" item="keyword">
+                        AND CONTAINS ( mi.item_desc, #{keyword} )
+                    </foreach>
+                </if>
+                ) step
+    </select>
+    <select id="selectUserIdByStationBo" resultType="com.itl.iap.system.api.entity.IapSysUserStationT">
+        SELECT
+            *
+        FROM
+            iap_sys_user_station_t
+        WHERE
+            STATION_BO = #{stationBo}
+    </select>
+    <select id="selectUserInfoById" resultType="com.itl.iap.system.api.entity.IapSysUserT">
+        SELECT
+            ID,
+            USER_NAME,
+            REAL_NAME
+        FROM
+            iap_sys_user_t t
+        <where>
+            <if test="userId != null and userId != ''">
+                and t.id = #{userId}
+            </if>
+            <if test="userBo != null and userBo != ''">
+                and t.user_name = #{userBo}
+            </if>
+        </where>
+    </select>
+
+    <select id="selectInputQty" resultType="string">
+        SELECT
+            DISTINCT s.qty AS inputQty
+        FROM
+            d_dy_step_produce sp
+                LEFT JOIN ( SELECT OPERATION_ORDER, SUM ( QTY ) AS qty FROM d_dy_step_produce WHERE STATE = '0' AND OPERATION_BO = #{operationBo} GROUP BY OPERATION_ORDER ) s ON sp.OPERATION_ORDER = s.OPERATION_ORDER
+                LEFT JOIN m_item mi ON mi.bo = sp.item_bo
+                LEFT JOIN m_shop_order so ON so.bo = sp.SHOP_ORDER_BO
+        WHERE
+            sp.STATE = '0'
+          AND OPERATION_BO = #{operationBo}
+          AND sp.IS_STEM_OUTPUT_FINISHED = 0
+          AND s.OPERATION_ORDER = #{operationOrder}
+    </select>
+</mapper>

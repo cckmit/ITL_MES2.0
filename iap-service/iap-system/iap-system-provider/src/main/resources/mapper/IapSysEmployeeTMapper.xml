@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.itl.iap.system.provider.mapper.IapSysEmployeeTMapper">
+    <!-- 插入岗位-员工中间表 -->
+    <insert id="insertIntoIapSysPositionEmployeeT">
+        INSERT INTO iap_position_employee_t(id,position_id,employee_id,creater,create_date,last_update_by,last_update_date)
+            VALUES (#{iapPositionEmployeeT.id},#{iapPositionEmployeeT.positionId},#{iapPositionEmployeeT.employeeId},
+            #{iapPositionEmployeeT.creater},#{iapPositionEmployeeT.createDate},#{iapPositionEmployeeT.lastUpdateBy},
+            #{iapPositionEmployeeT.lastUpdateDate})
+    </insert>
+
+    <insert id="insertListFromExcel">
+        INSERT INTO iap_sys_employee_t(id,name,code,contract,email,status,type,creater,create_date,create_org,last_update_by,last_update_date,remark,user_id)
+        VALUES
+        <foreach collection="list" separator="," item="item">
+            (#{item.id},#{item.name},#{item.code},#{item.contract},#{item.email},#{item.status},#{item.type},#{item.creater},
+            #{item.createDate},#{item.createOrg},#{item.lastUpdateBy},#{item.lastUpdateDate},#{item.remark},#{item.userId})
+        </foreach>
+    </insert>
+
+    <!-- 通过传入的员工列表删除 -->
+    <delete id="deleteByList">
+        DELETE FROM iap_sys_employee_t
+        <where>
+            <if test="iapEmployeeTList != null and iapEmployeeTList.size() > 0">
+                iap_sys_employee_t.id IN
+                <foreach collection="iapEmployeeTList" item="item" open="(" separator="," close=")">
+                    #{item.id}
+                </foreach>
+            </if>
+        </where>
+    </delete>
+
+    <!-- 查询员工 -->
+    <select id="queryList" resultType="com.itl.iap.system.api.dto.IapEmployeeTDto">
+        SELECT
+        A.id,
+        A.name,
+        A.code,
+        A.contract,
+        A.email,
+        A.status,
+        A.type,
+        A.creater,
+        E.name AS orgName,
+        A.create_date AS createDate,
+        A.last_update_by AS lastUpdateBy,
+        A.last_update_date AS lastUpdateDate,
+        A.remark,
+        (SELECT user_name FROM iap_sys_user_t WHERE id = A.user_id) as userName,
+        A.user_id as userId,
+        C.id AS positionId,
+        C.name AS positionName,
+        A.open_account openAccount
+        FROM iap_sys_employee_t AS A
+        LEFT JOIN iap_position_employee_t AS B ON A.id = B.employee_id
+        LEFT JOIN iap_sys_position_t AS C ON B.position_id = C.id
+        LEFT JOIN iap_sys_organization_position_t AS D ON C.id = D.position_id
+        LEFT JOIN iap_sys_organization_t AS E ON D.organization_id = E.id
+        WHERE 1=1
+        <if test="iapEmployeeTDto.name != null and iapEmployeeTDto.name.trim() != ''">
+            AND A.name LIKE CONCAT('%',#{iapEmployeeTDto.name},'%')
+        </if>
+        <if test="iapEmployeeTDto.code != null and iapEmployeeTDto.code.trim() != ''">
+            AND A.code LIKE CONCAT('%',#{iapEmployeeTDto.code},'%')
+        </if>
+        <if test="iapEmployeeTDto.typeList != null and iapEmployeeTDto.typeList.size() > 0 ">
+            AND A.type IN
+            <foreach item="item" index="index" collection="iapEmployeeTDto.typeList" open="(" separator="," close=")">
+                #{item}
+            </foreach>
+        </if>
+        <if test="iapEmployeeTDto.status != null">
+            AND A.status = #{iapEmployeeTDto.status}
+        </if>
+        <if test="iapEmployeeTDto.contract != null and iapEmployeeTDto.contract.trim() != ''">
+            AND A.contract LIKE CONCAT('%',#{iapEmployeeTDto.contract},'%')
+        </if>
+    </select>
+    <update id="updateUserId">
+        update iap_sys_employee_t
+        <set>
+            user_id = #{iapEmployeeTDto.userId},
+            <if test="iapEmployeeTDto.code != null and iapEmployeeTDto.code.trim() != ''">
+                code = #{iapEmployeeTDto.code},
+            </if>
+            <if test="iapEmployeeTDto.name != null and iapEmployeeTDto.name.trim() != ''">
+                name = #{iapEmployeeTDto.name},
+            </if>
+            <if test="iapEmployeeTDto.contract != null and iapEmployeeTDto.contract.trim() != ''">
+                contract = #{iapEmployeeTDto.contract},
+            </if>
+            <if test="iapEmployeeTDto.email != null and iapEmployeeTDto.email.trim() != ''">
+                email = #{iapEmployeeTDto.email},
+            </if>
+
+            <if test="iapEmployeeTDto.status != null ">
+                status = #{iapEmployeeTDto.status},
+            </if>
+            <if test="iapEmployeeTDto.type != null ">
+                type = #{iapEmployeeTDto.type},
+            </if>
+            <if test="iapEmployeeTDto.creater != null ">
+                creater = #{iapEmployeeTDto.creater},
+            </if>
+            <if test="iapEmployeeTDto.createDate != null">
+                create_date = #{iapEmployeeTDto.createDate},
+            </if>
+            <if test="iapEmployeeTDto.createOrg != null and iapEmployeeTDto.createOrg.trim() != ''">
+                create_org = #{iapEmployeeTDto.createOrg},
+            </if>
+            <if test="iapEmployeeTDto.lastUpdateBy != null and iapEmployeeTDto.lastUpdateBy.trim() != ''">
+                last_update_by = #{iapEmployeeTDto.lastUpdateBy},
+            </if>
+            <if test="iapEmployeeTDto.lastUpdateDate != null">
+                last_update_date = #{iapEmployeeTDto.lastUpdateDate},
+            </if>
+            <if test="iapEmployeeTDto.remark != null and iapEmployeeTDto.remark.trim() != ''">
+                remark = #{iapEmployeeTDto.remark}
+            </if>
+        </set>
+        WHERE id = #{iapEmployeeTDto.id}
+
+    </update>
+</mapper>

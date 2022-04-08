@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<ehcache>  
+    <!--
+            maxElementsInMemory为缓存对象的最大数目, 
+            eternal设置是否永远不过期,
+            timeToIdleSeconds对象处于空闲状态的最多秒数,
+            timeToLiveSeconds对象处于缓存状态的最多秒数 
+     -->
+    
+	<diskStore path="java.io.tmpdir/ehcache/spring"/>
+	
+    <defaultCache maxElementsInMemory="10000" eternal="false"  timeToIdleSeconds="300" timeToLiveSeconds="600" overflowToDisk="true"/>
+    
+    <cache name="validateCodeCache" maxElementsInMemory="100" eternal="false" timeToLiveSeconds="120" overflowToDisk="false" />
+
+
+    <!-- 登录记录缓存 锁定10分钟 -->
+    <cache name="passwordRetryCache"
+           maxEntriesLocalHeap="2000"
+           eternal="false"
+           timeToIdleSeconds="3600"
+           timeToLiveSeconds="0"
+           overflowToDisk="false"
+           statistics="true">
+    </cache>
+
+    <cache name="authorizationCache"
+           maxEntriesLocalHeap="2000"
+           eternal="false"
+           timeToIdleSeconds="3600"
+           timeToLiveSeconds="0"
+           overflowToDisk="false"
+           statistics="true">
+    </cache>
+
+    <cache name="authenticationCache"
+           maxEntriesLocalHeap="2000"
+           eternal="false"
+           timeToIdleSeconds="3600"
+           timeToLiveSeconds="0"
+           overflowToDisk="false"
+           statistics="true">
+    </cache>
+
+    <cache name="shiro-activeSessionCache"
+           maxEntriesLocalHeap="2000"
+           eternal="false"
+           timeToIdleSeconds="3600"
+           timeToLiveSeconds="0"
+           overflowToDisk="false"
+           statistics="true">
+    </cache>
+
+    <cache name="code-cache"
+           maxEntriesLocalHeap="2000"
+           eternal="false"
+           timeToIdleSeconds="3600"
+           timeToLiveSeconds="0"
+           overflowToDisk="false"
+           statistics="true">
+    </cache>
+
+
+</ehcache>

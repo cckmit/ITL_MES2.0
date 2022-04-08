@@ -1,0 +1,33 @@
+group-id: iap
+
+spring:
+  aop:
+    proxy-target-class: true # 使用CGLIB
+  application:
+    name: mes-pp-provider #设置项目名称
+  main:
+    allow-bean-definition-overriding: true
+  cloud:
+    nacos:
+      discovery:
+        server-addr: ${NACOS_HOST:192.168.6.68:8899} #Nacos服务接口(不能加http前缀)，直接访问localhost:8848/nacos可以进入管理页面
+        namespace: ${NAME_SPACE:mesdev}
+      config:
+        server-addr: ${NACOS_HOST:192.168.6.68:8899}
+        file-extension: yml # 配置文件的格式，默认为properties
+        namespace: ${NAME_SPACE:mesdev}
+        group: ${group-id}
+    sentinel:
+      transport:
+        port: 8086
+        dashboard: ${SENTINEL_HOST:192.168.6.68:8086}
+      # 服务启动直接建立心跳连接
+      eager: true
+      datasource:
+        ds:
+          nacos:
+            server-addr: ${NACOS_HOST:192.168.6.68:8899}
+            dataId: ${spring.application.name}-sentinel
+            groupId: ${group-id}
+            data-type: json
+            rule-type: flow

@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.itl.im.provider.mapper.IapImMessageCustomizeMapper">
+
+    <resultMap type="iap.im.api.dto.IapImMessageCustomizeDto" id="IapImCustomizeTMap">
+        <result property="id" column="id" jdbcType="VARCHAR"/>
+        <result property="customizeMessage" column="customize_message" jdbcType="VARCHAR"/>
+        <result property="customizeShort" column="customize_short" jdbcType="INTEGER"/>
+        <result property="settingId" column="setting_id" jdbcType="VARCHAR"/>
+    </resultMap>
+
+    <!--通过实体作为筛选条件查询-->
+    <select id="pageQuery" resultMap="IapImCustomizeTMap">
+        select
+        id, customize_message, customize_short, setting_id
+        from iap_im_customize_t
+        <where>
+            <if test="iapImCustomizeTDto.id != null and iapImCustomizeTDto.id != ''">
+                and id = #{iapImCustomizeTDto.id}
+            </if>
+            <if test="iapImCustomizeTDto.customizeMessage != null and iapImCustomizeTDto.customizeMessage != ''">
+                and customize_message = #{iapImCustomizeTDto.customizeMessage}
+            </if>
+            <if test="iapImCustomizeTDto.customizeShort != null">
+                and customize_short = #{iapImCustomizeTDto.customizeShort}
+            </if>
+            <if test="iapImCustomizeTDto.settingId != null">
+                and setting_id = #{iapImCustomizeTDto.settingId}
+            </if>
+        </where>
+    </select>
+
+</mapper>

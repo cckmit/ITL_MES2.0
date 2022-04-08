@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.itl.iap.system.provider.mapper.SimLovDetailMapper">
+
+    <resultMap type="com.itl.iap.system.api.dto.SimLovDetailDto" id="SimLovDetailDtoMap">
+        <id property="id" column="id" jdbcType="VARCHAR"/>
+        <result property="lovId" column="lov_id" jdbcType="VARCHAR"/>
+        <result property="label" column="label" jdbcType="VARCHAR"/>
+        <result property="prop" column="prop" jdbcType="VARCHAR"/>
+        <result property="type" column="type" jdbcType="INTEGER"/>
+        <result property="typeCode" column="type_code" jdbcType="VARCHAR"/>
+        <result property="dictCode" column="dict_code" jdbcType="VARCHAR"/>
+        <result property="sort" column="sort" jdbcType="INTEGER"/>
+    </resultMap>
+    <!--通过实体作为筛选条件查询-->
+    <select id="pageQuery" parameterType="com.itl.iap.system.api.dto.SimLovDetailDto" resultMap="SimLovDetailDtoMap">
+        SELECT
+        A.id,
+        A.label,
+        A.prop,
+        A.type,
+        A.type_code,
+        A.dict_code,
+        A.lov_id,
+        A.sort
+        FROM
+        sim_lov_detail AS A
+        <where>
+            <if test="simLovDetailDto.label != null and simLovDetailDto.label != ''">
+                and A.label like concat('%', #{simLovDetailDto.label}, '%')
+            </if>
+            <if test="simLovDetailDto.prop != null and simLovDetailDto.prop != ''">
+                and A.prop like concat('%', #{simLovDetailDto.prop}, '%')
+            </if>
+            <if test="simLovDetailDto.type != null">
+                and A.type = #{simLovDetailDto.label}
+            </if>
+            <if test="simLovDetailDto.typeCode != null and simLovDetailDto.typeCode != ''">
+                and A.type_code like concat('%', #{simLovDetailDto.typeCode}, '%')
+            </if>
+            <if test="simLovDetailDto.lovId != null and simLovDetailDto.lovId != ''">
+                and A.lov_id like concat('%', #{simLovDetailDto.lovId}, '%')
+            </if>
+        </where>
+        order by sort
+    </select>
+</mapper>

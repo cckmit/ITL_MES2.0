@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.itl.mes.core.provider.mapper.OperationMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.itl.mes.core.api.entity.Operation">
+        <id column="BO" property="bo" />
+        <result column="SITE" property="site" />
+        <result column="OPERATION" property="operation" />
+        <result column="VERSION" property="version" />
+        <result column="OPERATION_NAME" property="operationName" />
+        <result column="PRODUCTION_LINE_BO" property="productionLineBo" />
+        <result column="OPERATION_DESC" property="operationDesc" />
+        <result column="STATE" property="state" />
+        <result column="IS_CURRENT_VERSION" property="isCurrentVersion" />
+        <result column="OPERATION_TYPE" property="operationType" />
+        <result column="MAX_TIMES" property="maxTimes" />
+        <result column="REPEAT_TEST_TIMES" property="repeatTestTimes" />
+        <result column="DEFAULT_NC_CODE_BO" property="defaultNcCodeBo" />
+        <result column="NC_GROUP_BO" property="ncGroupBo" />
+        <result column="CREATE_DATE" property="createDate" />
+        <result column="CREATE_USER" property="createUser" />
+        <result column="MODIFY_DATE" property="modifyDate" />
+        <result column="MODIFY_USER" property="modifyUser" />
+        <result column="DEFAULT_STATION_BO" property="defaultStationBo" />
+        <result column="STATION_TYPE_BO" property="stationTypeBo" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        BO, SITE, OPERATION, VERSION, OPERATION_NAME, PRODUCTION_LINE_BO, OPERATION_DESC, STATE, IS_CURRENT_VERSION, OPERATION_TYPE, MAX_TIMES, REPEAT_TEST_TIMES, DEFAULT_NC_CODE_BO, NC_GROUP_BO, CREATE_DATE, CREATE_USER, MODIFY_DATE, MODIFY_USER, DEFAULT_STATION_BO, STATION_TYPE_BO
+    </sql>
+
+    <!--获取当前版本工序，返回字段包含：OPERATION：工序，OPERATION_DESC：工序描述
+     参数：site 工厂-->
+    <select id="selectCurrentVersionOperations" resultType="java.util.Map">
+        SELECT OPERATION,OPERATION_DESC FROM M_OPERATION
+        WHERE SITE=#{site} AND IS_CURRENT_VERSION='Y'
+    </select>
+
+    <select id="updateOperationVersionType" resultType="java.lang.Integer" parameterType="string">
+        UPDATE M_OPERATION SET IS_CURRENT_VERSION = 'N' WHERE IS_CURRENT_VERSION = 'Y'  AND
+        OPERATION = #{operation} AND SITE = #{site}
+    </select>
+
+    <select id="selectTop" resultType="com.itl.mes.core.api.entity.Operation">
+        SELECT TOP 500 BO, SITE, OPERATION, VERSION, OPERATION_NAME, PRODUCTION_LINE_BO, OPERATION_DESC, STATE, IS_CURRENT_VERSION, OPERATION_TYPE, MAX_TIMES, REPEAT_TEST_TIMES, DEFAULT_NC_CODE_BO, NC_GROUP_BO, CREATE_DATE, CREATE_USER, MODIFY_DATE, MODIFY_USER, DEFAULT_STATION_BO, STATION_TYPE_BO
+        FROM m_operation WHERE SITE = #{site}
+    </select>
+
+    <select id="selectAllOrderOperation" resultType="com.itl.mes.core.api.entity.OperationOrder" >
+        select m.BO,m.OPERATION_ORDER,m.SHOP_ORDER,m.OPERATION_ORDER_STATE,m.OPERATION_ORDER_QTY,m.ROUTRE,m.VERSION,m.ITEM,WORKSHOP,m.ITEM_NAME,m.ITER_VERSION,m.IS_URGENT,m.CREATE_USER,m.CREATE_DATE,t.ITEM_DESC
+        from m_operation_order m left join m_item t on m.item=t.item
+        <where>
+        m.operation_order_state !='2'
+        <if test="sfcDto.operationOrder != null and sfcDto.operationOrder != ''">
+            and m.operation_order like concat('%',#{sfcDto.operationOrder},'%')
+        </if>
+        <if test="sfcDto.item != null and sfcDto.item != ''">
+            and m.item like concat('%',#{sfcDto.item},'%')
+        </if>
+        <if test="sfcDto.itemDesc != null and sfcDto.itemDesc != ''">
+            and t.item_desc like concat('%',#{sfcDto.itemDesc},'%')
+        </if>
+        <if test="sfcDto.workShop != null and sfcDto.workShop != ''">
+            and m.workshop like concat('%',#{sfcDto.workShop},'%')
+        </if>
+        </where>
+    </select>
+
+    <select id="selectShopOrderByOperationOrder" resultType="String" parameterType="String">
+        select shop_order from m_operation_order where operation_order=#{operationOrder}
+    </select>
+    <select id="selectWorkShopByUserName" resultType="String" parameterType="String">
+        select substring(work_shop_bo,charindex(',',work_shop_bo)+1,len(work_shop_bo)-charindex(',',work_shop_bo)) from iap_sys_user_t su WHERE su.user_name = #{userName}
+    </select>
+    <select id="isSendToDeviceByOperationBo" resultType="String" parameterType="String">
+        SELECT
+	      cdv.VALS
+        FROM
+	      m_operation op
+	    LEFT JOIN M_CUSTOM_DATA_VAL cdv ON op.bo = cdv.bo
+        WHERE
+          cdv.ATTRIBUTE = 'SEND_TO_DEVICE'
+	      and op.bo = #{operationOrderBo}
+    </select>
+    <select id="isCanAutomaticReportWork" resultType="string" parameterType="string">
+        SELECT
+            op.bo
+        FROM
+            m_operation op
+        LEFT JOIN M_CUSTOM_DATA_VAL cdv ON op.bo = cdv.bo
+        where
+            cdv.ATTRIBUTE = 'EPORT_WORK'
+            and cdv.VALS = 'yes'
+            and op.bo = #{operationBo}
+    </select>
+    <select id="listAllWorkStationByOperationBo" resultType="string">
+        SELECT
+            ws.BO
+        FROM
+            d_dy_workstation ws
+        WHERE
+            ws.WORKING_PROCESS = #{operationBo}
+    </select>
+    <select id="queryCanDispatchOperation" resultMap="BaseResultMap">
+          SELECT
+	          op.*
+          FROM
+	          m_operation op
+	      LEFT JOIN M_CUSTOM_DATA_VAL cdv ON op.bo = cdv.bo
+          <where>
+	          cdv.ATTRIBUTE = 'SEND_TO_DEVICE'
+	          and cdv.VALS = 'yes'
+	          <if test="operationOrderDTO.operation != null and operationOrderDTO.operation != ''">
+                  and op.operation like concat('%',#{operationOrderDTO.operation},'%')
+              </if>
+              <if test="operationOrderDTO.operationBo != null and operationOrderDTO.operationBo != ''">
+                  and op.bo like concat('%',#{operationOrderDTO.operationBo},'%')
+              </if>
+          </where>
+    </select>
+</mapper>

@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.itl.mes.core.provider.mapper.InspectTypeMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.itl.mes.core.api.entity.InspectType">
+        <result column="BO" property="bo" />
+        <result column="SITE" property="site" />
+        <result column="INSPECT_TYPE" property="inspectType" />
+        <result column="INSPECT_TYPE_NAME" property="inspectTypeName" />
+        <result column="INSPECT_TYPE_DESC" property="inspectTypeDesc" />
+        <result column="STATE" property="state" />
+        <result column="REQUIRED_WORK_SHOP" property="requiredWorkShop" />
+        <result column="REQUIRED_PRODUCT_LINE" property="requiredProductLine" />
+        <result column="REQUIRED_OPERATION" property="requiredOperation" />
+        <result column="REQUIRED_ITEM" property="requiredItem" />
+        <result column="REQUIRED_STATION" property="requiredStation" />
+        <result column="REQUIRED_SHOP_ORDER" property="requiredShopOrder" />
+        <result column="REQUIRED_SFC" property="requiredSfc" />
+        <result column="CREATE_USER" property="createUser" />
+        <result column="CREATE_DATE" property="createDate" />
+        <result column="MODIFY_USER" property="modifyUser" />
+        <result column="MODIFY_DATE" property="modifyDate" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        BO, SITE, INSPECT_TYPE, INSPECT_TYPE_NAME, INSPECT_TYPE_DESC, STATE, REQUIRED_WORK_SHOP, REQUIRED_PRODUCT_LINE, REQUIRED_ITEM, REQUIRED_STATION, REQUIRED_SHOP_ORDER, REQUIRED_SFC, CREATE_USER, CREATE_DATE, MODIFY_USER, MODIFY_DATE
+    </sql>
+
+    <!--分页查询-->
+    <select id="selectPageInspectTypeList" resultType="java.util.Map" parameterType="java.util.Map">
+        SELECT INSPECT_TYPE,INSPECT_TYPE_NAME,INSPECT_TYPE_DESC,STATE FROM Z_INSPECT_TYPE
+        WHERE SITE =#{params.site}
+        <if test="params.inspectType != null and params.inspectType != '' ">
+            AND INSPECT_TYPE LIKE '${params.inspectType}%'
+        </if>
+        <if test="params.inspectTypeName != null and params.inspectTypeName != ''">
+            AND INSPECT_TYPE_NAME LIKE '${params.inspectTypeName}%'
+        </if>
+        <if test="params.inspectTypeDesc != null and params.inspectTypeDesc != ''">
+            AND INSPECT_TYPE_DESC LIKE '${params.inspectTypeDesc}%'
+        </if>
+        <if test="params.state != null and params.state != ''">
+            AND STATE = '${params.state}'
+        </if>
+    </select>
+
+    <select id="selectInspectTypeList" resultType="java.util.Map" parameterType="java.util.Map">
+        SELECT INSPECT_TYPE,INSPECT_TYPE_NAME,INSPECT_TYPE_DESC,STATE FROM Z_INSPECT_TYPE
+        WHERE SITE =#{params.site} AND STATE = '1'
+        <if test="params.inspectType != null and params.inspectType != '' ">
+            AND INSPECT_TYPE LIKE '${params.inspectType}%'
+        </if>
+        <if test="params.inspectTypeName != null and params.inspectTypeName != ''">
+            AND INSPECT_TYPE_NAME LIKE '${params.inspectTypeName}%'
+        </if>
+        <if test="params.inspectTypeDesc != null and params.inspectTypeDesc != ''">
+            AND INSPECT_TYPE_DESC LIKE '${params.inspectTypeDesc}%'
+        </if>
+    </select>
+    <!--分页查询ByState-->
+    <select id="selectPageInspectTypeListByState" resultType="java.util.Map" parameterType="java.util.Map">
+        SELECT INSPECT_TYPE,INSPECT_TYPE_NAME,INSPECT_TYPE_DESC,STATE FROM Z_INSPECT_TYPE
+        WHERE SITE =#{params.site}
+        <if test="params.inspectType != null and params.inspectType != '' ">
+            AND INSPECT_TYPE LIKE '${params.inspectType}%'
+        </if>
+        <if test="params.inspectTypeName != null and params.inspectTypeName != ''">
+            AND INSPECT_TYPE_NAME LIKE '${params.inspectTypeName}%'
+        </if>
+        <if test="params.inspectTypeDesc != null and params.inspectTypeDesc != ''">
+            AND INSPECT_TYPE_DESC LIKE '${params.inspectTypeDesc}%'
+        </if>
+            AND STATE = '1'
+    </select>
+
+</mapper>

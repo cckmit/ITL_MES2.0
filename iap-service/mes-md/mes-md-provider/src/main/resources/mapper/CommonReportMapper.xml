@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.itl.mes.core.provider.mapper.CommonReportMapper">
+
+
+    <!-- 拉环报表数据查询 site,sectionCodes-->
+    <!--<select id="selectAllCallDragData" resultType="java.util.Map">
+
+      SELECT A.CALL_DATE,A.SITE,dbo.SPLIT(A.CARRIER_BO,1) CARRIER,dbo.SPLIT(A.PRODUCT_LINE_BO,1) PRODUCT_LINE,B.ITEM,
+      B.ITEM_DESC,SUM(B.QTY) SQTY,B.CREATE_USER,A.VALS
+      FROM (SELECT TOP 500 DD.SITE,DD.CARRIER_BO,DD.PRODUCT_LINE_BO,DD.CALL_DATE,CDV.VALS FROM Z_DRAG_DATA DD WITH(NOLOCK)
+            INNER JOIN M_CUSTOM_DATA_VAL CDV WITH(NOLOCK)
+            ON DD.PRODUCT_LINE_BO = CDV.BO AND CDV.ATTRIBUTE='SECTION_CODE' <if test="sectionCodes != null "> AND CDV.VALS IN <foreach
+            collection="sectionCodes" item="val" open="(" close=")" separator=",">#{val}</foreach> </if>
+            WHERE SITE = #{site} AND DRAG_IN_USER IS NULL
+            ORDER BY CREATE_DATE ASC
+       ) A
+      INNER JOIN Z_CARRIER_DATA B WITH(NOLOCK)
+      ON A.CARRIER_BO = B.CARRIER_BO
+      GROUP BY A.SITE,A.CARRIER_BO,A.CALL_DATE,A.PRODUCT_LINE_BO,B.ITEM,B.ITEM_DESC,B.QTY,B.CREATE_USER,A.VALS
+      ORDER BY A.CALL_DATE ASC
+
+    </select>-->
+
+    <!--车间计划跟踪报表使用-->
+    <!--<select id="selectShopOrderByVals" resultType="com.monopy.biz.vo.report.WorkShopPlanVo">
+      SELECT SO.SHOP_ORDER, SO.ORDER_DESC, SO.PLAN_END_DATE, SO.ORDER_QTY, SO.COMPLETE_QTY, CDV.VALS SHIFT, MI.ITEM, MI.ITEM_DESC
+        FROM M_SHOP_ORDER SO WITH(NOLOCK) INNER JOIN M_CUSTOM_DATA_VAL CDV WITH(NOLOCK) ON SO.BO = CDV.BO AND CDV.ATTRIBUTE = 'ORDER_TYPE'
+        INNER JOIN M_ITEM MI WITH(NOLOCK) ON MI.BO = SO.ITEM_BO
+      WHERE SO.SITE = #{site}
+        <if test="vals != null and vals != ''">
+          AND CDV.VALS = #{vals}
+        </if>
+        <if test="startDate != null and startDate != ''">
+            AND SO.PLAN_END_DATE &gt;= #{startDate}
+        </if>
+        <if test="endDate != null and endDate != ''">
+            AND SO.PLAN_END_DATE &lt;= #{endDate}
+        </if>
+        ORDER BY SO.PLAN_END_DATE ASC
+    </select>-->
+
+    <!-- 手动传入sql执行-->
+    <select id="selectManualSql" resultType="java.util.Map" statementType="PREPARED">
+        ${ sql }
+    </select>
+
+</mapper>

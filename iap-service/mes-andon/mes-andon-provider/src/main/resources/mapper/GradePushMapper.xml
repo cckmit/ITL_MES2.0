@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.itl.mes.andon.provider.mapper.GradePushMapper">
+
+
+    <resultMap type="com.itl.mes.andon.api.entity.GradePush" id="gradePushMap">
+        <result property="site" column="SITE"/>
+        <result property="id" column="ID"/>
+        <result property="BO" column="BO"/>
+        <result property="andonGradeBo" column="ANDON_GRADE_BO"/>
+        <result property="pushToUser" column="PUSH_TO_USER"/>
+        <result property="pushToPosition" column="PUSH_TO_POSITION"/>
+        <result property="userMobile" column="USER_MOBILE"/>
+        <result property="userEmail" column="USER_EMAIL"/>
+        <result property="realName" column="REAL_NAME"/>
+    </resultMap>
+
+
+</mapper>

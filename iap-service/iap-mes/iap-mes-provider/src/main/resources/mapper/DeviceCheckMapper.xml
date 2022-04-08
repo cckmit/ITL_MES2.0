@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.itl.iap.mes.provider.mapper.DeviceCheckMapper">
+
+    <select id="selectDeviceCheckPage" resultType="com.itl.iap.mes.api.entity.DeviceCheck" parameterType="string">
+        select id,check_plan_id,checkPlanName,device_name,dataCollectionName,dataCollectionId,checkUserName,checkTime,state,device_check_code,checkRealName,device_code
+        from m_device_check
+        <where>
+            1=1
+            <if test="deviceName !=null and deviceName !=''">
+                and device_name like concat('%',#{deviceName},'%')
+            </if>
+            <if test="checkRealName !=null and checkRealName !=''">
+                and checkRealName like concat('%',#{checkRealName},'%')
+            </if>
+            <if test="ksTime !=null and ksTime !='' and jsTime==null">
+                and CONVERT(varchar(100), checkTime, 23) like concat('%',#{ksTime},'%')
+            </if>
+            <if test="ksTime !=null and ksTime !='' and jsTime !=null and jsTime!=''">
+                and checkTime between #{ksTime} and #{jsTime}
+            </if>
+            <if test="deviceCode !=null and deviceCode !=''">
+                and device_code like concat('%',#{deviceCode},'%')
+            </if>
+        </where>
+        order by checkTime desc
+    </select>
+
+    <select id="selectMaxCode" resultType="string">
+        select device_check_code from m_device_check where checkTime=(select max(checkTime) as mtime from m_device_check)
+    </select>
+    <select id="selectByDeviceCheckCode" resultType="com.itl.iap.mes.api.entity.DeviceCheck" parameterType="string">
+        select m.id,m.check_plan_id,m.checkPlanName,m.device_name,m.dataCollectionName,m.dataCollectionId,m.checkUserName,m.checkTime,m.state,m.device_check_code,m.checkRealName,m.device_code,m.deviceType,n.device_type_name
+        from m_device_check m
+        left join m_device_type n on m.deviceType = n.device_type
+        where m.device_check_code=#{deviceCheckCode}
+    </select>
+</mapper>

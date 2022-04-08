@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.itl.iap.mes.provider.mapper.UpkeepTableMapper">
+    <select id="selectRepairTablePage" resultType="com.itl.iap.mes.api.entity.UpkeepTable" parameterType="string">
+        select m.id,m.repairId,m.repairTime,m.deviceCode,m.deviceName,m.repairUserName,m.repairRealName,m.executeId,m.state,m.planExecuteTime,m.deviceType,m.dataCollectionName,m.upkeepPlanName
+        from m_repair_upkeep_table m
+        <where>
+            1=1
+            <if test="deviceName !=null and deviceName !=''">
+                and m.deviceName like concat('%',#{deviceName},'%')
+            </if>
+            <if test="repairRealName !=null and repairRealName !=''">
+                and m.repairRealName like concat('%',#{repairRealName},'%')
+            </if>
+            <if test="ksTime !=null and ksTime !='' and jsTime==null">
+                and CONVERT(varchar(100), m.repairTime, 23) like concat('%',#{ksTime},'%')
+            </if>
+            <if test="ksTime !=null and ksTime !='' and jsTime !=null and jsTime!=''">
+                and m.repairTime between #{ksTime} and #{jsTime}
+            </if>
+            <if test="deviceCode !=null and deviceCode !=''">
+                and m.deviceCode like concat('%',#{deviceCode},'%')
+            </if>
+        </where>
+        order by m.repairTime desc
+    </select>
+    <select id="selectMaxCode" resultType="string">
+        select repairId from m_repair_upkeep_table where repairTime=(select max(repairTime) as mtime from m_repair_upkeep_table)
+    </select>
+
+    <select id="selectByRepairId" resultType="com.itl.iap.mes.api.entity.UpkeepTable" parameterType="string">
+        select m.id,m.repairId,m.repairTime,m.deviceCode,m.deviceName,m.repairUserName,m.repairRealName,m.executeId,m.state,m.planExecuteTime,m.deviceType,m.dataCollectionName,m.upkeepPlanName,n.device_type_name
+        from m_repair_upkeep_table m
+        left join m_device_type n on m.deviceType = n.device_type
+        where m.repairId=#{repairId}
+    </select>
+</mapper>

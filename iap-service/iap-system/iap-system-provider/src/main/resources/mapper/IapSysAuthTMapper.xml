@@ -1,0 +1,147 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.itl.iap.system.provider.mapper.IapSysAuthTMapper">
+
+    <resultMap type="com.itl.iap.system.api.dto.IapSysAuthTDto" id="IapSysAuthTMap">
+        <result property="id" column="id" jdbcType="VARCHAR"/>
+        <result property="authName" column="auth_name" jdbcType="VARCHAR"/>
+        <result property="parentId" column="parent_id" jdbcType="VARCHAR"/>
+        <result property="authCode" column="auth_code" jdbcType="VARCHAR"/>
+        <result property="authType" column="auth_type" jdbcType="SMALLINT"/>
+        <result property="description" column="description" jdbcType="VARCHAR"/>
+        <result property="sort" column="sort" jdbcType="SMALLINT"/>
+        <result property="state" column="state" jdbcType="SMALLINT"/>
+        <result property="creater" column="creater" jdbcType="VARCHAR"/>
+        <result property="createDate" column="create_date" jdbcType="TIMESTAMP"/>
+        <result property="createOrg" column="create_org" jdbcType="VARCHAR"/>
+        <result property="lastUpdateBy" column="last_update_by" jdbcType="VARCHAR"/>
+        <result property="lastUpdateDate" column="last_update_date" jdbcType="TIMESTAMP"/>
+        <result property="delFlag" column="del_flag" jdbcType="SMALLINT"/>
+    </resultMap>
+
+    <!--通过实体作为筛选条件查询-->
+    <select id="pageQuery" resultMap="IapSysAuthTMap">
+        select
+          id,parent_id, auth_name, auth_code, auth_type, description, sort, state, creater, create_date, create_org, last_update_by, last_update_date, del_flag
+        from iap_sys_auth_t
+        <where>
+            <if test="iapSysAuthTDto.id != null and iapSysAuthTDto.id != ''">
+                and id = #{iapSysAuthTDto.id}
+            </if>
+            <if test="iapSysAuthTDto.authName != null and iapSysAuthTDto.authName != ''">
+                and auth_name  = #{iapSysAuthTDto.authName}
+            </if>
+            <if test="iapSysAuthTDto.authCode != null and iapSysAuthTDto.authCode != ''">
+                and auth_code = #{iapSysAuthTDto.authCode}
+            </if>
+            <if test="iapSysAuthTDto.authType != null">
+                and auth_type = #{iapSysAuthTDto.authType}
+            </if>
+            <if test="iapSysAuthTDto.description != null and iapSysAuthTDto.description != ''">
+                and description = #{iapSysAuthTDto.description}
+            </if>
+            <if test="iapSysAuthTDto.sort != null">
+                and sort = #{iapSysAuthTDto.sort}
+            </if>
+            <if test="iapSysAuthTDto.state != null">
+                and state = #{iapSysAuthTDto.state}
+            </if>
+            <if test="iapSysAuthTDto.creater != null and iapSysAuthTDto.creater != ''">
+                and creater = #{iapSysAuthTDto.creater}
+            </if>
+            <if test="iapSysAuthTDto.createDate != null">
+                and create_date = #{iapSysAuthTDto.createDate}
+            </if>
+            <if test="iapSysAuthTDto.createOrg != null and iapSysAuthTDto.createOrg != ''">
+                and create_org = #{iapSysAuthTDto.createOrg}
+            </if>
+            <if test="iapSysAuthTDto.lastUpdateBy != null and iapSysAuthTDto.lastUpdateBy != ''">
+                and last_update_by = #{iapSysAuthTDto.lastUpdateBy}
+            </if>
+            <if test="iapSysAuthTDto.lastUpdateDate != null">
+                and last_update_date = #{iapSysAuthTDto.lastUpdateDate}
+            </if>
+            <if test="iapSysAuthTDto.delFlag != null">
+                and del_flag = #{iapSysAuthTDto.delFlag}
+            </if>
+        </where>
+    </select>
+
+    <select id="selectTree" resultMap="IapSysAuthTMap">
+        SELECT
+          id,
+          parent_id,
+          auth_name ,
+          auth_name AS label,
+          auth_code,
+          auth_type,
+          description,
+          sort,
+          state,
+          creater,
+          create_date,
+          create_org,
+          last_update_by,
+          last_update_date,
+          del_flag
+        FROM
+          iap_sys_auth_t
+        <where>
+            <if test="iapSysAuthTDto.authName != null and iapSysAuthTDto.authName != ''">
+                auth_name like concat('%', #{iapSysAuthTDto.authName}, '%')
+            </if>
+            <if test="iapSysAuthTDto.state != null">
+                AND iap_sys_auth_t.state = #{iapSysAuthTDto.state}
+            </if>
+            <if test="iapSysAuthTDto.authCode != null and iapSysAuthTDto.authCode != ''">
+                auth_code like concat('%', #{iapSysAuthTDto.authCode}, '%')
+            </if>
+
+        </where>
+    </select>
+ <select id="selectTreeByState" resultMap="IapSysAuthTMap">
+        SELECT
+          id,
+          parent_id,
+          auth_name ,
+          auth_name AS label,
+          auth_code,
+          auth_type,
+          description,
+          sort,
+          state,
+          creater,
+          create_date,
+          create_org,
+          last_update_by,
+          last_update_date,
+          del_flag
+        FROM
+          iap_sys_auth_t
+        <where>
+            <if test="iapSysAuthTDto.authName != null and iapSysAuthTDto.authName != ''">
+                auth_name like concat('%', #{iapSysAuthTDto.authName}, '%')
+            </if>
+            <if test="iapSysAuthTDto.state != null">
+                AND iap_sys_auth_t.state = #{iapSysAuthTDto.state}
+            </if>
+            <if test="iapSysAuthTDto.authCode != null and iapSysAuthTDto.authCode != ''">
+                auth_code like concat('%', #{iapSysAuthTDto.authCode}, '%')
+            </if>
+                and state = '1'
+        </where>
+    </select>
+
+    <!--根据ids删除-->
+    <delete id="deleteTreeByIds">
+        delete from iap_sys_auth_t where find_in_set(id, #{ids})
+    </delete>
+
+    <delete id="deleteList">
+        delete from iap_sys_auth_t where id in
+        <foreach collection="sysAuthList" item="item" open="(" separator="," close=")">
+            #{item.id}
+        </foreach>
+    </delete>
+
+</mapper>

@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.itl.mes.core.provider.mapper.FeedInMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.itl.mes.core.api.entity.FeedIn">
+        <id column="BO" property="bo" />
+        <result column="SHOP_ORDER_BO" property="shopOrderBo" />
+        <result column="DEVICE_BO" property="deviceBo" />
+        <result column="ASSY_SFC" property="assySfc" />
+        <result column="QTY" property="qty" />
+        <result column="ITEM_BO" property="itemBo" />
+        <result column="FEEDING_USER" property="feedingUser" />
+        <result column="FEEDING_DATE" property="feedingDate" />
+        <result column="STATE" property="state" />
+        <result column="SURPLUS_QTY" property="surplusQty" />
+        <result column="COMPONENET_BO" property="componenetBo" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        BO, SHOP_ORDER_BO, DEVICE_BO, ASSY_SFC, QTY, ITEM_BO, FEEDING_USER, FEEDING_DATE, STATE,SURPLUS_QTY
+    </sql>
+<!--
+    <select id="queryList" resultMap="java.util.Map" parameterType="String">
+        SELECT
+        f.ASSY_SFC assySfc,
+        s.SHOP_ORDER shopOrder,
+        i.ITEM item,
+        i.ITEM_DESC itemDesc
+        FROM
+        m_dy_feedin f
+        LEFT JOIN m_shop_order s ON f.SHOP_ORDER_BO = s.BO
+        LEFT JOIN m_item i ON f.ITEM_BO = i.BO
+        LEFT JOIN me_sfc m ON f.ASSY_SFC = m.SFC
+        <where>
+            1=1
+            <if test="deviceBo != null and deviceBo != ''">
+                and f.DEVICE_BO like concat('%',#{deviceBo},'%')
+            </if>
+        </where>
+
+    </select>-->
+
+</mapper>

@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.itl.iap.system.provider.mapper.IapUserLoginLogTMapper">
+
+    <resultMap type="com.itl.iap.system.api.dto.IapUserLoginLogTDto" id="IapUserLoginLogTMap">
+        <result property="id" column="id" jdbcType="VARCHAR"/>
+        <result property="userId" column="user_id" jdbcType="VARCHAR"/>
+        <result property="loginType" column="login_type" jdbcType="INTEGER"/>
+        <result property="command" column="command" jdbcType="INTEGER"/>
+        <result property="version" column="version" jdbcType="VARCHAR"/>
+        <result property="client" column="client" jdbcType="VARCHAR"/>
+        <result property="deviceId" column="device_id" jdbcType="VARCHAR"/>
+        <result property="lastIp" column="last_ip" jdbcType="VARCHAR"/>
+        <result property="loginOs" column="login_os" jdbcType="VARCHAR"/>
+        <result property="osver" column="osver" jdbcType="VARCHAR"/>
+        <result property="creater" column="creater" jdbcType="VARCHAR"/>
+        <result property="createDate" column="create_date" jdbcType="TIMESTAMP"/>
+        <result property="createOrg" column="create_org" jdbcType="VARCHAR"/>
+        <result property="lastUpdateBy" column="last_update_by" jdbcType="VARCHAR"/>
+        <result property="lastUpdateDate" column="last_update_date" jdbcType="TIMESTAMP"/>
+        <result property="message" column="message" jdbcType="VARCHAR"/>
+    </resultMap>
+
+    <!--通过实体作为筛选条件查询-->
+    <select id="pageQuery" resultMap="IapUserLoginLogTMap">
+        select
+        id, user_id, login_type, command, version, client, device_id, last_ip, login_os, osver, creater, create_date,
+        create_org, last_update_by, last_update_date,message
+        from iap_user_login_log_t
+        <where>
+            <if test="iapUserLoginLogTDto.id != null and iapUserLoginLogTDto.id != ''">
+                and id = #{iapUserLoginLogTDto.id}
+            </if>
+            <if test="iapUserLoginLogTDto.userId != null and iapUserLoginLogTDto.userId != ''">
+                and user_id like concat('%', #{iapUserLoginLogTDto.userId}, '%')
+            </if>
+            <if test="iapUserLoginLogTDto.loginType != null">
+                and login_type = #{iapUserLoginLogTDto.loginType}
+            </if>
+            <if test="iapUserLoginLogTDto.command != null">
+                and command = #{iapUserLoginLogTDto.command}
+            </if>
+            <if test="iapUserLoginLogTDto.version != null and iapUserLoginLogTDto.version != ''">
+                and version = #{iapUserLoginLogTDto.version}
+            </if>
+            <if test="iapUserLoginLogTDto.client != null and iapUserLoginLogTDto.client != ''">
+                and client = #{iapUserLoginLogTDto.client}
+            </if>
+            <if test="iapUserLoginLogTDto.deviceId != null and iapUserLoginLogTDto.deviceId != ''">
+                and device_id = #{iapUserLoginLogTDto.deviceId}
+            </if>
+            <if test="iapUserLoginLogTDto.lastIp != null and iapUserLoginLogTDto.lastIp != ''">
+                and last_ip = #{iapUserLoginLogTDto.lastIp}
+            </if>
+            <if test="iapUserLoginLogTDto.loginOs != null and iapUserLoginLogTDto.loginOs != ''">
+                and login_os = #{iapUserLoginLogTDto.loginOs}
+            </if>
+            <if test="iapUserLoginLogTDto.osver != null and iapUserLoginLogTDto.osver != ''">
+                and osver = #{iapUserLoginLogTDto.osver}
+            </if>
+            <if test="iapUserLoginLogTDto.creater != null and iapUserLoginLogTDto.creater != ''">
+                and creater = #{iapUserLoginLogTDto.creater}
+            </if>
+            <if test="iapUserLoginLogTDto.createDateStart != null  and iapUserLoginLogTDto.createDateEnd != null ">
+                and  create_date <![CDATA[   >=  ]]>  #{iapUserLoginLogTDto.createDateStart} and  create_date  <![CDATA[   <=  ]]>  #{iapUserLoginLogTDto.createDateEnd}
+            </if>
+            <if test="iapUserLoginLogTDto.createOrg != null and iapUserLoginLogTDto.createOrg != ''">
+                and create_org = #{iapUserLoginLogTDto.createOrg}
+            </if>
+            <if test="iapUserLoginLogTDto.lastUpdateBy != null and iapUserLoginLogTDto.lastUpdateBy != ''">
+                and last_update_by = #{iapUserLoginLogTDto.lastUpdateBy}
+            </if>
+            <if test="iapUserLoginLogTDto.lastUpdateDate != null and iapUserLoginLogTDto.lastUpdateDate != ''">
+                and last_update_date = #{iapUserLoginLogTDto.lastUpdateDate}
+            </if>
+        </where>
+        ORDER BY create_date DESC
+    </select>
+
+</mapper>

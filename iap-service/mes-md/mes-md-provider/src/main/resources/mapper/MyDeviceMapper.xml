@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.itl.mes.core.provider.mapper.MyDeviceMapper">
+    <select id="selectMyDevice" resultType="com.itl.mes.core.api.vo.MyDeviceVo">
+        SELECT
+            md.id,
+            md.user_id,
+            md.device_bo,
+            md.spot_state,
+            md.first_ins_state,
+            d.device_name,
+            d.device
+        FROM
+            m_my_device md
+                LEFT JOIN m_device d ON md.device_bo = d.bo
+        where md.user_id = #{myDeviceDto.userId} and md.station_bo = #{myDeviceDto.stationBo}
+    </select>
+    <select id="selectDeviceTypeByDeviceBo" parameterType="string" resultType="com.itl.mes.core.api.entity.DeviceType">
+        select m.DEVICE_TYPE,m.DEVICE_TYPE_NAME from m_device_type m
+        left join m_device_type_item n on m.bo=n.device_type_bo
+        where n.device_bo = #{deviceBo}
+    </select>
+    <update id="updateFirstInsState" parameterType="string">
+        update m_my_device set FIRST_INS_STATE='0' where user_id = #{userId} and STATION_BO =#{stationBo} and DEVICE_BO=#{deviceBo}
+    </update>
+    <update id="updateAllFirstInsState">
+        update m_my_device set spot_state = '0' WHERE id is not null
+    </update>
+</mapper>

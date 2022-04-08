@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.itl.iap.mes.provider.mapper.PrintMapper">
+
+    <resultMap type="com.itl.iap.mes.api.entity.Printer" id="PrintMap">
+        <id property="id" column="id"/>
+        <result property="printerName" column="printerName"/>
+        <result property="state" column="state"/>
+    </resultMap>
+
+    <!--通过实体作为筛选条件查询-->
+    <select id="findList" parameterType="string" resultMap="PrintMap">
+        SELECT
+        A.id,
+        A.printerName,
+        A.state
+        FROM
+        m_printer A
+        <where>
+            <if test="printerName != null and printerName !=''">
+                AND A.printerName LIKE CONCAT('%',#{printerName},'%')
+            </if>
+        </where>
+    </select>
+
+</mapper>

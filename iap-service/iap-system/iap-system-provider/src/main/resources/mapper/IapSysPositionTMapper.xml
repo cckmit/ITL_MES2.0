@@ -1,0 +1,391 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.itl.iap.system.provider.mapper.IapSysPositionTMapper">
+
+    <resultMap type="com.itl.iap.system.api.dto.IapSysUserTDto" id="IapSysUserTMap">
+        <id property="id" column="id" jdbcType="VARCHAR"/>
+        <result property="realName" column="real_name" jdbcType="VARCHAR"/>
+        <result property="userName" column="user_name" jdbcType="VARCHAR"/>
+        <result property="userMobile" column="user_mobile" jdbcType="VARCHAR"/>
+        <result property="userCode" column="user_code" jdbcType="VARCHAR"/>
+        <result property="email" column="email" jdbcType="VARCHAR"/>
+        <result property="state" column="state" jdbcType="SMALLINT"/>
+        <result property="userType" column="user_type" jdbcType="SMALLINT"/>
+        <result property="creater" column="creater" jdbcType="VARCHAR"/>
+        <collection property="iapSysOrganizationT" column="{id=user_id}"
+                    select="com.itl.iap.system.provider.mapper.IapSysUserTMapper.queryOrganizationById"/>
+        <collection column="{id=user_id}" property="iapSysRoleTDtoList" select="queryByRole"/>
+    </resultMap>
+
+    <resultMap id="iapSysRoleTDto" type="com.itl.iap.system.api.dto.IapSysRoleTDto">
+        <id column="role_id" property="id" jdbcType="VARCHAR"/>
+        <result column="role_name" property="roleName" jdbcType="VARCHAR"/>
+        <result column="role_type" property="roleCode" jdbcType="VARCHAR"/>
+        <result column="role_code" property="roleCode" jdbcType="VARCHAR"/>
+        <result column="description" property="description" jdbcType="VARCHAR"/>
+        <result column="sort" property="sort" jdbcType="SMALLINT"/>
+        <result column="state" property="state" jdbcType="SMALLINT"/>
+        <result column="creater" property="creater" jdbcType="VARCHAR"/>
+        <result column="create_date" property="createDate" jdbcType="TIMESTAMP"/>
+        <result column="last_update_date" property="lastUpdateDate" jdbcType="TIMESTAMP"/>
+        <result column="create_org" property="createOrg" jdbcType="TIMESTAMP"/>
+        <result column="last_update_by" property="lastUpdateBy" jdbcType="TIMESTAMP"/>
+        <result column="del_flag" property="delFlag" jdbcType="SMALLINT"/>
+    </resultMap>
+
+    <resultMap type="com.itl.iap.system.api.dto.IapPositionTDto" id="IapPositionTListMap">
+        <id property="id" column="id" jdbcType="VARCHAR"/>
+        <result property="name" column="name" jdbcType="VARCHAR"/>
+        <result property="code" column="code" jdbcType="VARCHAR"/>
+        <result property="type" column="type" jdbcType="SMALLINT"/>
+        <result property="enabled" column="enabled" jdbcType="SMALLINT"/>
+        <result property="parentName" column="parentName" jdbcType="VARCHAR"/>
+        <result property="orgName" column="orgName" jdbcType="VARCHAR"/>
+        <result property="creater" column="creater" jdbcType="VARCHAR"/>
+        <result property="createDate" column="createDate" jdbcType="TIMESTAMP"/>
+        <result property="lastUpdateDate" column="lastUpdateDate" jdbcType="TIMESTAMP"/>
+        <result property="lastUpdateBy" column="lastUpdateBy" jdbcType="VARCHAR"/>
+        <result property="sort" column="sort" jdbcType="SMALLINT"/>
+        <result property="mainLeaderName" column="mainLeaderName" jdbcType="VARCHAR"/>
+        <collection property="iapSysUserTLists" column="{id=id}" select="userListByPositionId"/>
+<!--        <collection property="positionlist"-->
+<!--                    ofType="com.itl.iap.system.api.dto.IapPositionTDto" column="{parentId=id}"-->
+<!--                    select="getNextListTree"/>-->
+    </resultMap>
+
+    <resultMap type="com.itl.iap.system.api.dto.IapPositionTDto" id="positionTreeByOrgIdMap">
+        <id property="id" column="id" jdbcType="VARCHAR"/>
+        <result property="name" column="name" jdbcType="VARCHAR"/>
+        <result property="code" column="code" jdbcType="VARCHAR"/>
+        <result property="type" column="type" jdbcType="SMALLINT"/>
+        <result property="enabled" column="enabled" jdbcType="SMALLINT"/>
+        <result property="sort" column="sort" jdbcType="SMALLINT"/>
+    </resultMap>
+
+
+    <!--  删除岗位-员工中间表信息(iap_sys_position_employee_t)信息 -->
+    <delete id="deletePosititionEmpployeeTByPositionId">
+        DELETE FROM iap_position_employee_t WHERE iap_position_employee_t.position_id = #{iapPositionT.id}
+    </delete>
+    <!-- 删除岗位-组织中间表信息(iap_sys_organization_position_t)信息 -->
+    <delete id="deleteOrganizationPositionTByPositionId">
+         DELETE FROM iap_sys_organization_position_t WHERE iap_sys_organization_position_t.position_id = #{iapPositionT.id}
+    </delete>
+
+    <!-- 通过职位名称或职位编号查询 -->
+    <select id="queryList" resultType="com.itl.iap.system.api.dto.IapPositionTDto">
+        SELECT
+        A.id,
+        A.code,
+        A.type,
+        A.name,
+        E.name AS parentName,
+        (
+        SELECT
+        COUNT( iap_sys_position_t.id )
+        FROM
+        iap_sys_position_t
+        INNER JOIN iap_sys_position_user_t ON iap_sys_position_t.id = iap_sys_position_user_t.position_id
+        INNER JOIN iap_sys_user_t ON iap_sys_position_user_t.user_id = iap_sys_user_t.id
+        WHERE
+        A.id = iap_sys_position_t.id
+        ) AS userNum,
+        A.enabled,
+        A.creater,
+        A.create_date AS createDate,
+        A.last_update_by AS latUpdateBy,
+        A.last_update_date AS lastUpdateDate,
+        A.sort,
+        C.name AS orgName,
+        F.real_name AS mainLeaderName,
+        A.parent_id AS parentId,
+        C.id AS orgId
+        FROM
+        iap_sys_position_t AS A
+        LEFT JOIN iap_sys_organization_position_t AS B ON A.id = B.position_id
+        LEFT JOIN iap_sys_organization_t AS C ON B.organization_id = C.id
+        LEFT JOIN iap_sys_position_t AS E ON A.parent_id = E.id
+        LEFT JOIN iap_sys_user_t AS F ON F.id = A.main_leader_id
+        <where>
+            <if test="iapPositionTDto.name != null">
+                AND A.name LIKE CONCAT('%',#{iapPositionTDto.name},'%')
+            </if>
+            <if test="iapPositionTDto.code != null">
+                AND A.code LIKE CONCAT('%',#{iapPositionTDto.code},'%')
+            </if>
+            <if test="iapPositionTDto.enabled != null">
+                AND A.enabled = #{iapPositionTDto.enabled}
+            </if>
+        </where>
+        Order BY A.sort ASC
+    </select>
+
+    <!-- 更新岗位状态 -->
+    <update id="updateEnabled">
+        UPDATE iap_sys_position_t P
+        SET P.enabled = #{enabled}
+        WHERE 1=1
+        <if test="iapPositionTDtoList != null and iapPositionTDtoList.size() > 0 ">
+            AND P.id IN
+            <foreach collection="iapPositionTDtoList" item="item" index="index" open="(" close=")" separator=",">
+                #{item.id}
+            </foreach>
+        </if>
+    </update>
+
+    <!-- 更新 组织-岗位 中间表 -->
+    <update id="updateOrganizationPosition">
+        UPDATE iap_sys_organization_position_t AS A SET A.organization_id = #{iapPositionTDto.orgId} WHERE A.position_id = #{iapPositionTDto.id}
+    </update>
+
+    <!-- 通过 iapPositionTDto 查询岗位下的用户数量 -->
+    <select id="queryUserNumByPositionId" resultType="com.itl.iap.system.api.dto.IapPositionTDto">
+        SELECT
+        P.id,
+        P.name,
+        (
+        SELECT COUNT(iap_sys_position_t.id)
+        FROM iap_sys_position_t
+        INNER JOIN iap_sys_position_user_t ON iap_sys_position_t.id = iap_sys_position_user_t.position_id
+        INNER JOIN iap_sys_user_t ON iap_sys_position_user_t.user_id = iap_sys_user_t.id
+        WHERE P.id = iap_sys_position_t.id
+        ) AS userNum
+        FROM iap_sys_position_t as P
+        WHERE 1=1
+        <if test="iapPositionT.id != null">
+            AND P.id = #{iapPositionT.id}
+        </if>
+    </select>
+
+    <!-- 通过岗位 id 查询 用户列表 -->
+    <select id="queryUserListByPositionId" resultMap="IapSysUserTMap">
+        SELECT
+            C.id,
+            C.user_name,
+            C.user_mobile,
+            C.user_code,
+            C.real_name,
+            C.email,
+            C.parent_leader,
+            C.mobile_phone,
+            C.office_phone,
+            C.state,
+            C.user_type,
+            C.id as user_id,
+            (SELECT type FROM  iap_sys_employee_t WHERE  user_id = C.id) as employeeType
+         FROM
+            iap_sys_position_user_t  A
+            LEFT JOIN iap_sys_position_t B ON A.position_id = B.id
+            LEFT JOIN iap_sys_user_t  C ON A.user_id = C.id
+            WHERE
+            B.id = #{iapPositionT.id} AND C.id IS NOT NULL
+    </select>
+
+    <!-- 通过岗位 id 查询 用户列表 -->
+    <select id="userListByPositionId" resultMap="IapSysUserTMap">
+        SELECT
+            C.id,
+            C.user_name,
+            C.user_mobile,
+            C.user_code,
+            C.real_name,
+            C.email,
+            C.parent_leader,
+            C.mobile_phone,
+            C.office_phone,
+            C.state,
+            C.user_type,
+            C.id as user_id,
+            (SELECT type FROM  iap_sys_employee_t WHERE  user_id = C.id) as employeeType
+         FROM
+            iap_sys_position_user_t  A
+            LEFT JOIN iap_sys_position_t B ON A.position_id = B.id
+            LEFT JOIN iap_sys_user_t  C ON A.user_id = C.id
+            WHERE
+            B.id = #{id} AND C.id IS NOT NULL
+    </select>
+    <select id="queryByRole" resultMap="iapSysRoleTDto">
+        SELECT
+            A.id AS role_id,
+            A.role_name,
+            A.role_code,
+            A.role_type,
+            A.description,
+            A.sort,
+            A.state,
+            A.creater,
+            A.create_date,
+            A.create_org,
+            A.last_update_by,
+            A.last_update_date,
+            A.del_flag
+        FROM
+	    iap_sys_role_t A left  join  iap_sys_user_role_t B on  A.id = B.role_id where  B.user_id = #{id}
+    </select>
+
+    <!-- 岗位树形结构 -->
+    <select id="getListTree" resultMap="IapPositionTListMap">
+        SELECT
+        A.id,
+        A.code,
+        A.type,
+        A.name,
+        E.name AS parentName,
+        A.enabled,
+        A.creater,
+        A.create_date AS createDate,
+        A.last_update_by AS latUpdateBy,
+        A.last_update_date AS lastUpdateDate,
+        A.sort,
+        C.name AS orgName,
+        F.real_name AS mainLeaderName,
+        A.parent_id AS parentId,
+        C.id AS orgId
+        FROM
+        iap_sys_position_t AS A
+        LEFT JOIN iap_sys_organization_position_t AS B ON A.id = B.position_id
+        LEFT JOIN iap_sys_organization_t AS C ON B.organization_id = C.id
+        LEFT JOIN iap_sys_position_t AS E ON A.parent_id = E.id
+        LEFT JOIN iap_sys_user_t AS F ON F.id = A.main_leader_id
+        <where>
+            <if test="iapPositionTDto.name != null and iapPositionTDto.name != ''">
+                AND A.name LIKE CONCAT('%',#{iapPositionTDto.name},'%')
+            </if>
+            <if test="iapPositionTDto.code != null and iapPositionTDto.code != ''">
+                AND A.code LIKE CONCAT('%',#{iapPositionTDto.code},'%')
+            </if>
+        </where>
+        Order BY A.sort ASC
+    </select>
+
+
+    <select id="getNextListTree" resultMap="IapPositionTListMap">
+        SELECT
+            A.id,
+            A.code,
+            A.type,
+            A.name,
+            E.name AS parentName,
+            A.enabled,
+            A.creater,
+            A.create_date AS createDate,
+            A.last_update_by AS latUpdateBy,
+            A.last_update_date AS lastUpdateDate,
+            A.sort,
+            C.name AS orgName,
+            F.real_name AS mainLeaderName,
+            A.parent_id AS parentId,
+            C.id AS orgId
+        FROM
+        iap_sys_position_t AS A
+        LEFT JOIN iap_sys_organization_position_t AS B ON A.id = B.position_id
+        LEFT JOIN iap_sys_organization_t AS C ON B.organization_id = C.id
+        LEFT JOIN iap_sys_position_t AS E ON A.parent_id = E.id
+        LEFT JOIN iap_sys_user_t AS F ON F.id = A.main_leader_id
+        WHERE A.parent_id = #{parentId}
+        Order BY A.sort ASC
+
+    </select>
+
+
+    <select id="selectUserListByPositionId" resultType="com.itl.iap.system.api.entity.IapSysUserT">
+        SELECT
+            F.id,
+            F.real_name AS realName,
+            F.user_name AS userName,
+            E.position_id AS positionId
+        FROM iap_sys_position_user_t AS E
+        LEFT JOIN iap_sys_user_t AS F ON E.user_id = F.id
+        WHERE E.position_id =   #{id}
+
+    </select>
+
+    <update id="updateOneById">
+        UPDATE iap_sys_position_t
+        <set>
+            <if test="iapPositionTDto.name != null and iapPositionTDto.name != '' ">
+                name = #{iapPositionTDto.name},
+            </if>
+            <if test="iapPositionTDto.code != null and iapPositionTDto.code != '' ">
+                code = #{iapPositionTDto.code},
+            </if>
+            <if test="iapPositionTDto.sort != null  ">
+                sort = #{iapPositionTDto.sort},
+            </if>
+            <if test="iapPositionTDto.enabled != null ">
+                enabled = #{iapPositionTDto.enabled},
+            </if>
+            <if test="iapPositionTDto.remark != null and iapPositionTDto.remark != '' ">
+                remark = #{iapPositionTDto.remark},
+            </if>
+            <if test="iapPositionTDto.createDate != null ">
+                create_date = #{iapPositionTDto.createDate},
+            </if>
+            <if test="iapPositionTDto.lastUpdateDate != null ">
+                last_update_date = #{iapPositionTDto.lastUpdateDate},
+            </if>
+            <if test="iapPositionTDto.type != null">
+                type = #{iapPositionTDto.type},
+            </if>
+            parent_id = #{iapPositionTDto.parentId}
+        </set>
+        WHERE id = #{iapPositionTDto.id}
+    </update>
+
+
+    <!-- 通过岗位id 查询组织信息 -->
+    <select id="getOrganizationByPositionId" resultType="com.itl.iap.system.api.dto.IapPositionTDto">
+        SELECT
+        B.id AS orgId,
+        B.name AS orgName
+        FROM iap_sys_organization_position_t AS A
+        LEFT JOIN iap_sys_organization_t AS B ON A.organization_id = B.id
+        WHERE 1=1
+        <if test="parentId != null">
+            AND A.position_id = #{parentId}
+        </if>
+    </select>
+
+    <select id="getListTreeByOrgId" resultMap="positionTreeByOrgIdMap">
+        SELECT
+            C.id,
+            C.name,
+            C.enabled,
+            C.code,
+            C.type,
+            C.sort,
+            C.parent_id AS parentId
+        FROM
+            iap_sys_organization_t AS A
+        LEFT JOIN iap_sys_organization_position_t AS B ON A.id = B.organization_id
+        LEFT JOIN iap_sys_position_t AS C ON B.position_id = C.id
+        where 1=1 AND C.id IS not null
+        <if test="iapPositionTDto.orgId != null and iapPositionTDto.orgId != ''">
+           AND  A.id = #{iapPositionTDto.orgId}
+        </if>
+        <if test="iapPositionTDto.id != null and iapPositionTDto.id != '' ">
+           AND  C.id != #{iapPositionTDto.id}
+        </if>
+    </select>
+    <!-- IM 获取岗位 -->
+    <select id="getPositUser" resultType="com.itl.iap.system.api.dto.IapPositionTDto">
+        SELECT
+        A.id,
+        A.create_date,
+        A.name,
+        A.type,
+        A.parent_id AS parentId,
+        B.organization_id as orgId
+        FROM
+        iap_sys_position_t A
+        left JOIN iap_sys_organization_position_t B ON A.id = B.position_id
+        <where>
+        A.enabled = #{enabled}
+            <if test="positName != null and positName != '' ">
+              AND A.name LIKE CONCAT('%',#{positName},'%')
+            </if>
+        </where>
+        ORDER BY A.create_date DESC
+    </select>
+
+</mapper>

@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.itl.mes.core.provider.mapper.CarrierTypeMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.itl.mes.core.api.entity.CarrierType">
+        <id column="BO" property="bo" />
+        <result column="SITE" property="site" />
+        <result column="CARRIER_TYPE" property="carrierType" />
+        <result column="DESCRIPTION" property="description" />
+        <result column="CAPACITY" property="capacity" />
+        <result column="ROW_SIZE" property="rowSize" />
+        <result column="COLUMN_SIZE" property="columnSize" />
+        <result column="CREATE_USER" property="createUser" />
+        <result column="CREATE_DATE" property="createDate" />
+        <result column="MODIFY_USER" property="modifyUser" />
+        <result column="MODIFY_DATE" property="modifyDate" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        BO, SITE, CARRIER_TYPE, DESCRIPTION, CAPACITY, ROW_SIZE, COLUMN_SIZE, CREATE_USER, CREATE_DATE, MODIFY_USER, MODIFY_DATE
+    </sql>
+
+</mapper>

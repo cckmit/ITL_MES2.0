@@ -1,0 +1,156 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.itl.iap.auth.mapper.ISysUserMapper">
+
+    <resultMap type="com.itl.iap.auth.dto.SysUserDto" id="sysUserMap">
+        <result property="id" column="id" jdbcType="VARCHAR"/>
+        <result property="userName" column="user_name" jdbcType="VARCHAR"/>
+        <result property="userPsw" column="user_psw" jdbcType="VARCHAR"/>
+        <result property="userMobile" column="user_mobile" jdbcType="VARCHAR"/>
+        <result property="userCode" column="user_code" jdbcType="VARCHAR"/>
+        <result property="realName" column="real_name" jdbcType="VARCHAR"/>
+        <result property="email" column="email" jdbcType="VARCHAR"/>
+        <result property="parentLeader" column="parent_leader" jdbcType="VARCHAR"/>
+        <result property="idCardNum" column="id_card_num" jdbcType="VARCHAR"/>
+        <result property="address" column="address" jdbcType="VARCHAR"/>
+        <result property="registerDate" column="register_date" jdbcType="VARCHAR"/>
+        <result property="gender" column="gender" jdbcType="SMALLINT"/>
+        <result property="birthday" column="birthday" jdbcType="VARCHAR"/>
+        <result property="signature" column="signature" jdbcType="VARCHAR"/>
+        <result property="pushToken" column="push_token" jdbcType="VARCHAR"/>
+        <result property="nickName" column="nick_name" jdbcType="VARCHAR"/>
+        <result property="avatar" column="avatar" jdbcType="VARCHAR"/>
+        <result property="fax" column="fax" jdbcType="VARCHAR"/>
+        <result property="mobilephone" column="mobile_phone" jdbcType="VARCHAR"/>
+        <result property="officephone" column="office_phone" jdbcType="VARCHAR"/>
+        <result property="state" column="state" jdbcType="SMALLINT"/>
+        <result property="userType" column="user_type" jdbcType="SMALLINT"/>
+        <result property="pwdUpdateTime" column="pwd_update_time" jdbcType="TIMESTAMP"/>
+        <result property="creater" column="creater" jdbcType="VARCHAR"/>
+        <result property="createDate" column="create_date" jdbcType="TIMESTAMP"/>
+        <result property="createOrg" column="create_org" jdbcType="VARCHAR"/>
+        <result property="lastUpdateBy" column="last_update_by" jdbcType="VARCHAR"/>
+        <result property="lastUpdateDate" column="last_update_date" jdbcType="TIMESTAMP"/>
+    </resultMap>
+
+    <!--通过实体作为筛选条件查询-->
+    <select id="pageQuery" resultMap="sysUserMap">
+        select
+        id, user_name, user_psw, user_mobile, user_code, real_name, email, parent_leader, id_card_num, address,
+        register_date, gender, birthday, signature, push_token, nick_name, avatar, fax, mobilePhone, officePhone, state,
+        user_type, pwd_update_time, creater, create_date, create_org, last_update_by, last_update_date
+        from iap_sys_user_t
+        <where>
+            <if test="sysUserDto.id != null and sysUserDto.id != ''">
+                and id = #{sysUserDto.id}
+            </if>
+            <if test="sysUserDto.userName != null and sysUserDto.userName != ''">
+                and user_name = #{sysUserDto.userName}
+            </if>
+            <if test="sysUserDto.userPsw != null and sysUserDto.userPsw != ''">
+                and user_psw = #{sysUserDto.userPsw}
+            </if>
+            <if test="sysUserDto.userMobile != null and sysUserDto.userMobile != ''">
+                and user_mobile = #{sysUserDto.userMobile}
+            </if>
+            <if test="sysUserDto.userCode != null and sysUserDto.userCode != ''">
+                and user_code = #{sysUserDto.userCode}
+            </if>
+            <if test="sysUserDto.realName != null and sysUserDto.realName != ''">
+                and real_name = #{sysUserDto.realName}
+            </if>
+            <if test="sysUserDto.email != null and sysUserDto.email != ''">
+                and email = #{sysUserDto.email}
+            </if>
+            <if test="sysUserDto.parentLeader != null and sysUserDto.parentLeader != ''">
+                and parent_leader = #{sysUserDto.parentLeader}
+            </if>
+            <if test="sysUserDto.idCardNum != null and sysUserDto.idCardNum != ''">
+                and id_card_num = #{sysUserDto.idCardNum}
+            </if>
+            <if test="sysUserDto.address != null and sysUserDto.address != ''">
+                and address = #{sysUserDto.address}
+            </if>
+            <if test="sysUserDto.registerDate != null and sysUserDto.registerDate != ''">
+                and register_date = #{sysUserDto.registerDate}
+            </if>
+            <if test="sysUserDto.gender != null ">
+                and gender = #{sysUserDto.gender}
+            </if>
+            <if test="sysUserDto.birthday != null and sysUserDto.birthday != ''">
+                and birthday = #{sysUserDto.birthday}
+            </if>
+            <if test="sysUserDto.signature != null and sysUserDto.signature != ''">
+                and signature = #{sysUserDto.signature}
+            </if>
+            <if test="sysUserDto.pushToken != null and sysUserDto.pushToken != ''">
+                and push_token = #{sysUserDto.pushToken}
+            </if>
+            <if test="sysUserDto.nickName != null and sysUserDto.nickName != ''">
+                and nick_name = #{sysUserDto.nickName}
+            </if>
+            <if test="sysUserDto.avatar != null and sysUserDto.avatar != ''">
+                and avatar = #{sysUserDto.avatar}
+            </if>
+            <if test="sysUserDto.fax != null and sysUserDto.fax != ''">
+                and fax = #{sysUserDto.fax}
+            </if>
+            <if test="sysUserDto.mobilephone != null and sysUserDto.mobilephone != ''">
+                and mobilePhone = #{sysUserDto.mobilephone}
+            </if>
+            <if test="sysUserDto.officephone != null and sysUserDto.officephone != ''">
+                and officePhone = #{sysUserDto.officephone}
+            </if>
+            <if test="sysUserDto.state != null">
+                and state = #{sysUserDto.state}
+            </if>
+            <if test="sysUserDto.userType != null">
+                and user_type = #{sysUserDto.userType}
+            </if>
+            <if test="sysUserDto.pwdUpdateTime != null">
+                and pwd_update_time = #{sysUserDto.pwdUpdateTime}
+            </if>
+            <if test="sysUserDto.creater != null and sysUserDto.creater != ''">
+                and creater = #{sysUserDto.creater}
+            </if>
+            <if test="sysUserDto.createDate != null">
+                and create_date = #{sysUserDto.createDate}
+            </if>
+            <if test="sysUserDto.createOrg != null and sysUserDto.createOrg != ''">
+                and create_org = #{sysUserDto.createOrg}
+            </if>
+            <if test="sysUserDto.lastUpdateBy != null and sysUserDto.lastUpdateBy != ''">
+                and last_update_by = #{sysUserDto.lastUpdateBy}
+            </if>
+            <if test="sysUserDto.lastUpdateDate != null">
+                and last_update_date = #{sysUserDto.lastUpdateDate}
+            </if>
+        </where>
+    </select>
+
+    <select id="getAllMenuByType" resultType="java.util.Map">
+        SELECT
+                B.resources_code
+        FROM
+                (
+                        SELECT
+                                C.resource_id AS resource_id,
+                                A.user_id AS id
+                        FROM
+                                iap_sys_user_t D LEFT JOIN
+                                        iap_sys_user_role_t A ON D.id = A.user_id
+                                                 LEFT JOIN iap_sys_role_auth_t B ON A.role_id = B.role_id
+                                                 LEFT JOIN iap_sys_auth_resource_t C ON B.auth_id = C.auth_id
+                        WHERE
+                                D.user_name = #{userName}
+                          AND B.del_flag = '0'
+                          AND C.del_flag = '0'
+                        ) A
+                        LEFT JOIN iap_sys_resource_t B ON A.resource_id = B.id
+        WHERE
+                B.state = 1
+          and B.resource_type=3
+        ORDER BY  B.sort ASC
+    </select>
+
+</mapper>

@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.itl.mes.core.provider.mapper.SiteMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.itl.mes.core.api.entity.Site">
+        <id column="SITE" property="site" />
+        <result column="SITE_DESC" property="siteDesc" />
+        <result column="SITE_TYPE" property="siteType" />
+        <result column="ENABLE_FLAG" property="enableFlag" />
+        <result column="CREATE_USER" property="createUser" />
+        <result column="CREATE_DATE" property="createDate" />
+        <result column="MODIFY_USER" property="modifyUser" />
+        <result column="MODIFY_DATE" property="modifyDate" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        SITE AS site, SITE_DESC AS siteDesc, SITE_TYPE AS siteType, ENABLE_FLAG AS enableFlag, CREATE_USER AS createUser, CREATE_DATE AS createDate, MODIFY_USER AS modifyUser, MODIFY_DATE AS modifyDate
+    </sql>
+
+</mapper>

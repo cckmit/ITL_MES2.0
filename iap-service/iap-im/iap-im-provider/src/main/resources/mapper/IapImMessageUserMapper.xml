@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.itl.im.provider.mapper.IapImMessageUserMapper">
+
+    <resultMap type="iap.im.api.dto.IapImMessageListDto" id="IapImMessageUserDtoMap">
+        <result property="id" column="id" jdbcType="VARCHAR"/>
+        <result property="sender" column="sender" jdbcType="VARCHAR"/>
+        <result property="receiver" column="receiver" jdbcType="VARCHAR"/>
+        <result property="showType" column="show_type" jdbcType="SMALLINT"/>
+        <result property="listType" column="list_type" jdbcType="SMALLINT"/>
+    </resultMap>
+
+    <!-- 批量插入 -->
+    <insert id="insertList">
+        INSERT INTO iap_im_message_user_t (id,sender,receiver,show_type,list_type)
+        VALUES
+        <foreach collection="list" separator="," item="item">
+            (#{item.id},#{item.sender},#{item.receiver},#{item.showType},#{item.listType})
+        </foreach>
+    </insert>
+
+    <!-- 通过群成员list和群ID，批量删除message_user中间表 -->
+    <delete id="removeGroupMemberByGroupId">
+
+        DELETE FROM iap_im_message_user_t
+        WHERE
+        ( iap_im_message_user_t.sender IN
+        <foreach collection="groupMemberIdList" separator="," item="item">
+            (#{item.id})
+        </foreach>
+        AND iap_im_message_user_t.receiver = #{groupId} )
+        OR
+        ( iap_im_message_user_t.receiver IN
+        <foreach collection="groupMemberIdList" separator="," item="item">
+            (#{item.id})
+        </foreach>
+        AND iap_im_message_user_t.sender = #{groupId} )
+    </delete>
+
+    <!-- 通过sender和receiver双向删除 -->
+    <delete id="removeItemBySenderAndReceiver">
+        DELETE FROM iap_im_message_user_t
+        WHERE
+            (iap_im_message_user_t.sender = #{sender} AND iap_im_message_user_t.receiver = #{receiver})
+             OR
+            (iap_im_message_user_t.sender = #{receiver} AND iap_im_message_user_t.receiver = #{sender})
+    </delete>
+
+    <!-- 根据群号，更新该群的所有展示信息 -->
+    <update id="updateShowTypeByGroupId">
+        UPDATE `iap_im_message_user_t` SET show_type = #{showType} WHERE (`iap_im_message_user_t`.sender = #{groupId} OR `iap_im_message_user_t`.receiver = #{groupId}) AND (`iap_im_message_user_t`.show_type = 1)
+    </update>
+
+    <!-- 批量更新群成员的消息列表显示状态 -->
+    <update id="updateList">
+        UPDATE `iap_im_message_user_t` SET `iap_im_message_user_t`.show_type = #{showType}
+        WHERE
+        (`iap_im_message_user_t`.sender = #{groupId}
+        AND `iap_im_message_user_t`.receiver IN
+        <foreach collection="groupMemberAccountList" item="item" open="(" separator="," close=")">
+            #{item}
+        </foreach>
+        )
+        OR
+        (`iap_im_message_user_t`.receiver = #{groupId}
+        AND `iap_im_message_user_t`.sender IN
+        <foreach collection="groupMemberAccountList" item="item" open="(" separator="," close=")">
+            (#{item})
+        </foreach>
+        )
+    </update>
+
+</mapper>

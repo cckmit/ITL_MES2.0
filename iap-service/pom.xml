@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <parent>
+        <artifactId>iap</artifactId>
+        <groupId>com.itl</groupId>
+        <version>1.0</version>
+    </parent>
+    <modelVersion>4.0.0</modelVersion>
+    <description>IAP基础功能模块</description>
+
+    <artifactId>iap-service</artifactId>
+    <packaging>pom</packaging>
+    <modules>
+        <module>iap-system</module>
+        <module>iap-workflow</module>
+        <module>iap-attachment</module>
+        <module>iap-mes</module>
+        <module>iap-notice</module>
+        <module>iap-im</module>
+        <module>iap-xxl-job-admin</module>
+        <module>mes-md</module>
+        <module>mes-me</module>
+        <module>mes-qm</module>
+        <module>mes-andon</module>
+        <module>mes-pp</module>
+        <module>iap-report</module>
+    </modules>
+
+
+</project>

@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.itl.iap.mes.provider.mapper.CheckExecuteMapper">
+
+    <sql id="FIELD">
+        t.id AS id,t.checkPlanName AS checkPlanName,t.code AS code,t.name AS name,t.type AS type,t.productionLine AS productionLine,t.dataCollectionId AS dataCollectionId,t.dataCollectionName AS dataCollectionName,t.checkUserId AS checkUserId,t.checkUserName AS checkUserName,t.executeTime AS executeTime,t.state AS state,t.planExecuteTime AS planExecuteTime
+    </sql>
+    <sql id="WHERE_FIELD">
+        <where>
+            AND t.siteId = #{checkExecute.siteId}
+            <if test="checkExecute.code != null and checkExecute.code!=''">
+                AND t.code LIKE CONCAT('%',#{checkExecute.code},'%')
+            </if>
+            <if test="checkExecute.checkPlanName != null and checkExecute.checkPlanName !=''">
+                AND t.checkPlanName LIKE CONCAT('%',#{checkExecute.checkPlanName},'%')
+            </if>
+            <if test="checkExecute.dataCollectionName != null and checkExecute.dataCollectionName!=''">
+                AND t.dataCollectionName LIKE CONCAT('%',#{checkExecute.dataCollectionName},'%')
+            </if>
+            <if test="checkExecute.checkUserName != null and checkExecute.checkUserName !=''">
+                AND t.checkUserName LIKE CONCAT('%',#{checkExecute.checkUserName},'%')
+            </if>
+
+            <if test="checkExecute.startTime != null and checkExecute.endTime != null">
+                AND t.executeTime BETWEEN #{checkExecute.startTime} AND #{checkExecute.endTime}
+            </if>
+        </where>
+    </sql>
+    <select id="pageQuery" parameterType="com.itl.iap.mes.api.entity.CheckExecute" resultType="com.itl.iap.mes.api.entity.CheckExecute">
+        SELECT <include refid="FIELD"/>
+        FROM m_repair_check_execute t
+        <include refid="WHERE_FIELD"/>
+    </select>
+</mapper>

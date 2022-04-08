@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.itl.iap.mes.provider.mapper.CheckPlanMapper">
+
+    <sql id="FIELD">
+        t.id AS id,t.checkPlanName AS checkPlanName,t.code AS code,t.name AS name,t.type AS type,t.dataCollectionId AS dataCollectionId,t.dataCollectionName AS dataCollectionName,t.checkUserId AS checkUserId,t.checkUserName AS checkUserName,t.startTime AS startTime,t.endTime AS endTime,t.state AS state,t.cycle AS cycle,t.ytd AS ytd,t.remark AS remark,t.jobIds AS jobIds,t.runState AS runState,t.createPerson as createPerson,t.createTime,t.device_type_name as deviceTypeName
+    </sql>
+    <sql id="WHERE_FIELD">
+        <where>
+            AND t.siteId = #{checkPlan.siteId}
+            <if test="checkPlan.state != null">
+                AND t.state = #{checkPlan.state}
+            </if>
+            <if test="checkPlan.type != null and checkPlan.type!=''">
+                AND t.type LIKE CONCAT('%',#{checkPlan.type},'%')
+            </if>
+            <if test="checkPlan.deviceTypeName != null and checkPlan.deviceTypeName!=''">
+                AND t.device_type_name LIKE CONCAT('%',#{checkPlan.deviceTypeName},'%')
+            </if>
+            <if test="checkPlan.code != null and checkPlan.code!=''">
+                AND t.code LIKE CONCAT('%',#{checkPlan.code},'%')
+            </if>
+            <if test="checkPlan.checkPlanName != null and checkPlan.checkPlanName !=''">
+                AND t.checkPlanName LIKE CONCAT('%',#{checkPlan.checkPlanName},'%')
+            </if>
+            <if test="checkPlan.dataCollectionName != null and checkPlan.dataCollectionName!=''">
+                AND t.dataCollectionName LIKE CONCAT('%',#{checkPlan.dataCollectionName},'%')
+            </if>
+            <if test="checkPlan.checkUserName != null and checkPlan.checkUserName !=''">
+                AND t.checkUserName LIKE CONCAT('%',#{checkPlan.checkUserName},'%')
+            </if>
+        </where>
+    </sql>
+    <select id="findList" parameterType="com.itl.iap.mes.api.entity.CheckPlan" resultType="com.itl.iap.mes.api.entity.CheckPlan">
+        SELECT <include refid="FIELD"/>
+        FROM m_repair_check_plan t
+        <include refid="WHERE_FIELD"/>
+
+        order by t.createTime Desc
+    </select>
+    <select id="findListByState" parameterType="com.itl.iap.mes.api.entity.CheckPlan" resultType="com.itl.iap.mes.api.entity.CheckPlan">
+        SELECT <include refid="FIELD"/>
+        FROM m_repair_check_plan t
+        <where>
+            AND t.siteId = #{checkPlan.siteId}
+            <if test="checkPlan.code != null and checkPlan.code!=''">
+                AND t.code LIKE CONCAT('%',#{checkPlan.code},'%')
+            </if>
+            <if test="checkPlan.checkPlanName != null and checkPlan.checkPlanName !=''">
+                AND t.checkPlanName LIKE CONCAT('%',#{checkPlan.checkPlanName},'%')
+            </if>
+            <if test="checkPlan.dataCollectionName != null and checkPlan.dataCollectionName!=''">
+                AND t.dataCollectionName LIKE CONCAT('%',#{checkPlan.dataCollectionName},'%')
+            </if>
+            <if test="checkPlan.checkUserName != null and checkPlan.checkUserName !=''">
+                AND t.checkUserName LIKE CONCAT('%',#{checkPlan.checkUserName},'%')
+            </if>
+            AND t.STATE ='1'
+        </where>
+
+        order by t.createTime Desc
+    </select>
+
+    <select id="selectByDeviceType" resultType="com.itl.iap.mes.api.entity.CheckPlan" parameterType="string">
+        select <include refid="FIELD"/>
+        from  m_repair_check_plan t
+        where type=#{deviceType} and createTime=(select min(createTime) from m_repair_check_plan where type=#{deviceType})
+    </select>
+</mapper>

@@ -1,0 +1,408 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.itl.mes.core.provider.mapper.ShopOrderMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.itl.mes.core.api.entity.ShopOrder">
+        <id column="BO" property="bo" />
+        <result column="SITE" property="site" />
+        <result column="SHOP_ORDER" property="shopOrder" />
+        <result column="CUSTOMER_ORDER_BO" property="customerOrderBo" />
+        <result column="ORDER_DESC" property="orderDesc" />
+        <result column="STATE_BO" property="stateBo" />
+        <result column="IS_OVERFULFILL" property="isOverfulfill" />
+        <result column="OVERFULFILL_QTY" property="overfulfillQty" />
+        <result column="SCHEDUL_QTY" property="schedulQty" />
+        <result column="COMPLETE_QTY" property="completeQty" />
+        <result column="ORDER_QTY" property="orderQty" />
+        <result column="RELEASE_QTY" property="releaseQty" />
+        <result column="SCRAP_QTY" property="scrapQty" />
+        <result column="ITEM_BO" property="itemBo" />
+        <result column="PRODUCT_LINE_BO" property="productLineBo" />
+        <result column="ROUTER_BO" property="routerBo" />
+        <result column="BOM_BO" property="bomBo" />
+        <result column="PLAN_END_DATE" property="planEndDate" />
+        <result column="PLAN_START_DATE" property="planStartDate" />
+        <result column="CREATE_DATE" property="createDate" />
+        <result column="CREATE_USER" property="createUser" />
+        <result column="MODIFY_USER" property="modifyUser" />
+        <result column="MODIFY_DATE" property="modifyDate" />
+        <result column="EMERGENCY_STATE" property="emergencyState" />
+        <result column="EMERGENCY_BZ" property="emergencyBz" />
+
+        <result column="NEGOTIATION_TIME" property="negotiationTime" />
+        <result column="FIXED_TIME" property="fixedTime" />
+        <result column="ITEM_DESC" property="itemDesc" />
+        <result column="ORDER_DELIVERY_TIME" property="orderDeliveryTime" />
+
+
+        <result column="PROCESS_CHARACTERISTICS" property="processChar" />
+        <result column="SCREW_COMBINATION" property="screwCombination" />
+        <result column="VALS" property="colourSys" />
+
+
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        BO, SITE, SHOP_ORDER, CUSTOMER_ORDER_BO, ORDER_DESC, STATE_BO, IS_OVERFULFILL, OVERFULFILL_QTY, SCHEDUL_QTY, COMPLETE_QTY, ORDER_QTY, RELEASE_QTY, SCRAP_QTY, ITEM_BO, PRODUCT_LINE_BO, ROUTER_BO, BOM_BO, PLAN_END_DATE, PLAN_START_DATE, CREATE_DATE, CREATE_USER, MODIFY_USER, MODIFY_DATE,NEGOTIATION_TIME,FIXED_TIME,EMERGENCY_STATE,EMERGENCY_BZ
+    </sql>
+
+    <select id="getIdsByVals" parameterType="map" resultType="string">
+        select B.BO FROM m_shop_order A LEFT join m_custom_data_val B ON A.BO=B.BO
+        WHERE A.SITE = #{site} AND
+        B.ATTRIBUTE=#{key} AND B.VALS = #{value}
+    </select>
+
+    <select id="getList" parameterType="map" resultMap="BaseResultMap">
+        SELECT
+        T.BO,T.SITE, T.SHOP_ORDER, T.CUSTOMER_ORDER_BO, T.ORDER_DESC, T.STATE_BO, T.IS_OVERFULFILL, T.OVERFULFILL_QTY,
+        T.SCHEDUL_QTY, T.COMPLETE_QTY, T.ORDER_QTY, T.RELEASE_QTY, T.SCRAP_QTY, T.ITEM_BO, T.PRODUCT_LINE_BO, T.ROUTER_BO,
+        T.BOM_BO, T.PLAN_END_DATE, T.PLAN_START_DATE, T.CREATE_DATE, T.CREATE_USER, T.MODIFY_USER, T.MODIFY_DATE,T.NEGOTIATION_TIME,
+        T.FIXED_TIME,T.EMERGENCY_STATE,T.EMERGENCY_BZ,M.ITEM_DESC,T.ORDER_DELIVERY_TIME,mb.PROCESS_CHARACTERISTICS,
+        (SELECT CDV.VALS  FROM M_CUSTOM_DATA CD left join M_CUSTOM_DATA_VAL CDV on CDV.CUSTOM_DATA_BO = CD.BO
+        WHERE CD.CUSTOM_DATA_TYPE='ITEM' AND CDV.BO = M.BO and cd.CD_FIELD = 'COLOUR_SYS'
+        ) AS VALS
+        FROM M_SHOP_ORDER T LEFT JOIN M_ITEM M
+        ON T.ITEM_BO = M.BO
+
+        <!-- left join M_CUSTOM_DATA_VAL cdv on cdv.BO = M.BO
+        left join M_CUSTOM_DATA cd on cdv.CUSTOM_DATA_BO = cd.BO and cd.CUSTOM_DATA_TYPE='TEAM' and cd.CD_FIELD = 'COLOUR_SYS'-->
+
+
+        LEFT JOIN m_bom mb on T.BOM_BO = mb.BO
+
+        <!-- left join m_process_parameters mp on mp.PROCESS_CHARACTERISTICS = mb.PROCESS_CHARACTERISTICS -->
+
+        WHERE (T.PRODUCT_LINE_BO IS NULL OR T.PRODUCT_LINE_BO = '')
+        AND T.STATE_BO in
+        <foreach item="item" collection="params.stateBo" separator="," open="(" close=")" index="index">
+            #{item}
+        </foreach>
+
+        AND T.SITE = #{params.site}
+        <if test="params.boList != null">
+            AND T.BO in
+            <foreach item="item" collection="params.boList" separator="," open="(" close=")" index="index">
+                #{item}
+            </foreach>
+        </if>
+
+        <if test="params.bindings != null">
+            AND T.SHOP_ORDER NOT in
+            <foreach item="item" collection="params.bindings" separator="," open="(" close=")" index="index">
+                #{item}
+            </foreach>
+        </if>
+
+        <if test="params.shopOrder != null and params.shopOrder != ''">
+            AND T.SHOP_ORDER = #{params.shopOrder}
+        </if>
+
+        <if test="params.startTime != null and params.endTime != null">
+            AND T.PLAN_START_DATE BETWEEN #{params.startTime} AND #{params.endTime}
+        </if>
+    </select>
+
+    <select id="getBindingBySite" parameterType="string" resultType="map">
+        SELECT t.bo AS bo, t.sort AS sort, t.no AS no FROM m_work_order_binding t WHERE  t.site = #{site}
+    </select>
+
+    <!--工单保存更新调用方法-->
+    <update id="updateShopOrder" parameterType="com.itl.mes.core.api.entity.ShopOrder">
+        UPDATE M_SHOP_ORDER SET ORDER_DESC=#{shopOrder.orderDesc},STATE_BO=#{shopOrder.stateBo},IS_OVERFULFILL=#{shopOrder.isOverfulfill},
+        ORDER_QTY=#{shopOrder.orderQty},OVERFULFILL_QTY=#{shopOrder.overfulfillQty},MODIFY_USER=#{shopOrder.modifyUser},
+        MODIFY_DATE=#{shopOrder.modifyDate},PLAN_END_DATE=#{shopOrder.planEndDate,jdbcType=VARCHAR},
+        PLAN_START_DATE=#{shopOrder.planStartDate,jdbcType=VARCHAR},ITEM_BO=#{shopOrder.itemBo},CUSTOMER_ORDER_BO=#{shopOrder.customerOrderBo},
+        PRODUCT_LINE_BO=#{shopOrder.productLineBo},
+        ROUTER_BO=#{shopOrder.routerBo},BOM_BO=#{shopOrder.bomBo},
+        NEGOTIATION_TIME = #{shopOrder.negotiationTime},FIXED_TIME=#{shopOrder.fixedTime},
+        ORDER_DELIVERY_TIME=#{shopOrder.orderDeliveryTime},WORK_SHOP=#{shopOrder.workShop}
+                                <if test="shopOrder.endTime != null">
+                                    ,END_TIME=#{shopOrder.endTime,jdbcType=TIMESTAMP}
+                                </if>
+        WHERE BO=#{shopOrder.bo} AND MODIFY_DATE=#{changeDate}
+    </update>
+
+    <select id="getScheduleShopOrder" resultType="string">
+        SELECT SHOP_ORDER_BO FROM p_schedule_shop_order
+    </select>
+
+
+
+    <!--有限超产更新工单下达数量-->
+    <update id="updateLimitQtyShopOrderReleaseQtyByBO">
+
+        UPDATE M_SHOP_ORDER SET RELEASE_QTY = ISNULL(RELEASE_QTY,0)+#{qty}
+        WHERE BO=#{bo} AND  ISNULL(RELEASE_QTY,0)+#{qty} &lt;= ORDER_QTY+#{overfullQty}
+
+    </update>
+
+
+    <!--无限超产更新工单下达数量-->
+    <update id="updateOverfullQtyShopOrderReleaseQtyByBO">
+
+        UPDATE M_SHOP_ORDER SET RELEASE_QTY = ISNULL(RELEASE_QTY,0)+#{qty}
+        WHERE BO=#{bo}
+
+    </update>
+
+    <!--更新工单下达数量-->
+    <update id="updateShopOrderReleaseQtyByBO">
+
+        UPDATE M_SHOP_ORDER SET RELEASE_QTY = ISNULL(RELEASE_QTY,0)+#{qty}
+        WHERE BO=#{bo} AND ISNULL(RELEASE_QTY,0)+#{qty} &lt;=  ORDER_QTY
+
+    </update>
+
+
+    <!--更新工单完成数量-->
+    <update id="updateShopOrderCompleteQtyByBO">
+
+        UPDATE M_SHOP_ORDER SET COMPLETE_QTY=ISNULL(COMPLETE_QTY,0)+#{completeQty}
+        WHERE BO=#{bo}
+
+    </update>
+
+
+    <!--更新工单报废数量-->
+    <update id="updateShopOrderScrapQtyByBO">
+
+        UPDATE M_SHOP_ORDER SET SCRAP_QTY=ISNULL(SCRAP_QTY,0)+#{scrapTty}
+        WHERE BO=#{bo}
+
+    </update>
+
+
+    <update id="updateEmergenc" parameterType="map">
+        UPDATE M_SHOP_ORDER
+        SET EMERGENCY_STATE = #{emergencyState},
+        EMERGENCY_BZ = #{emergencyBz}
+        WHERE SHOP_ORDER=#{shopOrder}
+    </update>
+    <select id="selectShopOrderRelease" resultMap="BaseResultMap">
+        SELECT
+            so.bo,
+            so.shop_order,
+            so.shopOrderState,
+            so.work_shop,
+            so.item_bo,
+            so.router_bo,
+            i.item,
+            i.item_name as itemName,
+            i.version as itemVersion,
+            i.ITEM_DESC,
+            so.order_qty,
+            so.release_qty,
+            ( so.order_qty - so.release_qty) AS releasable,
+            so.plan_start_date,
+            so.plan_end_date,
+            r.router,
+            r.router_name as routerName,
+            r.version
+        FROM
+        (select m_shop_order.*,dbo.SPLIT(state_bo, 1) as shopOrderState from m_shop_order) so
+        LEFT JOIN m_item i ON so.item_bo = i.BO
+        LEFT JOIN m_router r ON so.router_bo = r.BO
+        <where>
+            so.site = #{shopOrderDTO.site} and ( so.order_qty - so.release_qty) > 0
+            <if test="shopOrderDTO.workShop != null and shopOrderDTO.workShop != ''">
+                and so.work_shop = #{shopOrderDTO.workShop}
+            </if>
+            <if test="shopOrderDTO.shopOrder != null and shopOrderDTO.shopOrder != ''">
+                and so.shop_order like CONCAT('%',#{shopOrderDTO.shopOrder},'%')
+            </if>
+            <if test="shopOrderDTO.item != null and shopOrderDTO.item != ''">
+                and i.item like CONCAT('%',#{shopOrderDTO.item},'%')
+            </if>
+            <if test="shopOrderDTO.itemName != null and shopOrderDTO.itemName != ''">
+                and i.item_name like CONCAT('%',#{shopOrderDTO.itemName},'%')
+            </if>
+            <if test="shopOrderDTO.itemDesc != null and shopOrderDTO.itemDesc != ''">
+                and i.item_desc like CONCAT('%',#{shopOrderDTO.itemDesc},'%')
+            </if>
+            <if test="shopOrderDTO.planStartDate != null">
+                and so.plan_start_date >= concat(#{shopOrderDTO.planStartDate},' 00:00:00')
+                and so.plan_start_date &lt;= concat(#{shopOrderDTO.planStartDate},' 23:59:59')
+            </if>
+            <if test="shopOrderDTO.planEndDate != null">
+                and so.plan_end_date >= concat(#{shopOrderDTO.planEndDate},' 00:00:00')
+                and so.plan_end_date &lt;= concat(#{shopOrderDTO.planEndDate},' 23:59:59')
+            </if>
+            <if test="shopOrderDTO.bos != null and shopOrderDTO.bos.size() >0">
+                and so.bo in
+                <foreach collection="shopOrderDTO.bos" item="bo" separator="," open="(" close=")">
+                    #{bo}
+                </foreach>
+            </if>
+            <if test="shopOrderDTO.shopOrderState != null and shopOrderDTO.shopOrderState != ''">
+                and so.shopOrderState = #{shopOrderDTO.shopOrderState}
+            </if>
+            <if test="shopOrderDTO.itemDescKeyWordList != null and shopOrderDTO.itemDescKeyWordList.size() > 0">
+                <foreach collection="shopOrderDTO.itemDescKeyWordList" item="keyword">
+                    AND CONTAINS ( i.item_desc, #{keyword} )
+                </foreach>
+            </if>
+            order by so.plan_start_date desc
+        </where>
+    </select>
+    <select id="selectShopOrderReleaseByZz" resultMap="BaseResultMap">
+        SELECT
+            so.bo,
+            so.shop_order,
+            so.shopOrderState,
+            so.work_shop,
+            so.item_bo,
+            so.router_bo,
+            i.item,
+            i.item_name as itemName,
+            i.version as itemVersion,
+            i.ITEM_DESC,
+            so.order_qty,
+            so.release_qty,
+            ( so.complete_set_qty - so.release_qty) AS releasable,
+            so.plan_start_date,
+            so.plan_end_date,
+            r.router,
+            r.router_name as routerName,
+            r.version
+        FROM
+        (select m_shop_order.*,dbo.SPLIT(state_bo, 1) as shopOrderState from m_shop_order) so
+        LEFT JOIN m_item i ON so.item_bo = i.BO
+        LEFT JOIN m_router r ON so.router_bo = r.BO
+        <where>
+            so.site = #{shopOrderDTO.site} and ( so.complete_set_qty - so.release_qty) > 0
+            <if test="shopOrderDTO.workShop != null and shopOrderDTO.workShop != ''">
+                and so.work_shop = #{shopOrderDTO.workShop}
+            </if>
+            <if test="shopOrderDTO.shopOrder != null and shopOrderDTO.shopOrder != ''">
+                and so.shop_order like CONCAT('%',#{shopOrderDTO.shopOrder},'%')
+            </if>
+            <if test="shopOrderDTO.item != null and shopOrderDTO.item != ''">
+                and i.item like CONCAT('%',#{shopOrderDTO.item},'%')
+            </if>
+            <if test="shopOrderDTO.itemName != null and shopOrderDTO.itemName != ''">
+                and i.item_name like CONCAT('%',#{shopOrderDTO.itemName},'%')
+            </if>
+            <if test="shopOrderDTO.itemDesc != null and shopOrderDTO.itemDesc != ''">
+                and i.item_desc like CONCAT('%',#{shopOrderDTO.itemDesc},'%')
+            </if>
+            <if test="shopOrderDTO.planStartDate != null">
+                and so.plan_start_date >= concat(#{shopOrderDTO.planStartDate},' 00:00:00')
+                and so.plan_start_date &lt;= concat(#{shopOrderDTO.planStartDate},' 23:59:59')
+            </if>
+            <if test="shopOrderDTO.planEndDate != null">
+                and so.plan_end_date >= concat(#{shopOrderDTO.planEndDate},' 00:00:00')
+                and so.plan_end_date &lt;= concat(#{shopOrderDTO.planEndDate},' 23:59:59')
+            </if>
+            <if test="shopOrderDTO.bos != null and shopOrderDTO.bos.size() >0">
+                and so.bo in
+                <foreach collection="shopOrderDTO.bos" item="bo" separator="," open="(" close=")">
+                    #{bo}
+                </foreach>
+            </if>
+            <if test="shopOrderDTO.shopOrderState != null and shopOrderDTO.shopOrderState != ''">
+                and so.shopOrderState = #{shopOrderDTO.shopOrderState}
+            </if>
+            <if test="shopOrderDTO.itemDescKeyWordList != null and shopOrderDTO.itemDescKeyWordList.size() > 0">
+                <foreach collection="shopOrderDTO.itemDescKeyWordList" item="keyword">
+                    AND CONTAINS ( i.item_desc, #{keyword} )
+                </foreach>
+            </if>
+            order by so.plan_start_date desc
+        </where>
+    </select>
+    <select id="getShopOrderReport" resultType="com.itl.mes.core.api.vo.ShopOrderReportVo">
+        SELECT
+            so.bo as shopOrderBo,
+            so.shop_order as shopOrder,
+            mi.item as item,
+            mi.item_name as itemName,
+            mi.item_desc as itemDesc,
+            so.plan_start_date as planStartDate,
+            so.plan_end_date as planEndDate,
+            so.order_qty as orderQty,
+            so.state_bo as stateBo,
+            so.complete_set_qty as completeSetQty,
+            so.start_time as startTime,
+            so.end_time as endTime
+        FROM
+            m_shop_order so
+                LEFT JOIN m_item mi ON so.ITEM_BO = mi.bo
+        <where>
+            1=1
+            <if test="shopOrderReportDTO.workShop != null and shopOrderReportDTO.workShop != ''">
+                and so.work_shop = #{shopOrderReportDTO.workShop}
+            </if>
+            <if test="shopOrderReportDTO.stateBo != null and shopOrderReportDTO.stateBo != ''">
+                and so.state_bo = #{shopOrderReportDTO.stateBo}
+            </if>
+            <if test="shopOrderReportDTO.item != null and shopOrderReportDTO.item != ''">
+                and mi.item = #{shopOrderReportDTO.item}
+            </if>
+            <if test="shopOrderReportDTO.shopOrder != null and shopOrderReportDTO.shopOrder != ''">
+                and so.shop_order = #{shopOrderReportDTO.shopOrder}
+            </if>
+            <if test="shopOrderReportDTO.beginStartDate != null and shopOrderReportDTO.beginStartDate != ''">
+                and so.plan_start_date >= #{shopOrderReportDTO.beginStartDate}
+            </if>
+            <if test="shopOrderReportDTO.beginEndDate != null and shopOrderReportDTO.beginEndDate != ''">
+                <![CDATA[ and so.plan_start_date <= #{shopOrderReportDTO.beginEndDate} ]]>
+            </if>
+            <if test="shopOrderReportDTO.finishStartDate != null and shopOrderReportDTO.finishStartDate != ''">
+                and so.plan_end_date >= #{shopOrderReportDTO.finishStartDate}
+            </if>
+            <if test="shopOrderReportDTO.finishEndDate != null and shopOrderReportDTO.finishEndDate != ''">
+                <![CDATA[ and so.plan_end_date <= #{shopOrderReportDTO.finishEndDate} ]]>
+            </if>
+        </where>
+    </select>
+    <select id="getMakingDetails" resultType="com.itl.mes.core.api.vo.ShopOrderReportVo$MakingDetailsVo">
+        <![CDATA[
+            SELECT
+            sfc.sfcQty as makingQty,
+            sfc.operationBo as operationBo,
+            op.operation as operation,
+            op.operation_name as operationName
+            FROM
+            (
+            SELECT SUM
+            ( sfc_qty ) AS sfcQty,
+            OPERATION_BO AS operationBo
+            FROM
+            me_sfc
+            WHERE
+            SHOP_ORDER_BO = #{shopOrderBo}
+            AND state <> '新建'
+            AND state <> '已完成'
+            GROUP BY
+            OPERATION_BO
+            ) sfc
+            LEFT JOIN m_operation op ON sfc.operationBo = op.bo
+        ]]>
+    </select>
+
+    <select id="getShopOrder" resultMap="BaseResultMap">
+        SELECT
+            so.bo,
+            so.shop_order,
+            so.work_shop,
+            so.item_bo,
+            so.router_bo,
+            i.item,
+            i.item_name as itemName,
+            i.version as itemVersion,
+            i.ITEM_DESC,
+            so.order_qty,
+            so.release_qty,
+            so.plan_start_date,
+            so.plan_end_date,
+            r.router,
+            r.router_name as routerName,
+            r.version
+        FROM m_shop_order so
+            LEFT JOIN m_item i ON so.item_bo = i.BO
+            LEFT JOIN m_router r ON so.router_bo = r.BO
+            where so.bo = #{shopOrderBo}
+    </select>
+</mapper>

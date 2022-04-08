@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.itl.iap.mes.provider.mapper.LovMapper">
+
+
+    <!--通过实体作为筛选条件查询-->
+    <select id="findAll" parameterType="com.itl.iap.mes.api.entity.Lov" resultType="com.itl.iap.mes.api.entity.Lov">
+        SELECT
+          A.id AS id,A.code AS code,A.name AS name,A.valueField AS valueField,A.textField AS textField,A.title AS title,A.pageSize AS pageSize,
+          A.placeHolder AS placeHolder,A.parameter AS parameter,A.sqlStatement AS sqlStatement,A.serviceExpression AS serviceExpression,A.apiUrl
+           AS apiUrl,A.sqlServiceUrl AS sqlServiceUrl,A.description AS description,A.sqlTypeCode AS sqlTypeCode,A.paramTypeCode AS paramTypeCode,
+           A.enabledFlag AS enabledFlag,A.api_url AS api_url,A.enabled_flag AS enabled_flag,A.page_size AS page_size,A.param_type_code AS param_type_code,
+           A.place_holder AS place_holder,A.service_expression AS service_expression,A.sql_service_url AS sql_service_url,A.sql_statement AS sql_statement,
+           A.sql_type_code AS sql_type_code,A.text_field AS text_field,A.value_field AS value_field,A.width AS width
+        FROM
+        sys_mes_lov A
+        <where>
+            <if test="lov.name != null and lov.name != ''">
+                AND A.name LIKE CONCAT('%',#{lov.name},'%')
+            </if>
+            <if test="lov.code != null and lov.code !=''">
+                AND A.code LIKE CONCAT('%',#{lov.code},'%')
+            </if>
+        </where>
+
+    </select>
+
+</mapper>

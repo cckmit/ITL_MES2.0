@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.itl.iap.report.provider.mapper.ShopOrderTrackMapper">
+    <select id="selectByCondition" resultType="com.itl.iap.report.api.entity.ShopOrderTrack">
+        select m.CUSTOMER_ORDER_BO as customerOrder,m.BO,m.SHOP_ORDER,o.ITEM,o.ITEM_NAME,
+               o.ITEM_DESC,m.ORDER_QTY,m.PLAN_START_DATE,m.PLAN_END_DATE,p.SFC,p.SFC_QTY,
+               p.STATE,p.OPERATION_BO,p.IN_TIME,p.CREATE_DATE
+        from m_shop_order m
+        left join m_item o on m.ITEM_BO=o.BO
+        left join me_sfc p on m.BO=p.SHOP_ORDER_BO
+        <where>
+            p.SFC is not null
+            <!--不选状态，默认只显示新建、生产中的工单-->
+            <if test="shopOrderTackDto.state==null or shopOrderTackDto.state==''">
+                and (m.STATE_BO='STATE:dongyin,500' or m.STATE_BO='STATE:dongyin,501')
+            </if>
+            <if test="shopOrderTackDto.state!=null and shopOrderTackDto.state!=''">
+                and m.STATE_BO= concat('STATE:dongyin,',#{shopOrderTackDto.state})
+            </if>
+            <if test="shopOrderTackDto.shopOrder !=null and shopOrderTackDto.shopOrder !=''">
+                and m.SHOP_ORDER like  concat('%',#{shopOrderTackDto.shopOrder},'%')
+            </if>
+            <if test="shopOrderTackDto.item !=null and shopOrderTackDto.item !=''">
+                and o.ITEM like concat('%',#{shopOrderTackDto.item},'%')
+            </if>
+            <if test="shopOrderTackDto.startDate !=null and shopOrderTackDto.startDate !=''">
+                and substring(Convert(varchar(10),m.PLAN_START_DATE,23),1,10) = #{shopOrderTackDto.startDate}
+            </if>
+            <if test="shopOrderTackDto.endDate !=null and shopOrderTackDto.endDate !=''">
+                and substring(Convert(varchar(10),m.PLAN_END_DATE,23),1,10) = #{shopOrderTackDto.endDate}
+            </if>
+            <if test="shopOrderTackDto.customerOrder !=null and shopOrderTackDto.customerOrder !=''">
+                and m.CUSTOMER_ORDER_BO like concat('%',#{shopOrderTackDto.customerOrder},'%')
+            </if>
+            <if test="shopOrderTackDto.itemName !=null and shopOrderTackDto.itemName !=''">
+                and o.ITEM_NAME like concat('%',#{shopOrderTackDto.itemName},'%')
+            </if>
+            <if test="shopOrderTackDto.itemDesc !=null and shopOrderTackDto.itemDesc !=''">
+                and o.ITEM_DESC like concat('%',#{shopOrderTackDto.itemDesc},'%')
+            </if>
+            <if test="shopOrderTackDto.actionAcope !=null and shopOrderTackDto.actionAcope !=''">
+                and p.STATE='生产中'
+            </if>
+        </where>
+        order by m.PLAN_START_DATE desc
+    </select>
+    <select id="selectProcessInfoBySfc" resultType="string" parameterType="string">
+        select n.PROCESS_INFO from me_sfc m
+        left join m_router_process n on m.SFC_ROUTER_BO = n.ROUTER_BO where m.sfc=#{sfc}
+    </select>
+
+    <select id="selectMaxTime" resultType="string">
+        select max(OUT_TIME) as maxTime from me_sfc_wip_log
+        where SHOP_ORDER_BO=#{shopOrderBo} and SFC=#{sfc} and OPERATION_BO=#{operationBo}
+    </select>
+    <select id="selectMaxAllTime" resultType="java.util.Date">
+        select max(OUT_TIME) as maxTime from me_sfc_wip_log
+        where SHOP_ORDER_BO=#{shopOrderBo} and SFC=#{sfc} and OPERATION_BO=#{operationBo}
+    </select>
+    <select id="selectCountSfcByShopOrder" resultType="int" parameterType="string">
+        select count(*) from me_sfc m
+        left join m_shop_order n on m.SHOP_ORDER_BO=n.BO
+        where n.shop_order=#{shopOrder}
+    </select>
+    <select id="selectFirstOperationByCondifition" resultType="com.itl.iap.report.api.entity.ShopOrderTrack">
+        select m.CUSTOMER_ORDER_BO as customerOrder,m.BO,m.SHOP_ORDER,o.ITEM,o.ITEM_NAME,o.ITEM_DESC,m.ORDER_QTY,m.PLAN_START_DATE,m.PLAN_END_DATE,n.dispatch_code,r.operation_name,p.create_date
+        from m_shop_order m
+        left join m_dispatch n on m.BO=n.SHOP_ORDER_BO
+        left join m_item o on m.ITEM_BO=o.BO
+        left join me_sfc_device p on n.dispatch_code= p.dispatch_code
+        left join m_operation r on n.OPERATION_BO=r.bo
+        <where>
+            n.IS_FIRST_OPERATION ='1' and n.DISPATCH_CODE is not null and p.sfc=''
+            <!--不选状态，默认只显示新建、生产中的工单-->
+            <if test="shopOrderTackDto.state==null or shopOrderTackDto.state==''">
+                and (m.STATE_BO='STATE:dongyin,500' or m.STATE_BO='STATE:dongyin,501')
+            </if>
+            <if test="shopOrderTackDto.state!=null and shopOrderTackDto.state!=''">
+                and m.STATE_BO= concat('STATE:dongyin,',#{shopOrderTackDto.state})
+            </if>
+            <if test="shopOrderTackDto.shopOrder !=null and shopOrderTackDto.shopOrder !=''">
+                and m.SHOP_ORDER like  concat('%',#{shopOrderTackDto.shopOrder},'%')
+            </if>
+            <if test="shopOrderTackDto.item !=null and shopOrderTackDto.item !=''">
+                and o.ITEM like concat('%',#{shopOrderTackDto.item},'%')
+            </if>
+            <if test="shopOrderTackDto.startDate !=null and shopOrderTackDto.startDate !=''">
+                and substring(Convert(varchar(10),m.PLAN_START_DATE,23),1,10) = #{shopOrderTackDto.startDate}
+            </if>
+            <if test="shopOrderTackDto.endDate !=null and shopOrderTackDto.endDate !=''">
+                and substring(Convert(varchar(10),m.PLAN_END_DATE,23),1,10) = #{shopOrderTackDto.endDate}
+            </if>
+            <if test="shopOrderTackDto.customerOrder !=null and shopOrderTackDto.customerOrder !=''">
+                and m.CUSTOMER_ORDER_BO like concat('%',#{shopOrderTackDto.customerOrder},'%')
+            </if>
+            <if test="shopOrderTackDto.itemName !=null and shopOrderTackDto.itemName !=''">
+                and o.ITEM_NAME like concat('%',#{shopOrderTackDto.itemName},'%')
+            </if>
+            <if test="shopOrderTackDto.itemDesc !=null and shopOrderTackDto.itemDesc !=''">
+                and o.ITEM_DESC like concat('%',#{shopOrderTackDto.itemDesc},'%')
+            </if>
+            order by m.PLAN_START_DATE desc
+        </where>
+
+
+    </select>
+    <select id="getInTimeBySfcAndOperation" resultType="java.util.Date">
+        SELECT update_date FROM sfc_state_track WHERE sfc = #{sfc} and OPERATION_BO = #{operationBo}
+    </select>
+
+    <select id="selectListByCondition" resultType="com.itl.iap.report.api.entity.ShopOrderTrack">
+        select m.CUSTOMER_ORDER_BO as customerOrder,m.BO,m.SHOP_ORDER,o.ITEM,o.ITEM_NAME,o.ITEM_DESC,m.ORDER_QTY,m.PLAN_START_DATE,m.PLAN_END_DATE,p.SFC,p.SFC_QTY,p.STATE,p.OPERATION_BO,p.IN_TIME,p.CREATE_DATE
+        from m_shop_order m
+        left join m_item o on m.ITEM_BO=o.BO
+        left join me_sfc p on m.BO=p.SHOP_ORDER_BO
+        <where>
+            p.SFC is not null
+            <if test="shopOrderTackDto.shopOrder !=null and shopOrderTackDto.shopOrder !=''">
+                and m.SHOP_ORDER like  concat('%',#{shopOrderTackDto.shopOrder},'%')
+            </if>
+            <if test="shopOrderTackDto.item !=null and shopOrderTackDto.item !=''">
+                and o.ITEM like concat('%',#{shopOrderTackDto.item},'%')
+            </if>
+            <if test="shopOrderTackDto.startDate !=null and shopOrderTackDto.startDate !=''">
+                and substring(Convert(varchar(10),m.PLAN_START_DATE,23),1,10) = #{shopOrderTackDto.startDate}
+            </if>
+            <if test="shopOrderTackDto.endDate !=null and shopOrderTackDto.endDate !=''">
+                and substring(Convert(varchar(10),m.PLAN_END_DATE,23),1,10) = #{shopOrderTackDto.endDate}
+            </if>
+            <if test="shopOrderTackDto.customerOrder !=null and shopOrderTackDto.customerOrder !=''">
+                and m.CUSTOMER_ORDER_BO like concat('%',#{shopOrderTackDto.customerOrder},'%')
+            </if>
+            <if test="shopOrderTackDto.itemName !=null and shopOrderTackDto.itemName !=''">
+                and o.ITEM_NAME like concat('%',#{shopOrderTackDto.itemName},'%')
+            </if>
+            <if test="shopOrderTackDto.itemDesc !=null and shopOrderTackDto.itemDesc !=''">
+                and o.ITEM_DESC like concat('%',#{shopOrderTackDto.itemDesc},'%')
+            </if>
+        </where>
+        order by m.PLAN_START_DATE desc,m.SHOP_ORDER asc
+    </select>
+    <select id="selectOperationListInfo" resultType="com.itl.mes.core.api.entity.RouterProcessTable">
+        select router_bo,operation_bo,position_flag,parallel_flag,create_date,update_date from m_router_process_table where router_bo=#{routerBo} order by position_flag asc
+    </select>
+    <select id="selectOperationStateInfo" resultType="com.itl.mes.core.api.entity.SfcStateTrack">
+        select sfc,operation_bo,state,update_date from sfc_state_track where sfc=#{sfc} and operation_bo=#{operationBo}
+    </select>
+    <select id="selectNameByOperationBo" resultType="string" parameterType="string">
+        select operation_name from m_operation where bo=#{operationBo}
+    </select>
+    <select id="selectNumberProgress" resultType="java.util.HashMap">
+        select DONE_QTY,SCRAP_QTY,SFC_QTY  FROM me_sfc_wip_log where sfc=#{sfc} and operation_bo=#{operationBo}
+    </select>
+</mapper>

@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.itl.iap.mes.provider.mapper.DataCollectionTypeMapper">
+
+    <sql id="FIELD">
+        t.id AS id,t.type AS type,t.remark AS remark,t.state AS state,t.site AS site,t.CREATE_DATE AS createDate
+    </sql>
+    <sql id="WHERE_FIELD">
+        <where>
+            AND t.site = #{dataCollectionType.site}
+            <if test="dataCollectionType.type != null and dataCollectionType.type!=''">
+                AND t.type LIKE CONCAT('%',#{dataCollectionType.type},'%')
+            </if>
+            <if test="dataCollectionType.state != null">
+                AND t.state = #{dataCollectionType.state}
+            </if>
+
+        </where>
+    </sql>
+    <select id="findList" parameterType="com.itl.iap.mes.api.entity.DataCollectionType" resultType="com.itl.iap.mes.api.entity.DataCollectionType">
+        SELECT <include refid="FIELD"/>
+        FROM m_data_collection_type t
+        <include refid="WHERE_FIELD"/>
+        order by t.CREATE_DATE desc
+    </select>
+
+    <select id="findListByState" parameterType="com.itl.iap.mes.api.entity.DataCollectionType" resultType="com.itl.iap.mes.api.entity.DataCollectionType">
+        SELECT <include refid="FIELD"/>
+        FROM m_data_collection_type t
+        <include refid="WHERE_FIELD"/>
+        AND t.STATE = '0'
+        order by t.CREATE_DATE desc
+    </select>
+</mapper>

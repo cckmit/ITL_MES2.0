@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.itl.mes.me.provider.mapper.MeSfcAssyMapper">
+
+    <!-- 可根据自己的需求，是否要使用 -->
+    <resultMap type="com.itl.mes.me.api.entity.MeSfcAssy" id="meSfcAssyMap">
+        <result property="id" column="ID"/>
+        <result property="site" column="SITE"/>
+        <result property="wipLogBo" column="WIP_LOG_BO"/>
+        <result property="sfc" column="SFC"/>
+        <result property="traceMethod" column="TRACE_METHOD"/>
+        <result property="componenetBo" column="COMPONENET_BO"/>
+        <result property="assembledSn" column="ASSEMBLED_SN"/>
+        <result property="qty" column="QTY"/>
+        <result property="assyTime" column="ASSY_TIME"/>
+        <result property="assyUser" column="ASSY_USER"/>
+        <result property="removed" column="REMOVED"/>
+        <result property="removedTime" column="REMOVED_TIME"/>
+        <result property="removedUser" column="REMOVED_USER"/>
+        <result property="componentState" column="COMPONENT_STATE"/>
+    </resultMap>
+
+    <select id="getSchedule" resultType="com.itl.mes.pp.api.entity.schedule.ScheduleEntity">
+        SELECT
+            *
+        FROM
+            p_schedule
+        WHERE
+            SCHEDULE_NO = #{scheduleNo}
+    </select>
+
+    <select id="getOperationBoByStationBo" resultType="java.lang.String">
+        SELECT OPERATION_BO
+        FROM m_station
+        WHERE BO = #{stationBo}
+    </select>
+
+    <select id="getTeamBoByUserBo" resultType="java.lang.String">
+        SELECT TEAM_BO
+        FROM M_TEAM_MEMBER
+        WHERE USER_BO = #{userBo}
+    </select>
+
+    <select id="getDeviceBo" resultType="java.lang.String">
+        SELECT BO
+        FROM m_device
+        WHERE PRODUCT_LINE_BO = #{productLineBo} AND STATION_BO = #{stationBo}
+    </select>
+
+
+</mapper>

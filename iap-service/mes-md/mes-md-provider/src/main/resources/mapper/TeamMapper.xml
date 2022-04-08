@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.itl.mes.core.provider.mapper.TeamMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.itl.mes.core.api.entity.Team">
+        <id column="BO" property="bo" />
+        <result column="SITE" property="site" />
+        <result column="TEAM" property="team" />
+        <result column="TEAM_DESC" property="teamDesc" />
+        <result column="LEADER" property="leader" />
+        <result column="PRODUCT_LINE_BO" property="productLineBo" />
+        <result column="CREATE_USER" property="createUser" />
+        <result column="CREATE_DATE" property="createDate" />
+        <result column="MODIFY_DATE" property="modifyDate" />
+        <result column="MODIFY_USER" property="modifyUser" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        BO, SITE, TEAM, TEAM_DESC, LEADER, PRODUCT_LINE_BO, CREATE_USER, CREATE_DATE, MODIFY_DATE, MODIFY_USER
+    </sql>
+
+	
+		
+	<select id="getAvailableEmployeeList" resultType="com.itl.mes.core.api.vo.EmployeeVo" parameterType="string">
+        SELECT USER_NAME as employeeCode,REAL_NAME as name FROM iap_sys_user_t ISU WHERE 1=1
+          <if test="employeeCode != null and employeeCode != '' ">
+          AND   ISU.USER_NAME LIKE '${employeeCode}%'
+          </if>
+
+              AND NOT EXISTS( SELECT USER_BO  FROM M_TEAM_MEMBER EGM WHERE 1=1 AND ISU.USER_NAME=EGM.USER_BO )
+
+    </select>
+
+    <select id="getAssignedEmployeeList" resultType="com.itl.mes.core.api.vo.EmployeeVo" parameterType="string">
+         SELECT USER_NAME as employeeCode,REAL_NAME as name FROM iap_sys_user_t ISU WHERE
+         EXISTS( SELECT USER_BO  FROM M_TEAM_MEMBER EGM WHERE EGM.TEAM_BO=#{teamBO} AND ISU.USER_NAME = EGM.USER_BO )
+    </select>
+
+    <select id="getEmployee" resultType="com.itl.mes.core.api.vo.EmployeeVo" parameterType="string">
+        SELECT USER_NAME as employeeCode,REAL_NAME as name  FROM iap_sys_user_t WHERE USER_NAME =#{employeeCode}
+    </select>
+	
+</mapper>

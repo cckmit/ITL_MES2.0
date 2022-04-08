@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.itl.mes.pp.provider.mapper.ScheduleProductionLineMapper">
+
+    <select id="findList" resultType="com.itl.mes.pp.api.dto.schedule.ScheduleProductionLineRespDTO">
+
+
+            select
+            a.QUANTITY as quantity,
+            a.START_DATE as startDate,
+            a.END_DATE as endDate,
+            b.PRODUCT_LINE_DESC as productionLineName,
+            b.BO as productionLineBo,
+            a.BO as bo,
+            null as stationBo,
+            null as stationName
+            from
+            p_schedule_production_line a,
+            m_product_line b
+            where a.PRODUCTION_LINE_BO = b.BO
+            and a.STATION_BO = '0'
+            and a.SCHEDULE_BO = #{scheduleProductionLineQueryDTO.scheduleBo}
+<!--            UNION-->
+<!--            select-->
+<!--            a.QUANTITY as quantity,-->
+<!--            a.START_DATE as startDate,-->
+<!--            a.END_DATE as endDate,-->
+<!--            b.PRODUCT_LINE_DESC as productionLineName,-->
+<!--            b.BO as productionLineBo,-->
+<!--            a.BO as bo,-->
+<!--            c.BO as stationBo,-->
+<!--            c.STATION_DESC as stationName-->
+<!--            from-->
+<!--            p_schedule_production_line a,-->
+<!--            m_product_line b,-->
+<!--            m_station c-->
+<!--            where-->
+<!--            a.PRODUCTION_LINE_BO = b.BO-->
+<!--            and a.STATION_BO = c.bo-->
+<!--            and a.SCHEDULE_BO = #{scheduleProductionLineQueryDTO.scheduleBo}-->
+
+
+    </select>
+</mapper>

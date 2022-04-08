@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.itl.iap.notice.provider.mapper.MsgPlaceholderMapper">
+
+    <resultMap type="com.itl.iap.notice.api.dto.MsgPlaceholderDto" id="MsgPlaceholderMap">
+        <result property="id" column="id" jdbcType="VARCHAR"/>
+        <result property="msgPlaceholderTypeId" column="msg_placeholder_type_id" jdbcType="VARCHAR"/>
+        <result property="name" column="name" jdbcType="VARCHAR"/>
+        <result property="note" column="note" jdbcType="VARCHAR"/>
+        <result property="sort" column="sort" jdbcType="INTEGER"/>
+        <result property="createName" column="create_name" jdbcType="VARCHAR"/>
+        <result property="createTime" column="create_time" jdbcType="TIMESTAMP"/>
+        <result property="updateName" column="update_name" jdbcType="VARCHAR"/>
+        <result property="updateTime" column="update_time" jdbcType="TIMESTAMP"/>
+        <result property="typeName" column="type_name" jdbcType="VARCHAR"/>
+    </resultMap>
+    <select id="selectAll" resultMap="MsgPlaceholderMap">
+        SELECT * from msg_placeholder
+    </select>
+
+    <select id="getMsgPlaceholderList" resultMap="MsgPlaceholderMap" parameterType="com.itl.iap.notice.api.dto.MsgPlaceholderDto">
+       SELECT mp.*,mpt.name type_name from msg_placeholder mp, msg_placeholder_type mpt
+       where mp.msg_placeholder_type_id=mpt.id
+       <if test="name!=null and name!=''">
+           and mp.name like concat('%',concat(#{name},'%'))
+       </if>
+        order by mp.sort desc
+    </select>
+    <select id="selectMsgPlaceholderById" resultMap="MsgPlaceholderMap">
+        SELECT mp.*,mpt.name type_name from msg_placeholder mp, msg_placeholder_type mpt where mp.msg_placeholder_type_id=mpt.id
+         and mp.id=#{id}
+    </select>
+    <!--通过实体作为筛选条件查询-->
+    <select id="pageQuery" resultMap="MsgPlaceholderMap">
+        select
+          id, type, name, note, sort, create_name, create_time, update_name, update_time
+        from msg_placeholder
+        <where>
+            <if test="msgPlaceholderDto.id != null and msgPlaceholderDto.id != ''">
+                and id = #{msgPlaceholderDto.id}
+            </if>
+            <if test="msgPlaceholderDto.type != null">
+                and type = #{msgPlaceholderDto.type}
+            </if>
+            <if test="msgPlaceholderDto.name != null and msgPlaceholderDto.name != ''">
+                and name = #{msgPlaceholderDto.name}
+            </if>
+            <if test="msgPlaceholderDto.desc != null and msgPlaceholderDto.desc != ''">
+                and desc = #{msgPlaceholderDto.desc}
+            </if>
+            <if test="msgPlaceholderDto.sort != null">
+                and sort = #{msgPlaceholderDto.sort}
+            </if>
+            <if test="msgPlaceholderDto.createName != null and msgPlaceholderDto.createName != ''">
+                and create_name = #{msgPlaceholderDto.createName}
+            </if>
+            <if test="msgPlaceholderDto.createTime != null">
+                and create_time = #{msgPlaceholderDto.createTime}
+            </if>
+            <if test="msgPlaceholderDto.updateName != null and msgPlaceholderDto.updateName != ''">
+                and update_name = #{msgPlaceholderDto.updateName}
+            </if>
+            <if test="msgPlaceholderDto.updateTime != null">
+                and update_time = #{msgPlaceholderDto.updateTime}
+            </if>
+        </where>
+    </select>
+
+</mapper>

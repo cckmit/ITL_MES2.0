@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.itl.iap.system.provider.mapper.SimLovMapper">
+
+    <resultMap type="com.itl.iap.system.api.dto.SimLovDto" id="SimLovDtoMap">
+        <id property="id" column="id" jdbcType="VARCHAR"/>
+        <result property="code" column="code" jdbcType="VARCHAR"/>
+        <result property="name" column="name" jdbcType="VARCHAR"/>
+        <result property="apiUrl" column="api_url" jdbcType="VARCHAR"/>
+    </resultMap>
+    <!--通过实体作为筛选条件查询-->
+    <select id="pageQuery" parameterType="com.itl.iap.system.api.dto.SimLovDto" resultMap="SimLovDtoMap">
+        SELECT
+        A.id,
+        A.code,
+        A.name,
+        A.api_url
+        FROM
+        sim_lov AS A
+        <where>
+            <if test="simLovDto.code != null and simLovDto.code != ''">
+                and A.code like concat('%', #{simLovDto.code}, '%')
+            </if>
+            <if test="simLovDto.name != null and simLovDto.name != ''">
+                and A.name like concat('%', #{simLovDto.name}, '%')
+            </if>
+            <if test="simLovDto.apiUrl != null and simLovDto.apiUrl != ''">
+                and A.api_url like concat('%', #{simLovDto.apiUrl}, '%')
+            </if>
+        </where>
+    </select>
+    <select id="getByCode" resultMap="SimLovDtoMap">
+        SELECT
+        A.id,
+        A.code,
+        A.name,
+        A.api_url
+        FROM
+        sim_lov AS A
+        where A.code = #{code}
+    </select>
+</mapper>

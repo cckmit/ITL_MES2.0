@@ -1,0 +1,19 @@
+group-id: iap
+
+spring:
+  application:
+    name: iap-workflow-provider #设置项目名称
+    profiles:
+      active: dev
+  main:
+    allow-bean-definition-overriding: true
+  cloud:
+    nacos:
+      discovery:
+        server-addr: ${NACOS_HOST:192.168.6.68:8899} #Nacos服务接口(不能加http前缀)，直接访问localhost:8848/nacos可以进入管理页面
+        namespace: ${NAME_SPACE:mesdev}
+      config:
+        server-addr: ${NACOS_HOST:192.168.6.68:8899}
+        file-extension: yml # 配置文件的格式，默认为properties
+        namespace: ${NAME_SPACE:mesdev}
+        group: iap

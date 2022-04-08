@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.itl.iap.report.provider.mapper.DeviceResumeMapper">
+    <select id="selectDeviceInfo" resultType="com.itl.iap.report.api.vo.DeviceResumeVo">
+      select p.work_shop,p.work_shop_name,p.device_name,p.device,p.operationUser,p.operationTime,p.state,p.code,p.operationType from(
+      select m.work_shop,m.work_shop_name,m.device_name,m.device,n.checkRealName as operationUser,n.checkTime as operationTime,n.state,n.device_check_code as code,'点检' as operationType
+      from (select work_shop,work_shop_name,device_name,device from m_device where device in (
+      select r.device from m_device r
+      left join m_device_type_item t on r.bo=t.device_bo
+      left join m_device_type o on o.bo=t.device_type_bo
+      <where>
+          o.device_type is not null
+          <if test="deviceResumeDto.deviceType !=null and deviceResumeDto.deviceType !=''">
+              and o.device_type = #{deviceResumeDto.deviceType }
+          </if>
+          <if test="deviceResumeDto.productLineBo !=null and deviceResumeDto.productLineBo !=''">
+              and r.PRODUCT_LINE_BO = #{deviceResumeDto.productLineBo}
+          </if>
+      </where>
+          )) m
+      left join m_device_check n on m.device = n.device_code where n.device_check_code is not null
+      union all
+      select  m.work_shop,m.work_shop_name,m.device_name,m.device,n.repairRealName as operationUser,n.repairTime as operationTime,n.state,n.repairId as code,'保养' as operationType
+      from (select work_shop,work_shop_name,device_name,device from m_device where device in (
+      select r.device from m_device r
+      left join m_device_type_item t on r.bo=t.device_bo
+      left join m_device_type o on o.bo=t.device_type_bo
+      <where>
+         o.device_type is not null
+         <if test="deviceResumeDto.deviceType !=null and deviceResumeDto.deviceType !=''">
+             and o.device_type = #{deviceResumeDto.deviceType }
+         </if>
+         <if test="deviceResumeDto.productLineBo !=null and deviceResumeDto.productLineBo !=''">
+             and r.PRODUCT_LINE_BO = #{deviceResumeDto.productLineBo}
+         </if>
+      </where>
+          )) m
+      left join m_repair_upkeep_table n on m.device=n.deviceCode where n.repairId is not null) p
+      <where>
+          1=1
+          <if test="deviceResumeDto.workShop!=null and deviceResumeDto.workShop !=''">
+            and p.work_shop = #{deviceResumeDto.workShop}
+          </if>
+          <if test="deviceResumeDto.operationType !=null and deviceResumeDto.operationType !=''">
+            and p.operationType = #{deviceResumeDto.operationType}
+          </if>
+          <if test="deviceResumeDto.deviceName !=null and deviceResumeDto.deviceName !=''">
+            and p.device_name like concat('%',#{deviceResumeDto.deviceName},'%')
+          </if>
+          <if test="deviceResumeDto.device !=null and deviceResumeDto.device !=''">
+             and p.device = #{deviceResumeDto.device}
+          </if>
+          <!--开始日期不为空，结束日期为空-->
+          <if test="deviceResumeDto.startDate !=null and deviceResumeDto.startDate !='' and deviceResumeDto.endDate ==null ">
+              and substring(Convert(varchar(10),p.operationTime,23),1,10) = #{deviceResumeDto.startDate}
+          </if>
+          <!--结束日期不为空，开始日期为空-->
+          <if test="deviceResumeDto.endDate !=null and deviceResumeDto.endDate !='' and deviceResumeDto.startDate ==null ">
+              and substring(Convert(varchar(10),p.operationTime,23),1,10) = #{deviceResumeDto.endDate}
+          </if>
+          <!--开始日期和结束日期都不为空-->
+          <if test="deviceResumeDto.startDate !=null and deviceResumeDto.startDate !='' and deviceResumeDto.endDate !=null and deviceResumeDto.endDate !=''">
+              and  substring(Convert(varchar(10),p.operationTime,23),1,10) between  #{deviceResumeDto.startDate} and #{deviceResumeDto.endDate}
+          </if>
+      </where>
+      order by p.operationTime desc
+    </select>
+
+    <select id="selectDeviceTypeByDevice" resultType="string" parameterType="string">
+       select o.device_type_name from m_device m
+       left join m_device_type_item n on m.bo=n.device_bo
+       left join m_device_type  o on  o.bo=n.device_type_bo where m.device = #{device}
+    </select>
+
+    <select id="selectDeviceInfoByCondition" resultType="java.util.HashMap">
+        select work_shop,work_shop_name,device_name,device from m_device
+        <where>
+            device in(
+            select r.device from m_device r
+            left join m_device_type_item t on r.bo=t.device_bo
+            left join m_device_type o on o.bo=t.device_type_bo
+            <where>
+                o.device_type is not null
+                <if test="deviceResumeDto.deviceType !=null and deviceResumeDto.deviceType !=''">
+                    and o.device_type = #{deviceResumeDto.deviceType }
+                </if>
+            </where>
+            )
+            <if test="deviceResumeDto.workShop!=null and deviceResumeDto.workShop !=''">
+                and work_shop = #{deviceResumeDto.workShop}
+            </if>
+            <if test="deviceResumeDto.deviceName !=null and deviceResumeDto.deviceName !=''">
+                and device_name like concat('%',#{deviceResumeDto.deviceName},'%')
+            </if>
+            <if test="deviceResumeDto.device !=null and deviceResumeDto.device !=''">
+                and device like concat('%',#{deviceResumeDto.device},'%')
+            </if>
+        </where>
+
+    </select>
+    <select id="selectByWorkShop" resultType="string">
+        select work_shop_desc  from m_work_shop where work_shop=#{workShop}
+    </select>
+    <select id="selectByDeviceType" resultType="string">
+        select device_type_name from m_device_type where device_type=#{deviceType}
+    </select>
+    <select id="selectByDevice" resultType="string">
+        select device_name from m_device where device=#{device}
+    </select>
+</mapper>

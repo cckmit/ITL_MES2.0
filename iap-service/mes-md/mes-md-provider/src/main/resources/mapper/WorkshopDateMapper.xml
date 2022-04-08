@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.itl.mes.core.provider.mapper.WorkshopDateMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.itl.mes.core.api.entity.WorkshopDate">
+        <id column="BO" property="bo" />
+        <result column="SITE" property="site" />
+        <result column="WORKSHOP_BO" property="workshopBo" />
+        <result column="SHIFT_BO" property="shiftBo" />
+        <result column="PRODUCT_DATE" property="productDate" />
+        <result column="START_TIME" property="startTime" />
+        <result column="END_TIME" property="endTime" />
+        <result column="IS_OVERTIME" property="isOvertime" />
+        <result column="CREATE_USER" property="createUser" />
+        <result column="CREATE_DATE" property="createDate" />
+        <result column="MODIFY_USER" property="modifyUser" />
+        <result column="MODIFY_DATE" property="modifyDate" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        BO, SITE, WORKSHOP_BO, SHIFT_BO, PRODUCT_DATE, START_TIME, END_TIME, IS_OVERTIME, CREATE_USER, CREATE_DATE, MODIFY_USER, MODIFY_DATE
+    </sql>
+
+    <select id="selectShiftList" resultType="com.itl.mes.core.api.vo.PlainShiftVo">
+        SELECT SHIFT,SHIFT_NAME FROM M_SHIFT
+    </select>
+
+
+    <select id="getExistsValue" parameterType="string" resultType="string">
+        SELECT CASE IFNULL(PRODUCT_DATE,'N') WHEN  'N' THEN 'N' ELSE 'Y' END AS period  FROM (
+
+        SELECT ADDDATE(y.first, x.d - 1) as ADDDATE
+        FROM
+        (
+        SELECT 1 AS d UNION ALL
+        SELECT 2 UNION ALL
+        SELECT 3 UNION ALL
+        SELECT 4 UNION ALL
+        SELECT 5 UNION ALL
+        SELECT 6 UNION ALL
+        SELECT 7 UNION ALL
+        SELECT 8 UNION ALL
+        SELECT 9 UNION ALL
+        SELECT 10 UNION ALL
+        SELECT 11 UNION ALL
+        SELECT 12 UNION ALL
+        SELECT 13 UNION ALL
+        SELECT 14 UNION ALL
+        SELECT 15 UNION ALL
+        SELECT 16 UNION ALL
+        SELECT 17 UNION ALL
+        SELECT 18 UNION ALL
+        SELECT 19 UNION ALL
+        SELECT 20 UNION ALL
+        SELECT 21 UNION ALL
+        SELECT 22 UNION ALL
+        SELECT 23 UNION ALL
+        SELECT 24 UNION ALL
+        SELECT 25 UNION ALL
+        SELECT 26 UNION ALL
+        SELECT 27 UNION ALL
+        SELECT 28 UNION ALL
+        SELECT 29 UNION ALL
+        SELECT 30 UNION ALL
+        SELECT 31
+        ) x,
+        (
+        SELECT '${startPeriod}' - INTERVAL DAY('${startPeriod}') - 1 DAY AS first,
+        DAY(LAST_DAY('${startPeriod}')) AS last) y
+        WHERE y.last >= x.d  ) D LEFT JOIN (  SELECT distinct PRODUCT_DATE FROM M_WORKSHOP_DATE WD WHERE
+        WD.SITE = #{site} AND   WD.WORKSHOP_BO = #{workshopBO} AND WD.PRODUCT_DATE  &lt;=#{endPeriod}  AND WD.PRODUCT_DATE >= #{startPeriod} ) T ON D.ADDDATE = T.PRODUCT_DATE ORDER BY ADDDATE ASC
+    </select>
+
+    <select id="getShiftDetailData"  parameterType="string" resultType="com.itl.mes.core.api.vo.CalendarShiftVo">
+            SELECT SHIFT,SHIFT_NAME,SHIFT_DESC,IS_VALID,SHIFT_START_DATE,SHIFT_END_DATE,IS_CURRENT FROM M_SHIFT S
+             LEFT JOIN M_SHIFT_DETAIL SD ON S.BO = SD.SHIFT_BO WHERE S.SITE = #{site}
+    </select>
+
+    <select id="selectWorkShopDate" parameterType="string" resultType="com.itl.mes.core.api.entity.WorkshopDate">
+       SELECT WORKSHOP_BO,SHIFT_BO,PRODUCT_DATE,START_TIME,END_TIME FROM  M_WORKSHOP_DATE WHERE SITE = #{site} AND WORKSHOP_BO =#{workshopBO} AND  PRODUCT_DATE &lt;=#{endPeriod}  AND PRODUCT_DATE >= #{startPeriod}
+    </select>
+
+    <delete id="deleteWorkShopDate" parameterType="string">
+        DELETE FROM M_WORKSHOP_DATE WHERE SITE = #{site} AND WORKSHOP_BO =#{workshopBO} AND PRODUCT_DATE &lt;=#{endPeriod}  AND PRODUCT_DATE >= #{startPeriod}
+    </delete>
+</mapper>

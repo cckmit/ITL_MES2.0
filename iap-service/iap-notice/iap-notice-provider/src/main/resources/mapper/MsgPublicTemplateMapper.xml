@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.itl.iap.notice.provider.mapper.MsgPublicTemplateMapper" >
+    <resultMap id="BaseResultMap" type="com.itl.iap.notice.api.entity.MsgPublicTemplate" >
+        <id column="ID" property="id" jdbcType="VARCHAR" />
+        <result column="msg_type_id" property="msgTypeId" jdbcType="VARCHAR" />
+        <result column="name" property="name" jdbcType="VARCHAR" />
+        <result column="code" property="code" jdbcType="VARCHAR" />
+        <result column="title" property="title" jdbcType="VARCHAR" />
+        <result column="notice_type" property="noticeType" jdbcType="INTEGER" />
+        <result column="notice_url" property="noticeUrl" jdbcType="VARCHAR" />
+        <result column="sys_notice_enabled_flag" property="sysNoticeEnabledFlag" jdbcType="INTEGER" />
+        <result column="sys_notice_content" property="sysNoticeContent" jdbcType="VARCHAR" />
+        <result column="sms_notice_enabled_flag" property="smsNoticeEnabledFlag" jdbcType="INTEGER" />
+        <result column="sms_template_id" property="smsTemplateId" jdbcType="VARCHAR" />
+        <result column="sign_id" property="signId" jdbcType="VARCHAR" />
+        <result column="email_notice_enabled_flag" property="emailNoticeEnabledFlag" jdbcType="INTEGER" />
+        <result column="email_notice_content" property="emailNoticeContent" jdbcType="VARCHAR" />
+        <result column="turn_flag" property="turnFlag" jdbcType="INTEGER" />
+        <result column="shutdown_flag" property="shutdownFlag" jdbcType="INTEGER" />
+        <result column="create_name" property="createName" jdbcType="VARCHAR" />
+        <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
+        <result column="update_name" property="updateName" jdbcType="VARCHAR" />
+        <result column="update_time" property="updateTime" jdbcType="TIMESTAMP" />
+    </resultMap>
+    <select id="getMsgPublicTemplateByCode" resultMap="BaseResultMap">
+        select * from msg_public_template where code=#{code}
+    </select>
+
+    <select id="queryPage" resultType="com.itl.iap.notice.api.dto.MsgPublicTemplateDto">
+        SELECT
+        A.id,
+        A.code,
+        A.title,
+        A.name,
+        A.sign,
+        A.sys_notice_content AS sysNoticeContent,
+        A.create_name AS createName,
+        A.create_time AS createTime,
+        A.message_code AS messageCode,
+        A.message_type_code AS messageTypeCode,
+        A.msg_type_id AS msgTypeId,
+        A.notice_enabled_flag AS noticeEnabledFlag,
+        A.notice_type_code AS noticeTypeCode,
+        A.service_module_code AS serviceModuleCode,
+        A.template_type_code AS templateTypeCode,
+        A.update_name AS updateName,
+        A.update_time AS updateTime,
+        A.pc_url AS pcUrl,
+        B.name AS serviceModuleName,
+        C.name AS noticeTypeName
+        FROM
+        msg_public_template A
+        LEFT JOIN (
+        SELECT
+        B.name,
+        B.key_value
+        FROM
+        iap_dict_t A
+        LEFT JOIN iap_dict_item_t B ON B.iap_dict_id = A.id
+        WHERE
+        A.code = #{serviceModule}
+        ) B ON B.key_value = A.service_module_code
+        LEFT JOIN (
+        SELECT
+        B.name,
+        B.key_value
+        FROM
+        iap_dict_t A
+        LEFT JOIN iap_dict_item_t B ON B.iap_dict_id = A.id
+        WHERE
+        A.code = #{noticeTypeCode}
+        ) C ON C.key_value = A.notice_type_code
+        <where>
+            <if test="query.code != null and query.code.trim()!=''">
+               AND A.code LIKE CONCAT('%',#{query.code},'%')
+            </if>
+            <if test="query.name != null and query.name.trim()!=''">
+                AND A.name LIKE CONCAT('%',#{query.name},'%')
+            </if>
+            <if test="query.serviceModuleCode != null">
+                AND A.service_module_code = #{query.serviceModuleCode}
+            </if>
+            <if test="query.messageTypeCode != null and query.messageTypeCode.trim() != ''">
+                AND A.message_type_code = #{query.messageTypeCode}
+            </if>
+            <if test="query.serviceModuleName != null and query.serviceModuleName.trim()!=''">
+                AND B.name = #{query.serviceModuleName}
+            </if>
+            <if test="query.noticeTypeName != null and query.noticeTypeName.trim()!=''">
+                AND C.name = #{query.noticeTypeName}
+            </if>
+            <if test="query.typeCodes != null">
+               AND (
+                    <foreach collection="query.typeCodes" item="item" close=")" open="(" separator="," index="index">
+                        message_type_code LIKE CONCAT('%',#{item},'%')
+                    </foreach>
+                )
+            </if>
+        </where>
+    </select>
+
+    <select id="getNameByCodeAndVal" resultType="java.lang.String">
+        SELECT B.name FROM iap_dict_t A LEFT JOIN iap_dict_item_t B ON B.iap_dict_id = A.id
+         WHERE A.code = #{code} AND key_value = #{val}
+    </select>
+
+    <select id="getCode" resultType="com.itl.iap.notice.api.dto.IapDictItemTDto">
+        SELECT B.id, B.code, B.name, B.iap_dict_id iapDictId, B.key_value keyValue
+        FROM iap_dict_t A
+            LEFT JOIN iap_dict_item_t B ON B.iap_dict_id = A.id
+        WHERE A.code = #{code}
+    </select>
+
+    <select id="getById" resultType="com.itl.iap.notice.api.dto.MsgPublicTemplateDto">
+        SELECT id,
+               code,
+               title,
+               name,
+               sign,
+               sys_notice_content AS content,
+               create_name AS createName,
+               create_time AS createTime,
+               message_code AS messageCode,
+               message_type_code AS messageTypeCode,
+               msg_type_id AS msgTypeId,
+               notice_enabled_flag AS noticeEnabledFlag,
+               notice_type_code AS noticeTypeCode,
+               service_module_code AS serviceModuleCode,
+               template_type_code AS templateTypeCode,
+               update_name AS updateName,
+               update_time AS updateTime,
+               pc_url AS pcUrl,
+               (SELECT B.name FROM iap_dict_t A LEFT JOIN iap_dict_item_t B ON B.iap_dict_id = A.id
+                WHERE A.code = #{serviceModule} AND key_value = service_module_code ) as serviceModuleName,
+               (SELECT B.name FROM iap_dict_t A LEFT JOIN iap_dict_item_t B ON B.iap_dict_id = A.id
+                WHERE A.code = #{noticeTypeCode} AND key_value = notice_type_code ) as noticeTypeName
+        FROM msg_public_template
+        WHERE id = #{id}
+    </select>
+</mapper>

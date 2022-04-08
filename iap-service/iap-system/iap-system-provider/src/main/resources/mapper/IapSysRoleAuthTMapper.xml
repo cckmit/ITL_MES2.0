@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.itl.iap.system.provider.mapper.IapSysRoleAuthTMapper">
+
+    <resultMap type="com.itl.iap.system.api.dto.IapSysRoleAuthTDto" id="IapSysRoleAuthTMap">
+        <result property="id" column="id" jdbcType="VARCHAR"/>
+        <result property="roleId" column="role_id" jdbcType="VARCHAR"/>
+        <result property="authId" column="auth_id" jdbcType="VARCHAR"/>
+        <result property="sort" column="sort" jdbcType="SMALLINT"/>
+        <result property="state" column="state" jdbcType="SMALLINT"/>
+        <result property="creater" column="creater" jdbcType="VARCHAR"/>
+        <result property="createDate" column="create_date" jdbcType="TIMESTAMP"/>
+        <result property="createOrg" column="create_org" jdbcType="VARCHAR"/>
+        <result property="lastUpdateBy" column="last_update_by" jdbcType="VARCHAR"/>
+        <result property="lastUpdateDate" column="last_update_date" jdbcType="TIMESTAMP"/>
+        <result property="delFlag" column="del_flag" jdbcType="SMALLINT"/>
+    </resultMap>
+
+    <!-- 通过角色列表批量删除角色-权限中间表 -->
+    <delete id="deleteBatchByRoleIdList">
+        DELETE FROM iap_sys_role_auth_t WHERE iap_sys_role_auth_t.role_id IN
+        <foreach collection="sysRoleList" item="item" open="(" separator="," close=")">
+            #{item.id}
+        </foreach>
+    </delete>
+
+    <!-- 通过权限列表批量删除角色-权限中间表 -->
+    <delete id="deleteBatchByAuthIdList">
+        DELETE FROM iap_sys_role_auth_t WHERE iap_sys_role_auth_t.auth_id IN
+        <foreach collection="sysAuthList" item="item" open="(" separator="," close=")">
+            #{item.id}
+        </foreach>
+    </delete>
+
+    <!--通过实体作为筛选条件查询-->
+    <select id="pageQuery" resultMap="IapSysRoleAuthTMap">
+        select
+          id, role_id, auth_id, sort, state, creater, create_date, create_org, last_update_by, last_update_date, del_flag
+        from iap_sys_role_auth_t
+        <where>
+            <if test="iapSysRoleAuthTDto.id != null and iapSysRoleAuthTDto.id != ''">
+                and id = #{iapSysRoleAuthTDto.id}
+            </if>
+            <if test="iapSysRoleAuthTDto.roleId != null and iapSysRoleAuthTDto.roleId != ''">
+                and role_id = #{iapSysRoleAuthTDto.roleId}
+            </if>
+            <if test="iapSysRoleAuthTDto.authId != null and iapSysRoleAuthTDto.authId != ''">
+                and auth_id = #{iapSysRoleAuthTDto.authId}
+            </if>
+            <if test="iapSysRoleAuthTDto.sort != null">
+                and sort = #{iapSysRoleAuthTDto.sort}
+            </if>
+            <if test="iapSysRoleAuthTDto.state != null">
+                and state = #{iapSysRoleAuthTDto.state}
+            </if>
+            <if test="iapSysRoleAuthTDto.creater != null and iapSysRoleAuthTDto.creater != ''">
+                and creater = #{iapSysRoleAuthTDto.creater}
+            </if>
+            <if test="iapSysRoleAuthTDto.createDate != null">
+                and create_date = #{iapSysRoleAuthTDto.createDate}
+            </if>
+            <if test="iapSysRoleAuthTDto.createOrg != null and iapSysRoleAuthTDto.createOrg != ''">
+                and create_org = #{iapSysRoleAuthTDto.createOrg}
+            </if>
+            <if test="iapSysRoleAuthTDto.lastUpdateBy != null and iapSysRoleAuthTDto.lastUpdateBy != ''">
+                and last_update_by = #{iapSysRoleAuthTDto.lastUpdateBy}
+            </if>
+            <if test="iapSysRoleAuthTDto.lastUpdateDate != null">
+                and last_update_date = #{iapSysRoleAuthTDto.lastUpdateDate}
+            </if>
+            <if test="iapSysRoleAuthTDto.delFlag != null and iapSysRoleAuthTDto.delFlag != ''">
+                and del_flag = #{iapSysRoleAuthTDto.delFlag}
+            </if>
+        </where>
+    </select>
+
+    <insert id="insertBatch">
+        insert into iap_sys_role_auth_t (id, role_id, auth_id, creater, create_date, create_org,
+        last_update_by, last_update_date)
+        value
+        <foreach collection="list" separator="," item="item">
+            (
+                #{item.id},
+                #{item.roleId},
+                #{item.authId},
+                #{item.creater},
+                #{item.createDate},
+                #{item.createOrg},
+                #{item.lastUpdateBy},
+                #{item.lastUpdateDate}
+            )
+        </foreach>
+    </insert>
+</mapper>

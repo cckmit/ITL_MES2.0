@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.itl.iap.mes.provider.mapper.DataCollectionItemMapper">
+
+    <sql id="FIELD">
+        t.id AS id,t.itemNo AS itemNo,t.itemName AS itemName,t.remark AS remark,t.itemType AS itemType,t.maxNum AS maxNum,t.minNum AS minNum,t.dataCollectionId AS dataCollectionId
+    </sql>
+
+    <select id="pageQuery" parameterType="string" resultType="com.itl.iap.mes.api.entity.DataCollectionItem">
+        SELECT <include refid="FIELD"/>
+        FROM m_data_collection_item t
+        WHERE t.dataCollectionId = #{dataCollectionId}
+    </select>
+</mapper>

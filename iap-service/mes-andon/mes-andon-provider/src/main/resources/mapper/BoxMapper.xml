@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.itl.mes.andon.provider.mapper.BoxMapper">
+
+	<!-- 可根据自己的需求，是否要使用 -->
+    <resultMap type="com.itl.mes.andon.api.vo.BoxForShowVo" id="boxForShowMap">
+        <result property="bo" column="BO"/>
+        <result property="box" column="BOX"/>
+        <result property="boxName" column="BOX_NAME"/>
+        <result property="boxDesc" column="BOX_DESC"/>
+        <result property="site" column="SITE"/>
+        <result property="resourceType" column="RESOURCE_TYPE"/>
+        <result property="workShop" column="WORK_SHOP"/>
+        <result property="productLine" column="PRODUCT_LINE"/>
+        <result property="station" column="STATION"/>
+        <result property="device" column="DEVICE"/>
+        <result property="state" column="STATE"/>
+        <result property="createDate" column="CREATE_DATE"/>
+        <result property="createUser" column="CREATE_USER"/>
+        <result property="modifyDate" column="MODIFY_DATE"/>
+        <result property="modifyUser" column="MODIFY_USER"/>
+    </resultMap>
+
+    <select id="findList" resultMap="boxForShowMap">
+        select ab.BO,
+               ab.BOX,
+               ab.BOX_NAME,
+               ab.BOX_DESC,
+               ab.SITE,
+               ab.RESOURCE_TYPE,
+               ws.WORK_SHOP,
+               pl.PRODUCT_LINE,
+               s.STATION,
+               d.DEVICE,
+               ab.STATE,
+               ab.CREATE_DATE,
+               ab.CREATE_USER,
+               ab.MODIFY_USER,
+               ab.MODIFY_DATE
+        from andon_box as ab
+        left join m_work_shop as ws on ab.WORK_SHOP_BO = ws.BO
+        left join m_product_line as pl on ab.PRODUCT_LINE_BO = pl.BO
+        left join m_station as s on ab.STATION_BO = s.BO
+        left join m_device d on ab.DEVICE_BO = d.BO
+        where ab.SITE = #{boxQuery.site}
+        <if test="boxQuery.box != null and boxQuery.box != ''">
+            and ab.BOX like '%${boxQuery.box}%'
+        </if>
+        <if test="boxQuery.boxName != null and boxQuery.boxName != ''">
+            and ab.BOX_NAME like '%${boxQuery.boxName}%'
+        </if>
+        <if test="boxQuery.state != null and boxQuery.state != ''">
+            and ab.STATE = #{boxQuery.state}
+        </if>
+    </select>
+
+    <select id="getResourceType" resultType="String" parameterType="String">
+        SELECT name
+        FROM iap_dict_item_t
+        WHERE key_value = #{type}
+    </select>
+</mapper>

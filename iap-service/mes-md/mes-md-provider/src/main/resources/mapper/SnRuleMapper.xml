@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.itl.mes.core.provider.mapper.SnRuleMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.itl.mes.core.api.entity.SnRule">
+        <result column="SEQ" property="seq" />
+        <result column="RULE_NAME" property="ruleName" />
+        <result column="RULE_CODE" property="ruleCode" />
+        <result column="RULE_TYPE" property="ruleType" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        SEQ, RULE_NAME, RULE_CODE, RULE_TYPE
+    </sql>
+
+</mapper>

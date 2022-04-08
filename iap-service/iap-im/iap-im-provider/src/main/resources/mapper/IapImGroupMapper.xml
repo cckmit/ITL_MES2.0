@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.itl.im.provider.mapper.IapImGroupMapper">
+
+    <resultMap type="iap.im.api.dto.IapImGroupDto" id="IapImGroupTMap">
+        <result property="id" column="id" jdbcType="VARCHAR"/>
+        <result property="category" column="category" jdbcType="VARCHAR"/>
+        <result property="founder" column="founder" jdbcType="VARCHAR"/>
+        <result property="name" column="name" jdbcType="VARCHAR"/>
+        <result property="summary" column="summary" jdbcType="VARCHAR"/>
+        <result property="timestamp" column="timestamp" jdbcType="BIGINT"/>
+        <result property="avatar" column="avatar" jdbcType="VARCHAR"/>
+    </resultMap>
+
+    <resultMap type="iap.im.api.dto.IapImGroupDto" id="groupWithGroupMemberMap">
+        <result property="id" column="id" jdbcType="VARCHAR"/>
+        <result property="category" column="category" jdbcType="VARCHAR"/>
+        <result property="founder" column="founder" jdbcType="VARCHAR"/>
+        <result property="name" column="name" jdbcType="VARCHAR"/>
+        <result property="summary" column="summary" jdbcType="VARCHAR"/>
+        <result property="timestamp" column="timestamp" jdbcType="BIGINT"/>
+        <result property="avatar" column="avatar" jdbcType="VARCHAR"/>
+        <result property="groupMemberNum" column="groupMemberNum" jdbcType="INTEGER"/>
+        <result property="showTrueNum" column="showTrueNum" jdbcType="INTEGER"/>
+        <collection property="memberList" ofType="iap.im.api.dto.IapImGroupMemberDto">
+            <result property="id" column="groupMemberId" jdbcType="VARCHAR"/>
+            <result property="account" column="account" jdbcType="VARCHAR"/>
+            <result property="groupId" column="id" jdbcType="VARCHAR"/>
+            <result property="host" column="host" jdbcType="VARCHAR"/>
+            <result property="timestamp" column="intoGroupTimestamp" jdbcType="BIGINT"/>
+            <result property="muteType" column="muteType" jdbcType="SMALLINT"/>
+            <result property="muteTime" column="muteTime" jdbcType="BIGINT"/>
+            <result property="userId" column="userId" jdbcType="VARCHAR"/>
+            <result property="username" column="username" jdbcType="VARCHAR"/>
+            <result property="realName" column="realName" jdbcType="VARCHAR"/>
+            <result property="nickName" column="nickName" jdbcType="VARCHAR"/>
+            <result property="userMobile" column="userMobile" jdbcType="VARCHAR"/>
+            <result property="email" column="email" jdbcType="VARCHAR"/>
+            <result property="userAvatar" column="userAvatar" jdbcType="VARCHAR"/>
+            <result property="state" column="state" jdbcType="INTEGER"/>
+            <result property="validity" column="validity" jdbcType="TIMESTAMP"/>
+        </collection>
+    </resultMap>
+
+    <!--通过实体作为筛选条件查询-->
+    <select id="pageQuery" resultMap="IapImGroupTMap">
+        select
+        id, category, founder, name, summary, timestamp, avatar
+        from iap_im_group_t
+        <where>
+            <if test="iapImGroupTDto.id != null and iapImGroupTDto.id != ''">
+                and id = #{iapImGroupTDto.id}
+            </if>
+            <if test="iapImGroupTDto.category != null and iapImGroupTDto.category != ''">
+                and category = #{iapImGroupTDto.category}
+            </if>
+            <if test="iapImGroupTDto.founder != null and iapImGroupTDto.founder != ''">
+                and founder = #{iapImGroupTDto.founder}
+            </if>
+            <if test="iapImGroupTDto.name != null and iapImGroupTDto.name != ''">
+                and name = #{iapImGroupTDto.name}
+            </if>
+            <if test="iapImGroupTDto.summary != null and iapImGroupTDto.summary != ''">
+                and summary = #{iapImGroupTDto.summary}
+            </if>
+            <if test="iapImGroupTDto.timestamp != null">
+                and timestamp = #{iapImGroupTDto.timestamp}
+            </if>
+            <if test="iapImGroupTDto.avatar != null and iapImGroupTDto.avatar != ''">
+                and avatar = #{iapImGroupTDto.avatar}
+            </if>
+        </where>
+    </select>
+
+    <!-- 查询与我相关的所有群列表 -->
+    <select id="getMyAllGroupList" resultType="iap.im.api.entity.IapImGroup">
+        SELECT
+            G.id,
+            G.`name`,
+            G.category,
+            G.summary,
+            G.avatar,
+            G.founder,
+            G.`timestamp`
+        FROM
+	        iap_im_group_t AS G
+        LEFT JOIN iap_im_group_member_t AS GM ON G.id = GM.group_id
+        WHERE GM.account = #{selfAccount}
+    </select>
+
+    <!-- 获取所有群并且附带群成员 -->
+    <select id="getAllGroupWithGroupMemberList" resultMap="groupWithGroupMemberMap" parameterType="string">
+        SELECT
+        G.id,
+        G.`name`,
+        G.summary,
+        G.avatar,
+        G.founder,
+        (SELECT count(1) FROM iap_im_group_member_t WHERE iap_im_group_member_t.group_id = G.id) AS groupMemberNum,
+        (SELECT count(1) FROM iap_im_message_user_t AS MU WHERE MU.list_type = 1 AND MU.receiver = G.id AND MU.show_type
+        = 0) AS showTrueNum,
+        GM.id AS groupMemberId,
+        GM.account,
+        GM.`host`,
+        GM.mute_type AS muteType,
+        GM.mute_time AS muteTime,
+        GM.`timestamp` AS intoGroupTimestamp,
+        U.id AS userId,
+        U.user_name AS userName,
+        U.real_name AS realName,
+        U.nick_name AS nickName,
+        U.user_mobile AS userMobile,
+        U.email,
+        U.avatar AS userAvatar,
+        U.state,
+        U.validity
+        FROM iap_im_group_t AS G
+        LEFT JOIN iap_im_group_member_t AS GM ON G.id = GM.group_id
+        LEFT JOIN iap_sys_user_t AS U ON GM.account = U.user_name
+        <where>
+            <if test="groupId != null">
+                G.id = #{groupId}
+            </if>
+        </where>
+        ORDER BY G.`timestamp` DESC
+    </select>
+
+</mapper>

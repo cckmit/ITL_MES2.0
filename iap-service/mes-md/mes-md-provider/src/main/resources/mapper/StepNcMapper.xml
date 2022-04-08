@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.itl.mes.core.provider.mapper.StepNcMapper">
+    <select id="getStepNcRecord" resultType="com.itl.mes.core.api.vo.StepNcRecordVo">
+        SELECT
+            nc.nc_code as ncCode,
+            nc.nc_name as ncProject,
+            sn.nc_qty as ncQty,
+            sn.nc_type as ncType,
+            sn.nc_work_step_bo as ncWorkStepBo,
+            ws.WORK_STEP_CODE as ncWorkStepCode,
+            sn.person_liable as personLiable,
+            su.real_name AS personLiableName,
+            su.inside_no as insideNo
+        FROM
+            d_dy_step_nc sn
+                LEFT JOIN m_nc_code nc ON sn.nc_code_bo = nc.bo
+                LEFT JOIN d_dy_workstation ws ON sn.nc_work_step_bo = ws.bo
+                LEFT JOIN iap_sys_user_t su ON su.user_name = sn.person_liable
+    </select>
+</mapper>

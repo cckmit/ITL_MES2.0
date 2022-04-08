@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.itl.mes.core.provider.mapper.RouteStationMapper">
+
+
+    <select id="queryRouterOperation" resultType="string">
+        select a.process_info from m_router_process a inner join m_router b on a.router_bo = b.bo
+        where b.ROUTER = #{router} and b.VERSION = #{version}
+    </select>
+    <update id="updateEffective">
+        update D_DY_ROUTE_STATION set EFFECTIVE = #{effective} where BO=#{bo}
+    </update>
+</mapper>

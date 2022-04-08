@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.itl.mes.core.provider.mapper.QualityPlanMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.itl.mes.core.api.entity.QualityPlan">
+        <id column="BO" property="bo"/>
+        <result column="SITE" property="site"/>
+        <result column="QUALITY_PLAN" property="qualityPlan"/>
+        <result column="QUALITY_PLAN_DESC" property="qualityPlanDesc"/>
+        <result column="IS_CURRENT_VERSION" property="isCurrentVersion"/>
+        <result column="CREATE_USER" property="createUser"/>
+        <result column="CREATE_DATE" property="createDate"/>
+        <result column="MODIFY_USER" property="modifyUser"/>
+        <result column="MODIFY_DATE" property="modifyDate"/>
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        BO, SITE, QUALITY_PLAN, QUALITY_PLAN_DESC, IS_CURRENT_VERSION, CREATE_USER, CREATE_DATE, MODIFY_USER, MODIFY_DATE
+    </sql>
+
+
+
+    <!--分页查询-->
+    <select id="selectQualityPlanPage" resultType="java.util.Map" parameterType="java.util.Map">
+        SELECT BO,QUALITY_PLAN,VERSION,IS_CURRENT_VERSION,QUALITY_PLAN_DESC FROM M_QUALITY_PLAN
+        WHERE SITE =#{params.site}
+        <if test="params.qualityPlan != null and params.qualityPlan != '' ">
+            AND QUALITY_PLAN LIKE '${params.qualityPlan}%'
+        </if>
+        <if test="params.qualityPlanDesc != null and params.qualityPlanDesc != ''">
+            AND QUALITY_PLAN_DESC LIKE '${params.qualityPlanDesc}%'
+        </if>
+        <if test="params.isCurrentVersion != null and params.isCurrentVersion != ''">
+            AND IS_CURRENT_VERSION = '${params.isCurrentVersion}'
+        </if>
+    </select>
+
+    <update id="setDefaultPlan" parameterType="java.util.Map">
+        update M_QUALITY_PLAN
+        <set>
+            IS_CURRENT_VERSION = 'N'
+        </set>
+         <where>
+            <if test="param.qualityPlan != null and param.qualityPlan != ''">
+                QUALITY_PLAN <![CDATA[<>]]> '${param.qualityPlan}'
+            </if>
+         </where>
+    </update>
+
+    <select id="selectOperation" resultType="java.lang.String" parameterType="String">
+        SELECT DISTINCT(OPERATION_BO) FROM m_quality_plan_parameter WHERE 1 =1
+        <if test="qualityPlan != null and qualityPlan != '' ">
+            AND QUALITY_PLAN = #{qualityPlan}
+        </if>
+    </select>
+
+    <select id="selectMaxPlan" resultType="java.lang.String" >
+        SELECT MAX(QUALITY_PLAN) FROM m_quality_plan
+    </select>
+
+</mapper>

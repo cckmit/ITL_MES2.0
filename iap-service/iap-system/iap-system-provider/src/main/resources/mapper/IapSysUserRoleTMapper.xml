@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.itl.iap.system.provider.mapper.IapSysUserRoleTMapper">
+
+
+   <delete id="deleteByUserId" >
+         DELETE FROM  iap_sys_user_role_t where  user_id  = #{userId}
+   </delete>
+
+    <delete id="deleteBatchByRoleIdList">
+        DELETE FROM iap_sys_user_role_t WHERE iap_sys_user_role_t.role_id IN
+        <foreach collection="sysRoleList" item="item" open="(" separator="," close=")">
+            #{item.id}
+        </foreach>
+    </delete>
+
+</mapper>

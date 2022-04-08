@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.itl.mes.core.provider.mapper.RouterProcessMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.itl.mes.core.api.entity.RouterProcess">
+        <id column="ROUTER_BO" property="routerBo" />
+        <result column="SITE" property="site" />
+        <result column="PROCESS_INFO" property="processInfo" />
+    </resultMap>
+
+    <select id="selectByRouterBo" parameterType="String" resultMap="BaseResultMap">
+        select router_bo,site,process_info from m_router_process where router_bo=#{routerBo}
+    </select>
+    <select id="selectByShopOrder" resultType="java.util.HashMap" parameterType="string">
+       select m.bo,o.process_info from m_shop_order m
+       left join m_router n on m.router_bo=n.bo
+       left join m_router_process o on n.bo=o.router_bo where m.shop_order=#{shopOrder}
+    </select>
+    <update id="updateIsUsed" parameterType="string">
+        update m_operation set isUsed=1 where bo=#{bo}
+    </update>
+</mapper>

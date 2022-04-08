@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.itl.mes.andon.provider.mapper.PushMapper">
+
+
+    <resultMap type="com.itl.mes.andon.api.entity.Push" id="pushMap">
+        <result property="bo" column="BO"/>
+        <result property="site" column="SITE"/>
+        <result property="andonPush" column="ANDON_PUSH"/>
+        <result property="andonPushName" column="ANDON_PUSH_NAME"/>
+        <result property="andonPushDesc" column="ANDON_PUSH_DESC"/>
+        <result property="state" column="STATE"/>
+        <result property="createDate" column="CREATE_DATE"/>
+        <result property="createUser" column="CREATE_USER"/>
+        <result property="modifyDate" column="MODIFY_DATE"/>
+        <result property="modifyUser" column="MODIFY_USER"/>
+        <collection property="grades" ofType="com.itl.mes.andon.api.entity.GradePush">
+            <result property="state" column="GSTATE"/>
+            <result property="andonGradeBo" column="ANDON_GRADE_BO"/>
+            <result property="andonPushBo" column="ANDON_PUSH_BO"/>
+            <result property="pushToUser" column="PUSH_TO_USER"/>
+            <result property="pushToPosition" column="PUSH_TO_POSITION"/>
+            <result property="andonGrade" column="ANDON_GRADE"/>
+            <result property="andonGradeName" column="ANDON_GRADE_NAME"/>
+            <result property="andonGradeDesc" column="ANDON_GRADE_DESC"/>
+        </collection>
+    </resultMap>
+
+
+    <select id="getByBo" parameterType="java.lang.String" resultMap="pushMap">
+        select ap.BO,
+           ap.SITE,
+           ANDON_PUSH,
+           ANDON_PUSH_NAME,
+           ANDON_PUSH_DESC,
+           ap.STATE,
+           ap.CREATE_DATE,
+           ap.CREATE_USER,
+           ap.MODIFY_USER,
+           ap.MODIFY_DATE,
+           agp.SITE,
+           ANDON_GRADE_BO,
+           ANDON_PUSH_BO,
+           PUSH_TO_USER,
+           PUSH_TO_POSITION,
+           ANDON_GRADE,
+           ANDON_GRADE_NAME,
+           ANDON_GRADE_DESC,
+           ag.STATE AS GSTATE
+        from andon_push ap
+        join andon_grade_push agp on ap.BO = agp.ANDON_PUSH_BO
+        join andon_grade ag on agp.ANDON_GRADE_BO = ag.BO
+        where ap.BO = #{bo}
+    </select>
+</mapper>

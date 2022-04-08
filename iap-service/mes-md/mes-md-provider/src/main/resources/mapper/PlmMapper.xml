@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.itl.mes.core.provider.mapper.PlmMapper">
+    <select id="getOperationList" resultType="string">
+        select operation_list from plm_router_data where router=#{router} and router_version=#{version}
+    </select>
+    <select id="getProcessInfo" resultType="java.util.HashMap">
+        select n.process_info,o.router,o.version as routerVersion from m_item m
+        left join m_router o on m.router_bo=o.bo
+        left join m_router_process n on o.bo=n.router_bo
+        where  m.item=#{item} and m.version=#{version}
+    </select>
+    <select id="selectWorkStep" resultType="com.itl.mes.core.api.entity.WorkStation">
+      select a.BO, a.SITE, a.WORK_STEP_CODE, a.WORK_STEP_NAME, a.WORK_STEP_DESC, a.WORKING_PROCESS, a.STATE, a.UPDATE_TIME, a.UPDATED_BY, b.OPERATION_NAME,b.operation
+      FROM d_dy_workstation a
+      left join m_operation b ON  b.BO =a.WORKING_PROCESS
+      where a.SITE = #{site} and a.WORKING_PROCESS = #{workingProcess}
+    </select>
+</mapper>

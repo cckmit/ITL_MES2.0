@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.itl.mes.core.provider.mapper.NcGroupMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.itl.mes.core.api.entity.NcGroup">
+        <id column="BO" property="bo" />
+        <result column="SITE" property="site" />
+        <result column="NC_GROUP" property="ncGroup" />
+        <result column="NC_GROUP_NAME" property="ncGroupName" />
+        <result column="NC_GROUP_DESC" property="ncGroupDesc" />
+        <result column="IS_ALL_RESOURCE" property="isAllResource" />
+        <result column="CREATE_DATE" property="createDate" />
+        <result column="CREATE_USER" property="createUser" />
+        <result column="MODIFY_DATE" property="modifyDate" />
+        <result column="MODIFY_USER" property="modifyUser" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        BO, SITE, NC_GROUP, NC_GROUP_NAME, NC_GROUP_DESC, IS_ALL_RESOURCE, CREATE_DATE, CREATE_USER, MODIFY_DATE, MODIFY_USER
+    </sql>
+
+    <!--查询可分配工序-->
+    <select id="getAvailableOperationList" resultType="com.itl.mes.core.api.vo.NcGroupOperationVo" parameterType="String" >
+        SELECT BO,OPERATION,VERSION,OPERATION_NAME,OPERATION_DESC FROM M_OPERATION OG WHERE OG.SITE=#{site}
+        AND NOT EXISTS( SELECT OPERATION_BO AS BO FROM M_NC_GROUP_OPERATION OGM WHERE NC_GROUP_BO=#{ncGroupBO} AND OG.BO=OGM.OPERATION_BO )
+    </select>
+    <!--查询已分配工序-->
+    <select id="getAssignedOperationList" resultType="com.itl.mes.core.api.vo.NcGroupOperationVo" parameterType="String" >
+        SELECT BO,OPERATION,VERSION,OPERATION_NAME,OPERATION_DESC FROM M_OPERATION OG WHERE OG.SITE=#{site}
+        AND  EXISTS( SELECT OPERATION_BO AS BO FROM M_NC_GROUP_OPERATION OGM WHERE NC_GROUP_BO=#{ncGroupBO} AND OG.BO=OGM.OPERATION_BO )
+    </select>
+
+    <select id="selectTop" resultType="com.itl.mes.core.api.entity.NcGroup">
+        SELECT TOP 500 BO, SITE, NC_GROUP, NC_GROUP_NAME, NC_GROUP_DESC, IS_ALL_RESOURCE, CREATE_DATE, CREATE_USER, MODIFY_DATE, MODIFY_USER
+        FROM m_nc_group WHERE SITE = #{site}
+    </select>
+
+
+</mapper>

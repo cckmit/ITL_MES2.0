@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.itl.mes.andon.provider.mapper.AndonTriggerMapper">
+
+    <select id="findList" resultType="com.itl.mes.andon.api.vo.AndonTriggerAndonVo">
+
+            SELECT
+                a.BO as andonBo,
+                a.ANDON_NAME as andonName,
+                a.RESOURCE_TYPE as resourceType,
+                a.ITEM_BO as itemBo,
+                a.DEVICE_BO as deviceBo,
+                CASE
+                WHEN b.STATE IS NULL THEN
+                '2' ELSE b.STATE
+                END AS STATE
+            FROM
+                andon_andon a LEFT JOIN andon_record b on a.BO = b.ANDON_BO
+            WHERE
+                 ANDON_BOX_BO IN
+            <foreach item="item"  collection="idList" open="(" separator="," close=")">
+                #{item}
+            </foreach>
+            ORDER BY STATE
+    </select>
+
+    <select id="getStationList" resultType="java.util.Map">
+
+        select a.STATION_BO as stationBo,b.STATION as station
+        from iap_sys_user_station_t a left join m_station b on a.STATION_BO = b.BO
+        where a.user_id = #{userId} and a.site = #{site}
+
+    </select>
+
+    <select id="getProductLineBo" resultType="java.lang.String">
+
+        select PRODUCT_LINE_BO as productLineBo from m_station where bo = #{stationBo}
+    </select>
+
+    <select id="getWorkShopBo" resultType="java.lang.String">
+
+        select WORK_SHOP_BO as workShopBo from m_product_line where bo = #{productLineBo}
+
+    </select>
+
+    <select id="getDeviceList" resultType="java.util.Map">
+
+        select BO as deviceBo,DEVICE as device from m_device where station_bo = #{stationBo}
+
+    </select>
+
+    <select id="getPushUser" resultType="com.itl.mes.andon.api.vo.AndonTriggerPushUserVo">
+
+        select u.user_name as userName,u.real_name as realName
+        from andon_andon aa
+        left join andon_push ap on aa.ANDON_PUSH_BO = ap.BO
+        LEFT JOIN andon_grade_push agp on ap.BO = agp.ANDON_PUSH_BO
+        LEFT JOIN iap_sys_user_t u on agp.PUSH_TO_USER = u.user_name
+        where aa.BO = #{andonBo}
+        union all
+        select u.user_name as userName,u.real_name as realName from andon_andon aa
+        left join andon_push ap on aa.ANDON_PUSH_BO = ap.BO
+        LEFT JOIN andon_grade_push agp on ap.BO = agp.ANDON_PUSH_BO
+        LEFT JOIN iap_sys_position_t sp on agp.PUSH_TO_POSITION = sp.name
+        LEFT JOIN iap_sys_position_user_t pu on sp.id = pu.position_id
+        LEFT JOIN iap_sys_user_t u on pu.user_id = u.id
+        where aa.BO = #{andonBo}
+
+    </select>
+
+    <select id="getItem" resultType="java.lang.String">
+
+        select item from m_item where bo = #{itemBo}
+    </select>
+</mapper>

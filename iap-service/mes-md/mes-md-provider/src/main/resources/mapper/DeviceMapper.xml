@@ -1,0 +1,169 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.itl.mes.core.provider.mapper.DeviceMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.itl.mes.core.api.entity.Device">
+        <id column="BO" property="bo" />
+        <result column="SITE" property="site" />
+        <result column="DEVICE" property="device" />
+        <result column="DEVICE_NAME" property="deviceName" />
+        <result column="DEVICE_DESC" property="deviceDesc" />
+        <result column="DEVICE_MODEL" property="deviceModel" />
+        <result column="STATE" property="state" />
+        <!--<result column="IS_PROCESS_DEVICE" property="isProcessDevice" />-->
+        <result column="PRODUCT_LINE_BO" property="productLineBo" />
+        <result column="STATION_BO" property="stationBo" />
+        <result column="LOCATION" property="location" />
+        <result column="ASSETS_CODE" property="assetsCode" />
+        <result column="MANUFACTURER" property="manufacturer" />
+        <result column="VALID_START_DATE" property="validStartDate" />
+        <!--<result column="VALID_END_DATE" property="validEndDate" />-->
+        <result column="MEMO" property="memo" />
+        <result column="CREATE_DATE" property="createDate" />
+        <result column="CREATE_USER" property="createUser" />
+        <result column="MODIFY_USER" property="modifyUser" />
+        <result column="MODIFY_DATE" property="modifyDate" />
+        <result column="WORK_SHOP" property="workShop" />
+        <result column="PRODUCTION_DATE" property="productionDate" />
+        <result column="JOIN_FACTORY_DATE" property="joinFactoryDate" />
+        <result column="OPERATION_BO" property="operationBo" />
+        <result column="DEVICE_TYPE" property="deviceType" />
+        <result column="RESPONSIBLE_PERSON" property="responsiblePerson" />
+        <result column="DEVICE_IMAGE" property="deviceImage" />
+        <result column="WORK_SHOP_NAME" property="workShopName" />
+        <result column="DEVICE_TYPE_NAME" property="deviceTypeName" />
+        <result column="deviceTypeBo" property="deviceTypeBo" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        BO, SITE, DEVICE, DEVICE_NAME, DEVICE_DESC, DEVICE_MODEL, STATE , PRODUCT_LINE_BO, STATION_BO, LOCATION, ASSETS_CODE, MANUFACTURER, VALID_START_DATE , MEMO, CREATE_DATE, CREATE_USER, MODIFY_USER, MODIFY_DATE,WORK_SHOP_NAME
+    </sql>
+
+    <select id="getAvailableDeviceTypeList" parameterType="String" resultType="java.util.Map">
+        SELECT DEVICE_TYPE,DEVICE_TYPE_NAME,DEVICE_TYPE_DESC FROM M_DEVICE_TYPE MDT WHERE SITE = #{site}
+        AND NOT EXISTS( SELECT DEVICE_TYPE_BO FROM M_DEVICE_TYPE_ITEM WHERE DEVICE_BO = #{deviceBo} AND MDT.BO = DEVICE_TYPE_BO )
+    </select>
+
+    <select id="getAssignedDeviceTypeList" parameterType="String" resultType="java.util.Map">
+        SELECT DEVICE_TYPE,DEVICE_TYPE_NAME,DEVICE_TYPE_DESC FROM M_DEVICE_TYPE MDT WHERE SITE = #{site}
+        AND EXISTS( SELECT DEVICE_TYPE_BO FROM M_DEVICE_TYPE_ITEM WHERE DEVICE_BO = #{deviceBo} AND MDT.BO = DEVICE_TYPE_BO )
+    </select>
+
+    <select id="selectTop" resultType="com.itl.mes.core.api.entity.Device">
+        SELECT TOP 500 BO, SITE, DEVICE, DEVICE_NAME, DEVICE_DESC, DEVICE_MODEL, STATE , PRODUCT_LINE_BO, STATION_BO, LOCATION, ASSETS_CODE, MANUFACTURER, VALID_START_DATE , MEMO, CREATE_DATE, CREATE_USER, MODIFY_USER, MODIFY_DATE
+        FROM m_device WHERE SITE = #{site}
+    </select>
+    
+    
+    <select id="selectDeviceWorkshop" resultMap="BaseResultMap">
+        select
+            DEVICE,
+            DEVICE_NAME,
+            DEVICE_DESC,
+            DEVICE_MODEL,
+            md.STATE,
+            WORK_SHOP
+        from m_device md
+                     join m_product_line mpl on md.PRODUCT_LINE_BO=mpl.BO
+                     join m_work_shop mws on mpl.WORK_SHOP_BO=mws.BO
+        <where>
+            md.SITE = #{device.site}
+            <if test="device.device != null and device.device != ''">
+               and md.DEVICE like  CONCAT('%',#{device.device},'%')
+            </if>
+            <if test="device.deviceName != null and device.deviceName != ''">
+               and md.DEVICE_NAME like  CONCAT('%',#{device.deviceName},'%')
+            </if>
+            <if test="device.workShop != null and device.workShop != ''">
+               and mws.BO = #{device.workShop}
+            </if>
+        </where>
+    </select>
+    <select id="selectByCondition"  resultMap="BaseResultMap" statementType="CALLABLE">
+        select  md.BO,
+        md.DEVICE,
+        md.DEVICE_NAME,
+        md.DEVICE_MODEL,
+        md.ASSETS_CODE,
+        md.RESPONSIBLE_PERSON,
+        md.STATE,
+        md.PRODUCTION_DATE,
+        md.JOIN_FACTORY_DATE,
+        md.DEVICE_IMAGE,
+        md.WORK_SHOP,
+        md.WORK_SHOP_NAME,
+        md.OPERATION_BO,
+        md.DEVICE_DESC,
+        su.real_name as responsiblePersonName,
+        o.device_type_name,
+        o.device_type,
+        o.bo as deviceTypeBo
+        FROM m_device md
+        LEFT JOIN iap_sys_user_t su ON md.responsible_person= su.user_name
+        left join m_device_type_item n on md.bo=n.DEVICE_BO
+        left join m_device_type o on o.bo=n.DEVICE_TYPE_BO
+        left join m_operation r on md.OPERATION_BO=r.bo
+        <where>
+            md.bo in (select distinct md.bo from m_device md
+            LEFT JOIN iap_sys_user_t su ON md.responsible_person= su.user_name
+            left join m_device_type_item n on md.bo=n.DEVICE_BO
+            left join m_device_type o on o.bo=n.DEVICE_TYPE_BO
+            <where>
+                1=1
+                <if test="device.deviceType != null and device.deviceType != ''">
+                    and o.device_type like concat('%', #{device.deviceType},'%')
+                </if>
+                <if test="device.deviceType2 != null and device.deviceType2 != ''">
+                    and o.device_type like  CONCAT('%',#{device.deviceType2},'%')
+                </if>
+                <if test="device.deviceTypeName != null and device.deviceTypeName != ''">
+                    and o.device_type_name like  CONCAT('%',#{device.deviceTypeName},'%')
+                </if>
+            </where>
+            )
+              and md.SITE = #{device.site}
+            <if test="device.device != null and device.device != ''">
+                and md.DEVICE like  CONCAT('%',#{device.device},'%')
+            </if>
+            <if test="device.deviceName != null and device.deviceName != ''">
+                and md.DEVICE_NAME like  CONCAT('%',#{device.deviceName},'%')
+            </if>
+            <if test="device.operationBo !=null and device.operationBo !=''">
+                and md.OPERATION_BO like CONCAT('%',#{device.operationBo},'%')
+            </if>
+            <if test="device.operation !=null and device.operation !=''">
+                and r.OPERATION like CONCAT('%',#{device.operation},'%')
+            </if>
+            <if test="device.deviceDesc !=null and device.deviceDesc !=''">
+                and md.device_desc like CONCAT('%',#{device.deviceDesc},'%')
+            </if>
+            <!--<if test="device.deviceType != null and device.deviceType != ''">
+                and md.DEVICE_TYPE like concat('%', #{device.deviceType},'%')
+            </if>
+            <if test="device.deviceType2 != null and device.deviceType2 != ''">
+                and md.DEVICE_TYPE like  CONCAT('%',#{device.deviceType2},'%')
+            </if>-->
+            <if test="device.deviceModel != null and device.deviceModel != ''">
+                and md.DEVICE_MODEL like  CONCAT('%',#{device.deviceModel},'%')
+            </if>
+            <if test="device.state != null and device.state != ''">
+                and md.STATE = #{device.state}
+            </if>
+        </where>
+    </select>
+    <select id="getScrewByLine" parameterType="map" resultType="map">
+        SELECT SCREW_COMBINATION AS screwCombination,PROCESS_CHARACTERISTICS AS processCharacteristics
+        from m_process_parameters
+        where PRODUCT_LINE_CODE = #{params.line}
+    </select>
+
+    <select id="selectProductLineBoByDevice" parameterType="string" resultType="string">
+        select mpl.BO from m_device md
+          left join m_operation mo on md.operation_bo=mo.bo
+          left join m_station ms on ms.operation_bo=mo.bo
+          left join m_product_line mpl on ms.product_line_bo=mpl.bo
+        where md.device= #{device}
+    </select>
+</mapper>

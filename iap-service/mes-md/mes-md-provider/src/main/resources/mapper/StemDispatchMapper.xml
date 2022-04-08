@@ -1,0 +1,375 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.itl.mes.core.provider.mapper.StemDispatchMapper">
+    <select id="queryStemDispatchList" resultType="com.itl.mes.core.api.vo.StemDispatchListVo">
+        SELECT
+            sd.id,
+            sd.user_name AS userName,
+            sd.user_id AS userId,
+            sd.item AS item,
+            sd.ITEM_NAME AS itemName,
+            sd.ITEM_DESC AS itemDesc,
+            sd.DISPATCH_QTY AS dispatchQty,
+            sd.WORK_STEP_CODE AS workStepCode,
+            sd.WORK_STEP_NAME AS workStepName,
+            sd.STEP_DISPATCH_CODE AS stepDispatchCode,
+            yx.MAIN_DIAMETER AS mainDiameter,
+            yx.MAIN_CIRCLE1 AS mainCircle1,
+            yx.MAIN_CIRCLE2 AS mainCircle2,
+            yx.MAIN_CIRCLE3 AS mainCircle3,
+            yx.MAIN_CIRCLE4 AS mainCircle4,
+            yx.MAIN_CIRCLE5 AS mainCircle5,
+            yx.AUXILIARY_DIAMETER AS auxiliaryDiameter,
+            yx.AUXILIARY_CIRCLE1 AS auxiliaryCircle1,
+            yx.AUXILIARY_CIRCLE2 AS auxiliaryCircle2,
+            yx.AUXILIARY_CIRCLE3 AS auxiliaryCircle3,
+            yx.AUXILIARY_CIRCLE4 AS auxiliaryCircle4,
+            yx.AUXILIARY_CIRCLE5 AS auxiliaryCircle5,
+            oo.SHOP_ORDER AS shopOrder,
+            sd.operation_order AS operationOrder
+        FROM
+            m_dy_step_dispatch sd
+        LEFT JOIN m_dy_yaoxian yx ON sd.item = yx.item
+        LEFT JOIN iap_sys_user_t su ON sd.user_id = su.user_name
+        LEFT JOIN m_operation_order oo ON oo.OPERATION_ORDER = sd.OPERATION_ORDER
+          <where>
+              1=1
+              <if test="stemDispatchDTO.workStepCode != null and stemDispatchDTO.workStepCode != ''">
+                  and sd.WORK_STEP_CODE = #{stemDispatchDTO.workStepCode}
+              </if>
+              <if test="stemDispatchDTO.operationOrder != null and stemDispatchDTO.operationOrder != ''">
+                  and sd.OPERATION_ORDER = #{stemDispatchDTO.operationOrder}
+              </if>
+              <if test="stemDispatchDTO.stepDispatchCode != null and stemDispatchDTO.stepDispatchCode != ''">
+                  and sd.STEP_DISPATCH_CODE like concat('%',#{stemDispatchDTO.stepDispatchCode},'%')
+              </if>
+              <if test="stemDispatchDTO.userId != null and stemDispatchDTO.userId != ''">
+                  and sd.user_id = #{stemDispatchDTO.userId}
+              </if>
+              <if test="stemDispatchDTO.roleId != null and stemDispatchDTO.roleId != ''">
+                  and sd.role_id = #{stemDispatchDTO.roleId}
+              </if>
+              <if test="stemDispatchDTO.releaseDateStart != null and stemDispatchDTO.releaseDateEnd != null
+                        and stemDispatchDTO.releaseDateStart != '' and stemDispatchDTO.releaseDateEnd != '' ">
+                  and sd.CREATE_DATE &gt; #{stemDispatchDTO.releaseDateStart}
+                  and sd.CREATE_DATE &lt; #{stemDispatchDTO.releaseDateEnd}
+              </if>
+              <if test="stemDispatchDTO.workReportFlag != null and stemDispatchDTO.workReportFlag != ''">
+                  and sd.work_report_flag = #{stemDispatchDTO.workReportFlag}
+              </if>
+          </where>
+        ORDER BY sd.CREATE_DATE desc,sd.STEP_DISPATCH_CODE desc
+    </select>
+    <select id="queryNeedDispatchOrders" resultType="com.itl.mes.core.api.entity.OperationOrder">
+        SELECT
+        oo.*,
+        mi.version as iterVersion,
+        mi.item_desc as itemDesc,
+        md.operation_bo as operationBo,
+        op.operation as operation,
+        op.OPERATION_NAME as operationName
+        FROM
+        m_dispatch md
+        LEFT JOIN m_item mi ON md.item = mi.item
+        LEFT JOIN m_operation_order oo ON md.OPERATION_ORDER = oo.OPERATION_ORDER
+        LEFT JOIN m_operation op ON md.operation_bo = op.bo
+        LEFT JOIN m_work_shop n on oo.workshop=n.WORK_SHOP
+        where md.IS_NEED_DISPATCH = '0'
+        and oo.OPERATION_ORDER_STATE &lt;&gt; '2'
+        and n.WORK_SHOP_DESC like CONCAT('%',#{stemDispatchDTO.workshopName},'%')
+        and md.IS_DISPATCH_FINISHED = '0'
+        <if test="stemDispatchDTO.operationOrder != null and stemDispatchDTO.operationOrder != ''">
+            and oo.OPERATION_ORDER like CONCAT('%',#{stemDispatchDTO.operationOrder},'%')
+        </if>
+        <if test="stemDispatchDTO.releaseDateStart != null and stemDispatchDTO.releaseDateStart != ''
+                    and stemDispatchDTO.releaseDateEnd != null and stemDispatchDTO.releaseDateEnd != ''">
+            and oo.create_date &gt;= #{stemDispatchDTO.releaseDateStart} and oo.create_date &lt;= #{stemDispatchDTO.releaseDateEnd}
+        </if>
+        <if test="stemDispatchDTO.item != null and stemDispatchDTO.item != ''">
+            and mi.item like CONCAT('%',#{stemDispatchDTO.item},'%')
+        </if>
+        <if test="stemDispatchDTO.itemName != null and stemDispatchDTO.itemName != ''">
+            and mi.ITEM_NAME like CONCAT('%',#{stemDispatchDTO.itemName},'%')
+        </if>
+        <if test="stemDispatchDTO.itemDesc != null and stemDispatchDTO.itemDesc != ''">
+            and mi.item_desc like CONCAT('%',#{stemDispatchDTO.itemDesc},'%')
+        </if>
+        <if test="stemDispatchDTO.itemDescKeyWordList != null and stemDispatchDTO.itemDescKeyWordList.size() > 0">
+            <foreach collection="stemDispatchDTO.itemDescKeyWordList" item="keyword">
+                AND CONTAINS ( mi.item_desc, #{keyword} )
+            </foreach>
+        </if>
+        and op.bo = #{stemDispatchDTO.operationBo}
+        ORDER BY oo.CREATE_DATE DESC
+    </select>
+    <select id="selectUserT" resultType="com.itl.iap.system.api.entity.IapSysUserT">
+        select a.user_name as userName,a.id,a.real_name as realName,a.dispatch_ratio as dispatchRatio
+        from iap_sys_user_t a,iap_sys_user_role_t b
+        where a.id = b.user_id and b.role_id = #{stemDispatchDTO.roleId}
+        order by b.last_update_date
+    </select>
+    <select id="selectStemReportWork" resultType="com.itl.mes.core.api.vo.StemDispatchListVo">
+        SELECT
+        sd.id,
+        sd.user_name AS userName,
+        sd.user_id AS userId,
+        sd.item AS item,
+        sd.ITEM_NAME AS itemName,
+        sd.ITEM_DESC AS itemDesc,
+        sd.DISPATCH_QTY AS dispatchQty,
+        sd.WORK_STEP_CODE AS workStepCode,
+        sd.WORK_STEP_NAME AS workStepName,
+        sd.STEP_DISPATCH_CODE AS stepDispatchCode,
+        oo.SHOP_ORDER AS shopOrder,
+        sd.operation_order AS operationOrder,
+        mi.bo AS itemBo,
+        mi.version AS itemVersion,
+        so.bo AS shopOrderBo,
+        ws.bo AS workStepCodeBo,
+        ws.WORKING_PROCESS AS operationBo
+        FROM
+        m_dy_step_dispatch sd
+        LEFT JOIN m_operation_order oo ON oo.OPERATION_ORDER = sd.OPERATION_ORDER
+        LEFT JOIN m_item mi ON sd.item = mi.item
+        LEFT JOIN d_dy_workstation ws ON sd.WORK_STEP_CODE = ws.WORK_STEP_CODE
+        LEFT JOIN m_shop_order so ON so.shop_order = oo.shop_order
+        where sd.id = #{id}
+    </select>
+    <select id="getItemInfoByShopOrder" resultType="com.itl.mes.core.api.vo.StepNcVo$Item">
+        SELECT
+            mi.bo as itemBo,
+            mi.item as item,
+            mi.item_name as itemName,
+            mi.item_desc as itemDesc
+        FROM
+            m_shop_order so
+                LEFT JOIN m_item mi ON so.ITEM_BO = mi.BO
+        WHERE
+            so.bo = #{shopOrderBo}
+    </select>
+
+    <select id="queryManualInlay" resultType="com.itl.mes.core.api.vo.ManualInlayVo">
+
+        SELECT
+        sd.user_name AS userName,
+        sd.DISPATCH_QTY AS dispatchQty,
+        sd.ITEM_DESC,
+        su.inside_no
+        FROM
+        m_dy_step_dispatch sd
+        LEFT JOIN m_dy_yaoxian yx ON sd.item = yx.item
+        LEFT JOIN iap_sys_user_t su ON sd.user_id = su.user_name
+        LEFT JOIN m_operation_order oo ON oo.OPERATION_ORDER = sd.OPERATION_ORDER
+        <where>
+            1=1
+            <if test="stemDispatchDTO.workStepCode != null and stemDispatchDTO.workStepCode != ''">
+                and sd.WORK_STEP_CODE = #{stemDispatchDTO.workStepCode}
+            </if>
+            <if test="stemDispatchDTO.operationOrder != null and stemDispatchDTO.operationOrder != ''">
+                and sd.OPERATION_ORDER = #{stemDispatchDTO.operationOrder}
+            </if>
+            <if test="stemDispatchDTO.stepDispatchCode != null and stemDispatchDTO.stepDispatchCode != ''">
+                and sd.STEP_DISPATCH_CODE like concat('%',#{stemDispatchDTO.stepDispatchCode},'%')
+            </if>
+            <if test="stemDispatchDTO.userId != null and stemDispatchDTO.userId != ''">
+                and sd.user_id = #{stemDispatchDTO.userId}
+            </if>
+            <if test="stemDispatchDTO.roleId != null and stemDispatchDTO.roleId != ''">
+                and sd.role_id = #{stemDispatchDTO.roleId}
+            </if>
+            <if test="stemDispatchDTO.releaseDateStart != null and stemDispatchDTO.releaseDateEnd != null
+                        and stemDispatchDTO.releaseDateStart != '' and stemDispatchDTO.releaseDateEnd != '' ">
+                and sd.CREATE_DATE &gt; #{stemDispatchDTO.releaseDateStart}
+                and sd.CREATE_DATE &lt; #{stemDispatchDTO.releaseDateEnd}
+            </if>
+        </where>
+    </select>
+    <select id="getSumQtyByYxUserAndItem" resultType="com.itl.mes.core.api.entity.StemDispatch">
+        SELECT
+            SUM( DISPATCH_QTY ) as dispatchQty,
+            item,
+            item_desc,
+            user_id,
+            user_name
+        FROM
+            m_dy_step_dispatch
+        WHERE
+            work_step_code = 'XQ-04-01' and role_id = #{stemDispatchDTO.roleId}
+        <if test="stemDispatchDTO.releaseDateStart != null and stemDispatchDTO.releaseDateStart != ''">
+            and create_date >= #{stemDispatchDTO.releaseDateStart}
+        </if>
+        <if test="stemDispatchDTO.releaseDateEnd != null and stemDispatchDTO.releaseDateEnd != ''">
+            and create_date &lt;= #{stemDispatchDTO.releaseDateEnd}
+        </if>
+        <if test="stemDispatchDTO.operationOrder != null and stemDispatchDTO.operationOrder != ''">
+            and OPERATION_ORDER = #{stemDispatchDTO.operationOrder}
+        </if>
+        <if test="stemDispatchDTO.stepDispatchCode != null and stemDispatchDTO.stepDispatchCode != ''">
+            and STEP_DISPATCH_CODE like concat('%',#{stemDispatchDTO.stepDispatchCode},'%')
+        </if>
+        <if test="stemDispatchDTO.workReportFlag != null and stemDispatchDTO.workReportFlag != ''">
+            and work_report_flag = #{stemDispatchDTO.workReportFlag}
+        </if>
+        GROUP BY
+            item,
+            ITEM_DESC,
+            user_id,
+            user_name
+    </select>
+    <select id="getYxGroupId" resultType="com.itl.iap.system.api.entity.IapSysRoleT">
+        SELECT
+            t.id,
+            t.role_name
+        FROM
+            iap_sys_role_t t
+        WHERE
+            t.role_name LIKE '%摇线%'
+    </select>
+    <select id="selectUserTByUserId" resultType="string">
+        select inside_no from iap_sys_user_t where user_name = #{userId}
+    </select>
+    <select id="selectItemByCondition" resultType="string">
+        SELECT
+            item
+        FROM
+            m_dy_step_dispatch
+        WHERE
+            work_step_code = 'XQ-04-01' and role_id = #{stemDispatchDTO.roleId}
+        <if test="stemDispatchDTO.releaseDateStart != null and stemDispatchDTO.releaseDateStart != ''">
+            and create_date >= #{stemDispatchDTO.releaseDateStart}
+        </if>
+        <if test="stemDispatchDTO.releaseDateEnd != null and stemDispatchDTO.releaseDateEnd != ''">
+            and create_date &lt;= #{stemDispatchDTO.releaseDateEnd}
+        </if>
+        <if test="stemDispatchDTO.operationOrder != null and stemDispatchDTO.operationOrder != ''">
+            and OPERATION_ORDER = #{stemDispatchDTO.operationOrder}
+        </if>
+        <if test="stemDispatchDTO.stepDispatchCode != null and stemDispatchDTO.stepDispatchCode != ''">
+            and STEP_DISPATCH_CODE like concat('%',#{stemDispatchDTO.stepDispatchCode},'%')
+        </if>
+        <if test="stemDispatchDTO.workReportFlag != null and stemDispatchDTO.workReportFlag != ''">
+            and work_report_flag = #{stemDispatchDTO.workReportFlag}
+        </if>
+        GROUP BY
+            item
+    </select>
+    <select id="selectUserByCondition" resultType="string">
+        SELECT
+            user_id
+        FROM
+            m_dy_step_dispatch
+        WHERE
+            work_step_code = 'XQ-04-01' and role_id = #{stemDispatchDTO.roleId}
+        <if test="stemDispatchDTO.releaseDateStart != null and stemDispatchDTO.releaseDateStart != ''">
+            and create_date >= #{stemDispatchDTO.releaseDateStart}
+        </if>
+        <if test="stemDispatchDTO.releaseDateEnd != null and stemDispatchDTO.releaseDateEnd != ''">
+            and create_date &lt;= #{stemDispatchDTO.releaseDateEnd}
+        </if>
+        <if test="stemDispatchDTO.operationOrder != null and stemDispatchDTO.operationOrder != ''">
+            and OPERATION_ORDER = #{stemDispatchDTO.operationOrder}
+        </if>
+        <if test="stemDispatchDTO.stepDispatchCode != null and stemDispatchDTO.stepDispatchCode != ''">
+            and STEP_DISPATCH_CODE like concat('%',#{stemDispatchDTO.stepDispatchCode},'%')
+        </if>
+        <if test="stemDispatchDTO.workReportFlag != null and stemDispatchDTO.workReportFlag != ''">
+            and work_report_flag = #{stemDispatchDTO.workReportFlag}
+        </if>
+        GROUP BY
+            user_id
+    </select>
+    <select id="getRoleByUserId" resultType="string">
+        SELECT
+            y.role_id
+        FROM
+            iap_sys_user_t t
+                LEFT JOIN iap_sys_user_role_t y ON t.id = y.user_id
+        WHERE t.user_name = #{userId}
+    </select>
+
+    <select id="listAllCanCancelDispatchOrder" resultType="com.itl.mes.core.api.entity.StemDispatch">
+        select m.stepDispatchCode,m.itemDesc from
+        (
+        SELECT
+        distinct STEP_DISPATCH_CODE as stepDispatchCode,item_desc as itemDesc
+        FROM
+        m_dy_step_dispatch
+        WHERE
+        STEP_DISPATCH_CODE NOT IN ( SELECT STEP_DISPATCH_CODE FROM d_dy_report_work WHERE STEP_DISPATCH_CODE IS NOT NULL
+        GROUP BY STEP_DISPATCH_CODE )
+        <if test="dispatchOrder != null and dispatchOrder != ''">
+            and STEP_DISPATCH_CODE like concat('%',#{dispatchOrder},'%')
+        </if>
+        <if test="itemDescKeyWordList != null and itemDescKeyWordList.size() > 0">
+            <foreach collection="itemDescKeyWordList" item="keyword">
+                AND CONTAINS ( item_desc, #{keyword} )
+            </foreach>
+        </if>
+
+        )m
+    </select>
+
+    <select id="listAllNeedDispatchOperationOrder" resultType="string">
+        SELECT
+            BO
+        FROM
+            d_dy_workstation
+        WHERE
+            WORKING_PROCESS = #{operationBo}
+    </select>
+
+    <select id="sumQtyByOperationOrderAndStep" resultType="string">
+        SELECT
+            ISNULL( SUM ( DISPATCH_QTY ), 0 )
+        FROM
+            m_dy_step_dispatch
+        WHERE
+            OPERATION_ORDER = #{operationOrder}
+          AND WORK_STEP_CODE = #{step}
+    </select>
+
+    <select id="listUnNeedDispatchStep" resultType="string">
+        SELECT t.BO FROM M_CUSTOM_DATA_VAL t WHERE t.ATTRIBUTE = 'IS_UNNEED_DISPATCH_STEP' and t.vals = 'yes'
+    </select>
+
+    <select id="getInsideNoByUserName" resultType="string">
+        SELECT inside_no FROM iap_sys_user_t WHERE user_name = #{userName}
+    </select>
+
+    <select id="getOperationOrderByDispatchCode" resultType="string">
+        SELECT
+            OPERATION_ORDER
+        FROM
+            m_dy_step_dispatch
+        WHERE
+            STEP_DISPATCH_CODE = #{dispatchCode}
+        GROUP BY
+            OPERATION_ORDER
+    </select>
+
+    <select id="selectOperationOrderByStepDispatchCode" resultType="string" parameterType="string">
+        select m.operation_order
+        from (
+                 select distinct oo.operation_order
+                 FROM m_dy_step_dispatch sd
+                          LEFT JOIN m_operation_order oo
+                                    ON oo.OPERATION_ORDER = sd.OPERATION_ORDER
+                 where sd.STEP_DISPATCH_CODE = #{stepDispatchCode}
+             )m
+    </select>
+
+    <select id="selectUserWithOutInList" resultType="com.itl.iap.system.api.entity.IapSysUserT">
+        select a.user_name as userName,a.real_Name as realName
+        from iap_sys_user_t a,iap_sys_user_role_t b
+        <where>
+            a.id = b.user_id and b.role_id = #{roleId}
+            and a.user_name not in
+            <if test="userIds !=null and userIds.size() > 0">
+                <foreach collection="userIds" item="item" separator="," open="(" close=")">
+                    #{item}
+                </foreach>
+            </if>
+        </where>
+
+    </select>
+</mapper>

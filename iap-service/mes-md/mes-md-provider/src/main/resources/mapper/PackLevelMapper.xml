@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.itl.mes.core.provider.mapper.PackLevelMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.itl.mes.core.api.entity.PackLevel">
+        <id column="BO" property="bo" />
+        <result column="PACKING_BO" property="packingBo" />
+        <result column="SEQ" property="seq" />
+        <result column="PACK_LEVEL" property="packLevel" />
+        <result column="OBJECT_BO" property="objectBo" />
+        <result column="SHOP_ORDER_BO" property="shopOrderBo" />
+        <result column="MIN_QTY" property="minQty" />
+        <result column="MAX_QTY" property="maxQty" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        BO, PACKING_BO, SEQ, PACK_LEVEL, OBJECT_BO, SHOP_ORDER_BO, MIN_QTY, MAX_QTY
+    </sql>
+
+    <select id="selectPackingBO"  parameterType="string" resultType="string">
+         SELECT PACKING_BO FROM P_PACK_LEVEL WHERE PACKING_BO =#{objectBO}
+    </select>
+
+</mapper>

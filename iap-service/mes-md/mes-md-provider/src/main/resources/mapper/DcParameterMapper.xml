@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.itl.mes.core.provider.mapper.DcParameterMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.itl.mes.core.api.entity.DcParameter">
+        <id column="BO" property="bo" />
+        <result column="SITE" property="site" />
+        <result column="DC_GROUP_BO" property="dcGroupBo" />
+        <result column="SEQUENCE" property="sequence" />
+        <result column="PARAM_NAME" property="paramName" />
+        <result column="PARAM_DESC" property="paramDesc" />
+        <result column="PARAM_TYPE" property="paramType" />
+        <result column="MAX_VALUE" property="maxValue" />
+        <result column="MIN_VALUE" property="minValue" />
+        <result column="TAR_VALUE" property="tarValue" />
+        <result column="CHK_MAX_MIN_VAL" property="chkMaxMinVal" />
+        <result column="STATE" property="state" />
+        <result column="IS_REQUIRED" property="isRequired" />
+        <result column="BOOLEAN_1" property="boolean1" />
+        <result column="BOOLEAN_2" property="boolean2" />
+        <result column="UNIT" property="unit" />
+        <result column="DATA_LIST_BO" property="dataListBo" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        BO, SITE, DC_GROUP_BO, SEQUENCE, PARAM_NAME, PARAM_DESC, PARAM_TYPE, MAX_VALUE, MIN_VALUE, TAR_VALUE, CHK_MAX_MIN_VAL, STATE, IS_REQUIRED, BOOLEAN_1, BOOLEAN_2, UNIT, DATA_LIST_BO
+    </sql>
+
+</mapper>

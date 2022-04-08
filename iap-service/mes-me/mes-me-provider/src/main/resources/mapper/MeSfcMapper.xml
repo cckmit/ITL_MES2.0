@@ -1,0 +1,225 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.itl.mes.me.provider.mapper.MeSfcMapper">
+
+
+    <resultMap type="com.itl.mes.me.api.entity.MeSfc" id="meSfcMap">
+        <result property="bo" column="BO"/>
+        <result property="site" column="SITE"/>
+        <result property="sfc" column="SFC"/>
+        <result property="scheduleBo" column="SCHEDULE_BO"/>
+        <result property="schedule" column="SCHEDULE"/>
+        <result property="shopOrderBo" column="SHOP_ORDER_BO"/>
+        <result property="workShopBo" column="WORK_SHOP_BO"/>
+        <result property="productLineBo" column="PRODUCT_LINE_BO"/>
+        <result property="operationBo" column="OPERATION_BO"/>
+        <result property="stationBo" column="STATION_BO"/>
+        <result property="deviceBo" column="DEVICE_BO"/>
+        <result property="userBo" column="USER_BO"/>
+        <result property="shitBo" column="SHIT_BO"/>
+        <result property="teamBo" column="TEAM_BO"/>
+        <result property="itemBo" column="ITEM_BO"/>
+        <result property="bomBo" column="BOM_BO"/>
+        <result property="sfcRouterBo" column="SFC_ROUTER_BO"/>
+        <result property="sfcStepId" column="SFC_STEP_ID"/>
+        <result property="parentSfcBo" column="PARENT_SFC_BO"/>
+        <result property="state" column="STATE"/>
+        <result property="inTime" column="IN_TIME"/>
+        <result property="isBatch" column="IS_BATCH"/>
+        <result property="processLot" column="PROCESS_LOT"/>
+        <result property="sfcQty" column="SFC_QTY"/>
+        <result property="inputQty" column="INPUT_QTY"/>
+        <result property="doneQty" column="DONE_QTY"/>
+        <result property="scrapQty" column="SCRAP_QTY"/>
+    </resultMap>
+    <resultMap id="BasicInfo" type="com.itl.mes.me.api.dto.snLifeCycle.BasicInfo">
+        <result property="site" column="SITE"/>
+        <result property="workShopBo" column="WORK_SHOP_BO"/>
+        <result property="productLineBo" column="PRODUCT_LINE_BO"/>
+        <result property="operationBo" column="OPERATION_BO"/>
+        <result property="stationBo" column="STATION_BO"/>
+        <result property="state" column="STATE"/>
+        <result property="SPlanTime" column="START_DATE"/>
+        <result property="SEndTime" column="END_DATE"/>
+        <result property="shopOrder" column="SHOP_ORDER"/>
+        <result property="releaseQty" column="RELEASE_QTY"/>
+        <result property="planEndDate" column="PLAN_END_DATE"/>
+        <result property="orderDeliveryTime" column="ORDER_DELIVERY_TIME"/>
+        <result property="schedule" column="SCHEDULE_NO"/>
+        <result property="quantity" column="QUANTITY"/>
+    </resultMap>
+
+    <select id="getBasicInformation" resultMap="BasicInfo">
+
+        select sfc.SITE,
+               sfc.PRODUCT_LINE_BO,
+               sfc.WORK_SHOP_BO,
+               sfc.STATION_BO,
+               sfc.OPERATION_BO,
+               sfc.STATE,
+               ps.START_DATE,
+               ps.END_DATE,
+               mso.SHOP_ORDER,
+               mso.RELEASE_QTY,
+               mso.PLAN_END_DATE,
+               mso.ORDER_DELIVERY_TIME,
+               ps.SCHEDULE_NO,
+               ps.QUANTITY
+        from me_sfc sfc
+          left  join m_shop_order mso on sfc.SHOP_ORDER_BO=mso.BO
+          left  join p_schedule ps on ps.BO=sfc.SCHEDULE_BO
+        where sfc.sfc=#{sn}
+    </select>
+
+    <select id="getBomInfo" resultType="com.itl.mes.me.api.dto.snLifeCycle.BomInfo">
+        SELECT i.ITEM                AS item,
+               bc.QTY                AS qty,
+               i.VERSION             AS version,
+               o.OPERATION           AS operation,
+               bc.COMPONENT_POSITION AS position,
+               bc.ZS_TYPE            AS zsType,
+               cr.CODE_RULE_TYPE     AS codeRuleType
+        FROM me_sfc AS s
+            LEFT JOIN m_bom_componnet AS bc ON s.BOM_BO = bc.BOM_BO
+            LEFT JOIN m_operation AS o ON bc.OPERATION_BO = o.BO
+            LEFT JOIN m_item AS i ON bc.COMPONENT_BO = i.BO
+            LEFT JOIN me_item_rule_label AS irl ON bc.COMPONENT_BO = irl.ITEM_BO
+            LEFT JOIN m_code_rule AS cr on irl.CODE_RULE_BO = cr.BO
+        WHERE bc.BOM_BO = s.BOM_BO
+        AND
+            s.SFC = #{sn}
+    </select>
+    <select id="getMeSfcSchedule" resultMap="meSfcMap">
+        select ps.SCHEDULE_NO as SCHEDULE,
+               ps.QUANTITY,
+               ms.ITEM_BO,
+               ms.DEVICE_BO,
+               ms.INPUT_QTY,
+               ms.SFC_QTY,
+               ms.DONE_QTY,
+               ms.SCRAP_QTY
+        from me_sfc ms
+        join p_schedule ps on ps.bo=ms.SCHEDULE_BO
+        where ms.bo=#{bo}
+    </select>
+
+    <select id="getShopOrderInfo" resultType="com.itl.mes.me.api.dto.snLifeCycle.ShopOrderInfo">
+        SELECT mso.SHOP_ORDER   AS shopOrder,
+               mso.ORDER_QTY    AS orderQty,
+               mi.ITEM          AS item,
+               ps.SCHEDULE_NO   AS schedultNo,
+               mpl.PRODUCT_LINE AS productLine,
+               ps.QUANTITY      AS scheduleQty,
+               ps.START_DATE    AS startDate,
+               ps.END_DATE      AS endDate,
+               ps.STATE         AS scheduleState
+        FROM me_sfc AS ms
+                 LEFT JOIN m_shop_order AS mso ON ms.SHOP_ORDER_BO = mso.BO
+                 LEFT JOIN m_item AS mi ON ms.ITEM_BO = mi.BO
+                 LEFT JOIN p_schedule AS ps ON ms.SCHEDULE_BO = ps.BO
+                 LEFT JOIN m_product_line mpl ON ms.PRODUCT_LINE_BO = mpl.BO
+        WHERE
+            ms.SFC = #{sn}
+    </select>
+
+
+    <select id="getRouterInfo" resultType="com.itl.mes.me.api.dto.snLifeCycle.RouterInfo">
+        SELECT mr.ROUTER_NAME    AS routerName,
+               mr.VERSION        AS routerVersion,
+               mr.STATE          AS routerState,
+               mo.OPERATION_NAME AS currentOperation,
+               ms.STATE          AS currentOperationState
+        FROM me_sfc AS ms
+                 LEFT JOIN m_router mr on ms.SFC_ROUTER_BO = mr.BO
+                 LEFT JOIN m_operation mo on ms.OPERATION_BO = mo.BO
+        WHERE
+            ms.SFC = #{sn}
+    </select>
+
+    <select id="getKeyPartsBarcode" resultType="com.itl.mes.me.api.dto.snLifeCycle.KeyPartsBarcode">
+        select msa.ASSY_USER,
+               msa.ASSY_TIME,
+               msa.COMPONENET_BO,
+               msa.ASSEMBLED_SN,
+               msa.QTY,
+               mi.ITEM_TYPE,
+               mswl.STATION_BO
+        from me_sfc_assy msa
+                     left join m_item mi on mi.bo=msa.COMPONENET_BO
+                     left join me_sfc_wip_log mswl on mswl.BO=msa.WIP_LOG_BO
+        where mswl.STATE='新建'
+        and msa.SFC=#{sn}
+    </select>
+
+
+    <!--SN生命周期-检测记录-->
+    <resultMap id="DetectionLifeCycle" type="com.itl.mes.me.api.vo.DetectionSnInfoVo">
+        <result column="STATION_BO" property="station"></result>
+        <result column="STATE" property="state"></result>
+        <result column="NC_CODE" property="ncCode"></result>
+        <result column="NC_DESC" property="ncDesc"></result>
+        <result column="ITEM" property="item"></result>
+        <result column="COMPONENT_POSITION" property="componentPosition"></result>
+        <result column="CREATE_DATE" property="createDate"></result>
+        <result column="USER_BO" property="userBo"></result>
+        <result column="REMARK" property="remark"></result>
+    </resultMap>
+    <select id="getDetectionLifeCycleInfo" resultMap="DetectionLifeCycle" parameterType="java.lang.String">
+        select
+            mswl.STATION_BO,
+            mswl.STATE,
+            mnc.NC_CODE,
+            mnc.NC_DESC,
+            mitem.ITEM,
+            mbc.COMPONENT_POSITION,
+            mswl.CREATE_DATE,
+            mswl.USER_BO,
+            msnl.REMARK
+        from me_sfc_nc_log msnl
+        JOIN me_sfc_wip_log mswl ON msnl.WIP_LOG_BO=mswl.BO
+        JOIN m_nc_code mnc ON msnl.NC_CODE_BO=mnc.BO
+        JOIN m_item mitem ON mitem.BO=mswl.ITEM_BO
+        JOIN m_bom_componnet mbc ON mbc.BOM_BO=mswl.BOM_BO and mbc.COMPONENT_BO=msnl.COMPONENT_BO
+        <where>
+            <if test="sn!=null and sn!=''">
+                and mswl.SFC=#{sn}
+            </if>
+        </where>
+    </select>
+
+    <!--SN生命周期-维修记录-->
+    <resultMap id="RepairLifeCycle" type="com.itl.mes.me.api.vo.RepairSnInfoVo">
+        <result column="repairStation" property="repairStation"></result>
+        <result column="badStation" property="badStation"></result>
+        <result column="REPAIR_METHOD" property="repairMethod"></result>
+        <result column="REPAIR_REASON" property="repairReason"></result>
+        <result column="REMARK" property="remark"></result>
+        <result column="DUTY_UNIT" property="dutyUnit"></result>
+        <result column="REPLACE_ITEM_BO" property="replaceItemBo"></result>
+        <result column="REPLACE_ITEM_SN" property="replaceSfcItemBo"></result>
+        <result column="CREATE_DATE" property="createDate"></result>
+    </resultMap>
+    <select id="getRepairLifeCycle" resultMap="RepairLifeCycle"  parameterType="java.lang.String">
+        select
+            mswl.STATION_BO AS repairStation,
+            msnl.STATION_BO AS badStation,
+            msr.REPAIR_METHOD,
+            msr.REPAIR_REASON,
+            msr.REMARK,
+            msr.DUTY_UNIT,
+            msr.REPLACE_ITEM_BO,
+            msr.REPLACE_ITEM_SN,
+            mswl.CREATE_DATE
+        from me_sfc_repair msr
+        JOIN me_sfc_wip_log mswl ON mswl.BO=msr.WIP_LOG_BO
+        JOIN me_sfc_nc_log msnl ON msnl.BO=msr.NG_LOG_BO
+        JOIN m_item mitem ON mitem.BO=mswl.ITEM_BO
+        <where>
+            <if test="sn!=null and sn!=''">
+                and mswl.SFC=#{sn}
+            </if>
+        </where>
+    </select>
+
+</mapper>

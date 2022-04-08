@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.itl.iap.attachment.provider.mapper.IapUploadFileMapper">
+
+    <resultMap type="com.itl.iap.attachment.api.dto.IapUploadFileDto" id="IapUploadFileTMap">
+        <result property="id" column="id" jdbcType="VARCHAR"/>
+        <result property="fileName" column="file_name" jdbcType="VARCHAR"/>
+        <result property="businessId" column="business_id" jdbcType="VARCHAR"/>
+        <result property="fileSize" column="file_size" jdbcType="VARCHAR"/>
+        <result property="fileUrl" column="file_url" jdbcType="VARCHAR"/>
+        <result property="fileType" column="file_type" jdbcType="VARCHAR"/>
+        <result property="createDate" column="create_date" jdbcType="TIMESTAMP"/>
+        <result property="creater" column="creater" jdbcType="VARCHAR"/>
+        <result property="lastUpdateBy" column="last_update_by" jdbcType="VARCHAR"/>
+        <result property="fileOldName" column="file_old_name" jdbcType="VARCHAR"/>
+        <result property="lastUpdateDate" column="last_update_date" jdbcType="TIMESTAMP"/>
+        <result property="remark" column="remark" jdbcType="VARCHAR"/>
+        <result property="onType" column="on_type" jdbcType="SMALLINT"/>
+    </resultMap>
+
+    <!--通过实体作为筛选条件查询-->
+    <select id="pageQuery" resultMap="IapUploadFileTMap">
+        select
+        id, file_name, business_id, file_size, file_url, file_type, create_date, creater, last_update_by,
+        last_update_date, remark,on_type,file_old_name
+        from iap_upload_file_t
+        <where>
+            <if test="iapUploadFileTDto.id != null and iapUploadFileTDto.id != ''">
+                and id = #{iapUploadFileTDto.id}
+            </if>
+            <if test="iapUploadFileTDto.fileName != null and iapUploadFileTDto.fileName != ''">
+                and file_name = #{iapUploadFileTDto.fileName}
+            </if>
+            <if test="iapUploadFileTDto.businessId != null and iapUploadFileTDto.businessId != ''">
+                and business_id = #{iapUploadFileTDto.businessId}
+            </if>
+            <if test="iapUploadFileTDto.fileSize != null and iapUploadFileTDto.fileSize != ''">
+                and file_size = #{iapUploadFileTDto.fileSize}
+            </if>
+            <if test="iapUploadFileTDto.fileUrl != null and iapUploadFileTDto.fileUrl != ''">
+                and file_url = #{iapUploadFileTDto.fileUrl}
+            </if>
+            <if test="iapUploadFileTDto.fileType != null and iapUploadFileTDto.fileType != ''">
+                and file_type = #{iapUploadFileTDto.fileType}
+            </if>
+            <if test="iapUploadFileTDto.createDate != null">
+                and create_date = #{iapUploadFileTDto.createDate}
+            </if>
+            <if test="iapUploadFileTDto.createOrg != null and iapUploadFileTDto.createOrg != ''">
+                and create_org = #{iapUploadFileTDto.createOrg}
+            </if>
+            <if test="iapUploadFileTDto.lastUpdateBy != null and iapUploadFileTDto.lastUpdateBy != ''">
+                and last_update_by = #{iapUploadFileTDto.lastUpdateBy}
+            </if>
+            <if test="iapUploadFileTDto.lastUpdateDate != null">
+                and last_update_date = #{iapUploadFileTDto.lastUpdateDate}
+            </if>
+            <if test="iapUploadFileTDto.onType != null">
+                and on_type = #{iapUploadFileTDto.onType}
+            </if>
+            <if test="iapUploadFileTDto.remark != null and iapUploadFileTDto.remark != ''">
+                and remark = #{iapUploadFileTDto.remark}
+            </if>
+        </where>
+    </select>
+
+    <update id="updateByIds">
+        update iap_upload_file_t set
+        on_type = #{onType}
+        where id in
+        <foreach item="item" index="index" collection="idList"
+                 open="(" separator="," close=")">
+            #{item}
+        </foreach>
+    </update>
+
+</mapper>

@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.itl.mes.core.provider.mapper.BomMapper">
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.itl.mes.core.api.entity.Bom">
+        <id column="BO" property="bo"/>
+        <result column="SITE" property="site"/>
+        <result column="BOM" property="bom"/>
+        <result column="VERSION" property="version"/>
+        <result column="IS_CURRENT_VERSION" property="isCurrentVersion"/>
+        <result column="BOM_DESC" property="bomDesc"/>
+        <result column="STATE" property="state"/>
+        <result column="ZS_TYPE" property="zsType"/>
+        <result column="CREATE_DATE" property="createDate"/>
+        <result column="CREATE_USER" property="createUser"/>
+        <result column="MODIFY_DATE" property="modifyDate"/>
+        <result column="MODIFY_USER" property="modifyUser"/>
+        <result column="BOM_TYPE" property="bomType"/>
+        <result column="SHOP_ORDER" property="shopOrder"/>
+        <result column="BOM_STANDARD" property="bomStandard"/>
+        <result column="ERP_BOM" property="erpBom"/>
+        <result column="FORMULA_GROUP" property="formulaGroup"/>
+        <result column="PARAMETERS_CODE" property="processNumber"/>
+        <result column="PROCESS_CHARACTERISTICS" property="processCharacteristics"/>
+        <result column="SCREW_COMBINATION" property="screwAssembly"/>
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        BO, SITE, BOM, VERSION, IS_CURRENT_VERSION, BOM_DESC, STATE, ZS_TYPE, CREATE_DATE, CREATE_USER, MODIFY_DATE, MODIFY_USER
+    </sql>
+
+
+    <select id="findBom" resultMap="BaseResultMap">
+        select
+            BOM,
+            mb.VERSION,
+            FORMULA_GROUP,
+            PARAMETERS_CODE,
+            mpp.PROCESS_CHARACTERISTICS,
+            SCREW_COMBINATION
+        from m_bom mb
+        left join m_process_parameters mpp on mb.PROCESS_CHARACTERISTICS=mpp.PROCESS_CHARACTERISTICS
+        <where>
+            site = #{bomDto.site}
+            <if test="bomDto.bom != null and bomDto.bom != ''">
+                AND mb.BOM LIKE CONCAT('%',#{bomDto.bom},'%')
+            </if>
+            <if test="bomDto.version != null and bomDto.version != ''">
+                AND mb.VERSION LIKE CONCAT('%',#{bomDto.version},'%')
+            </if>
+        </where>
+    </select>
+</mapper>

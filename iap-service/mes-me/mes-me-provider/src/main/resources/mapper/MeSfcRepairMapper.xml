@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.itl.mes.me.provider.mapper.MeSfcRepairMapper">
+
+    <!--送修明细-->
+    <resultMap id="sendMap" type="com.itl.mes.me.api.vo.SendRepairDetailsVo">
+        <result property="ncCode" column="NC_CODE"/>
+        <result property="ncDesc" column="NC_DESC"/>
+        <result property="item" column="ITEM"/>
+        <result property="badItemBo" column="BO"/>
+        <result property="componentPosition" column="COMPONENT_POSITION"/>
+        <result property="ngLogBo" column="NG_BO"/>
+        <result property="remark" column="REMARK"/>
+        <result property="isRawCheck" column="IS_RAW_CHECK"/>
+    </resultMap>
+    <select id="getSendRepairDetailsVo" resultMap="sendMap">
+        select
+        mnc.NC_CODE,
+        mnc.NC_DESC,
+        mitem.ITEM,
+        mitem.BO,
+        mbc.COMPONENT_POSITION,
+        msnl.REMARK,
+        msnl.BO as NG_BO,
+        msnl.IS_RAW_CHECK
+        from me_sfc_nc_log msnl
+        join m_nc_code mnc ON msnl.NC_CODE_BO=mnc.BO
+        join m_item mitem on mitem.BO=msnl.COMPONENT_BO
+        join m_bom_componnet mbc on mbc.COMPONENT_BO=msnl.COMPONENT_BO and mitem.BOM_BO=mbc.BOM_BO
+        <where>
+            and mnc.BO in
+            <foreach collection="listBo" item="bo" open="(" separator="," close=")">
+                #{bo}
+            </foreach>
+            <if test="snCode!=null and snCode!=''">
+                and msnl.SFC=#{snCode}
+            </if>
+        </where>
+    </select>
+
+
+    <!--维修明细-->
+    <resultMap id="repairLogListVoMap" type="com.itl.mes.me.api.vo.RepairLogListVo">
+        <result property="componentPosition" column="COMPONENT_POSITION"/>
+        <result property="item" column="ITEM"/>
+        <result property="repairReason" column="REPAIR_REASON"/>
+        <result property="repairMethod" column="REPAIR_METHOD"/>
+        <result property="dutyUnit" column="DUTY_UNIT"/>
+        <result property="remark" column="REMARK"/>
+        <result property="repairTime" column="REPAIR_TIME"/>
+        <result property="badItemSn" column="BAD_ITEM_SN"/>
+        <result property="replaceItemSn" column="REPLACE_ITEM_SN"/>
+    </resultMap>
+    <select id="getRepairLogListVo" parameterType="java.lang.String" resultMap="repairLogListVoMap">
+        SELECT
+        mbc.COMPONENT_POSITION,
+        mitem.ITEM,
+        msr.REPAIR_REASON,
+        msr.REPAIR_METHOD,
+        msr.DUTY_UNIT,
+        msr.REMARK,
+        msr.REPAIR_TIME,
+        msr.NG_ITEM_SN as BAD_ITEM_SN,
+        msr.REPLACE_ITEM_SN as REPLACE_ITEM_SN
+        from me_sfc_repair msr
+        JOIN me_sfc_nc_log msnl ON msnl.BO=msr.NG_LOG_BO
+        JOIN m_item mitem ON mitem.BO=msnl.COMPONENT_BO
+        JOIN m_bom_componnet mbc ON mbc.COMPONENT_BO=msnl.COMPONENT_BO and mitem.BOM_BO=mbc.BOM_BO
+        <where>
+            msr.SFC=#{sn}
+        </where>
+    </select>
+
+
+</mapper>

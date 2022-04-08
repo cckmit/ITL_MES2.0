@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.itl.iap.notice.provider.mapper.MsgPlaceholderTypeMapper">
+
+    <resultMap type="com.itl.iap.notice.api.entity.MsgPlaceholderType" id="MsgPlaceholderTypeMap">
+        <result property="id" column="id" jdbcType="VARCHAR"/>
+        <result property="name" column="name" jdbcType="VARCHAR"/>
+        <result property="createName" column="create_name" jdbcType="VARCHAR"/>
+        <result property="createTime" column="create_time" jdbcType="TIMESTAMP"/>
+        <result property="updateName" column="update_name" jdbcType="VARCHAR"/>
+        <result property="updateTime" column="update_time" jdbcType="TIMESTAMP"/>
+        <result property="msgPlaceholderNames" column="msgPlaceholderNames" jdbcType="VARCHAR"/>
+    </resultMap>
+    <select id="selectByGroup" resultMap="MsgPlaceholderTypeMap">
+        SELECT mpt.name name,concat(group_concat(mp.name),'_',group_concat(mp.note)) msgPlaceholderNames
+        from msg_placeholder_type mpt,(SELECT * from msg_placeholder ORDER by sort desc) mp
+        where mpt.id=mp.msg_placeholder_type_id  GROUP by mpt.name
+    </select>
+    <select id="selectByName" resultMap="MsgPlaceholderTypeMap">
+        SELECT * from msg_placeholder_type where name = #{typeName}
+    </select>
+    <!--通过实体作为筛选条件查询-->
+    <select id="pageQuery" resultMap="MsgPlaceholderTypeMap">
+        select
+          id, name, create_name, create_time, update_name, update_time
+        from msg_placeholder_type
+        <where>
+            <if test="msgPlaceholderTypeDto.id != null and msgPlaceholderTypeDto.id != ''">
+                and id = #{msgPlaceholderTypeDto.id}
+            </if>
+            <if test="msgPlaceholderTypeDto.name != null and msgPlaceholderTypeDto.name != ''">
+                and name = #{msgPlaceholderTypeDto.name}
+            </if>
+            <if test="msgPlaceholderTypeDto.createName != null and msgPlaceholderTypeDto.createName != ''">
+                and create_name = #{msgPlaceholderTypeDto.createName}
+            </if>
+            <if test="msgPlaceholderTypeDto.createTime != null">
+                and create_time = #{msgPlaceholderTypeDto.createTime}
+            </if>
+            <if test="msgPlaceholderTypeDto.updateName != null and msgPlaceholderTypeDto.updateName != ''">
+                and update_name = #{msgPlaceholderTypeDto.updateName}
+            </if>
+            <if test="msgPlaceholderTypeDto.updateTime != null">
+                and update_time = #{msgPlaceholderTypeDto.updateTime}
+            </if>
+        </where>
+    </select>
+
+</mapper>

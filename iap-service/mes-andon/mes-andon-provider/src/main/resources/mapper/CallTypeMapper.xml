@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.itl.mes.andon.provider.mapper.CallTypeMapper">
+
+
+    <resultMap type="com.itl.mes.andon.api.entity.Grade" id="callTypeMap">
+        <result property="id" column="id"/>
+        <result property="state" column="state"/>
+        <result property="createDate" column="create_date"/>
+        <result property="createUser" column="create_user"/>
+        <result property="workshopBo" column="workshop_bo"/>
+        <result property="workshopName" column="workshop_name"/>
+        <result property="andonTypeName" column="andon_type_name"/>
+        <result property="andonType" column="andon_type"/>
+    </resultMap>
+
+
+</mapper>

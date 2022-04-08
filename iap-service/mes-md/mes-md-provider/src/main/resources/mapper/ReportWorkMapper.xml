@@ -1,0 +1,217 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.itl.mes.core.provider.mapper.ReportWorkMapper">
+    <select id="selectCanReportWorkByStep" resultType="com.itl.mes.core.api.vo.ReportWorkVo">
+        select * from (SELECT
+        distinct rw.sfc,
+        t.qty as qty,
+        rw.operation_bo as operationBo,
+        rw.shop_order_bo as shopOrderBo,
+        so.shop_order as shopOrder,
+        rw.item_bo as itemBo,
+        mi.item as item,
+        mi.item_name as itemName,
+        mi.item_desc as itemDesc,
+        rw.operation_order
+        FROM
+        d_dy_report_work rw
+        LEFT JOIN (
+            SELECT
+            sfc,
+            SUM ( qty ) qty
+            FROM
+            d_dy_report_work
+            WHERE
+            ME_SFC_WIP_LOG_BO IS NOT NULL
+            AND OPERATION_BO = #{ reportWorkDto.operationBo}
+            <if test="reportWorkDto.startTime != null and reportWorkDto.startTime != '' ">
+                AND TIME &gt; #{ reportWorkDto.startTime} AND TIME &lt; #{ reportWorkDto.endTime}
+            </if>
+            GROUP BY
+            sfc
+        ) t ON rw.sfc= t.sfc
+        LEFT JOIN m_item mi on rw.item_bo = mi.bo
+        LEFT JOIN m_shop_order so on rw.shop_order_bo = so.bo
+        WHERE
+        rw.OPERATION_BO = #{reportWorkDto.operationBo}
+        AND rw.ME_SFC_WIP_LOG_BO is not null
+        <if test="reportWorkDto.startTime != null and reportWorkDto.startTime != '' ">
+            AND rw.TIME &gt; #{reportWorkDto.startTime}
+            AND rw.TIME &lt; #{reportWorkDto.endTime}
+        </if>
+        <if test="reportWorkDto.sfc != null and reportWorkDto.sfc != ''">
+            AND rw.sfc like CONCAT('%',#{reportWorkDto.sfc},'%')
+        </if>
+        <if test="reportWorkDto.shopOrder != null and reportWorkDto.shopOrder != ''">
+             AND so.shop_order like CONCAT('%',#{reportWorkDto.shopOrder},'%')
+        </if>
+        <if test="reportWorkDto.operationOrder != null and reportWorkDto.operationOrder != ''">
+            AND rw.operation_order like CONCAT('%',#{reportWorkDto.operationOrder},'%')
+        </if>
+            ) m
+
+    </select>
+    <!--查询出该工步可派工数量-->
+    <select id="getCanWorkQtyByStep" resultType="com.itl.mes.core.api.entity.ReportWork">
+        SELECT qty FROM d_dy_report_work rw
+        WHERE rw.OPERATION_BO = #{reportWorkDto.operationBo}
+          AND rw.WORK_STEP_CODE_BO = #{reportWorkDto.workStepCodeBo}
+          AND rw.sfc = #{reportWorkDto.sfc}
+    </select>
+    <select id="selectReportWorkInfo" resultType="com.itl.mes.core.api.entity.ReportWork">
+        SELECT
+            rw.*,
+            su.real_name AS userName,
+            so.shop_order AS shopOrder,
+            mi.item,
+            mi.item_name AS itemName,
+            mi.item_desc AS itemDesc,
+            op.OPERATION_NAME AS operationName,
+            sfc.SFC_QTY AS sfcQty,
+            dw.WORK_STEP_CODE as workStepCode,
+            dw.WORK_STEP_NAME as workStepName
+        FROM
+            d_dy_report_work rw
+                LEFT JOIN iap_sys_user_t su ON rw.USER_BO = su.user_name
+                LEFT JOIN m_shop_order so ON rw.SHOP_ORDER_BO = so.bo
+                LEFT JOIN m_item mi ON rw.ITEM_BO = mi.bo
+                LEFT JOIN m_operation op on rw.OPERATION_BO = op.BO
+                LEFT JOIN me_sfc sfc on rw.SFC = sfc.SFC
+                LEFT JOIN d_dy_workstation dw  on rw.work_step_code_bo=dw.BO
+        <where>
+            1=1
+            <if test="reportWorkListDto.sfc != null and reportWorkListDto.sfc != ''">
+                AND rw.sfc like CONCAT('%',#{reportWorkListDto.sfc},'%')
+            </if>
+            <if test="reportWorkListDto.userName != null and reportWorkListDto.userName != ''">
+                AND su.real_name like CONCAT('%',#{reportWorkListDto.userName},'%')
+            </if>
+            <if test="reportWorkListDto.operationBo != null and reportWorkListDto.operationBo != ''">
+                AND rw.operation_bo like CONCAT('%',#{reportWorkListDto.operationBo},'%')
+            </if>
+            <if test="reportWorkListDto.state != null and reportWorkListDto.state != ''">
+                AND rw.state = #{reportWorkListDto.state}
+            </if>
+            <if test="reportWorkListDto.operationOrder != null and reportWorkListDto.operationOrder != ''">
+                AND rw.operation_order like CONCAT('%',#{reportWorkListDto.operationOrder},'%')
+            </if>
+            <if test="reportWorkListDto.shopOrder != null and reportWorkListDto.shopOrder != ''">
+                AND so.shop_order like CONCAT('%',#{reportWorkListDto.shopOrder},'%')
+            </if>
+            <if test="reportWorkListDto.workStepCodeBo != null and reportWorkListDto.workStepCodeBo != ''">
+                AND rw.work_step_code_bo like CONCAT('%',#{reportWorkListDto.workStepCodeBo},'%')
+            </if>
+            <if test="reportWorkListDto.workShop != null and reportWorkListDto.workShop != ''">
+                AND sfc.WORK_SHOP_BO like CONCAT('%',#{reportWorkListDto.workShop},'%')
+            </if>
+            <if test="reportWorkListDto.startTime != null and reportWorkListDto.endTime != null">
+                AND rw.TIME &gt; #{reportWorkListDto.startTime}
+                AND rw.TIME &lt; #{reportWorkListDto.endTime}
+            </if>
+            <if test="reportWorkListDto.workStepCode !=null and reportWorkListDto.workStepCode !=''">
+                AND dw.WORK_STEP_CODE like CONCAT('%',#{reportWorkListDto.workStepCode},'%')
+            </if>
+        </where>
+    </select>
+    <select id="getStationByUser" resultType="com.itl.mes.core.api.entity.WorkStation">
+        SELECT
+            ws.bo,
+            ws.work_step_name,
+            ws.work_step_code
+        FROM
+            iap_sys_user_station_t ut
+                LEFT JOIN m_station ms ON ut.STATION_BO = ms.bo
+                RIGHT JOIN d_dy_workstation ws ON ms.WORKSTATION_BO = ws.bo
+        where ut.user_id = #{userId} order by ws.bo
+    </select>
+
+    <select id="selectReportWorkRecord" resultType="com.itl.mes.core.api.entity.ReportWork">
+        SELECT
+            rw.*,
+            su.real_name AS userName,
+            so.shop_order AS shopOrder,
+            mi.item,
+            mi.item_name AS itemName,
+            mi.item_desc AS itemDesc
+        FROM
+            d_dy_report_work rw
+                LEFT JOIN iap_sys_user_t su ON rw.USER_BO = su.user_name
+                LEFT JOIN m_shop_order so ON rw.SHOP_ORDER_BO = so.bo
+                LEFT JOIN m_item mi ON rw.ITEM_BO = mi.bo
+        <where>
+            rw.user_bo = #{reportWorkDto.userBo}
+            <if test="reportWorkDto.time != null and reportWorkDto.time != ''">
+            AND rw.CREATE_DATE &gt;= #{reportWorkDto.startTime}
+            AND rw.CREATE_DATE &lt;= #{reportWorkDto.endTime}
+            </if>
+            <if test="reportWorkDto.workStepCodeBo != null and reportWorkDto.workStepCodeBo != ''">
+                AND rw.work_step_code_bo = #{reportWorkDto.workStepCodeBo}
+            </if>
+            <if test="reportWorkDto.sfc != null and reportWorkDto.sfc != ''">
+                AND rw.sfc like CONCAT('%',#{reportWorkDto.sfc},'%')
+            </if>
+            <if test="reportWorkDto.shopOrder != null and reportWorkDto.shopOrder != ''">
+                AND so.shop_order like CONCAT('%',#{reportWorkDto.shopOrder},'%')
+            </if>
+            <if test="reportWorkDto.operationOrder != null and reportWorkDto.operationOrder != ''">
+                AND rw.operation_order like CONCAT('%',#{reportWorkDto.operationOrder},'%')
+            </if>
+        </where>
+    </select>
+
+    <select id="getStepScrapBySfc" resultType="com.itl.mes.core.api.vo.StepScrapVo">
+        SELECT
+            sfc.sfc,
+            so.shop_order as shopOrder,
+            mi.item,
+            mi.item_name as itemName,
+            mi.bo as itemBo,
+            sfc.state,
+            sfc.done_qty as maxScrapQty,
+            sfc.sfc_router_bo as routerBo,
+            sfc.operation_bo as currentOperationBo
+        FROM
+            me_sfc sfc
+                LEFT JOIN m_shop_order so ON sfc.SHOP_ORDER_BO = so.bo
+                LEFT JOIN m_item mi ON sfc.ITEM_BO = mi.BO
+        WHERE sfc.sfc = #{sfc}
+    </select>
+    <select id="getStepScrapQtyByWorkStep" resultType="java.lang.String">
+        SELECT
+            ISNULL(sum(SCRAP_QTY),0)
+        FROM
+            me_sfc_repair re
+        WHERE
+                re.STATION_BO = (
+                    SELECT
+                        bo
+                    FROM
+                        m_station
+                    WHERE
+                        workstation_bo = #{workStepBo})
+                and re.STEP_REPAIR_FLAG = '1'
+                and re.sfc = #{sfc}
+    </select>
+
+    <select id="getCanReportTotalQty" resultType="java.math.BigDecimal">
+        SELECT
+            ISNULL(sum(QTY) , 0)
+        FROM
+            d_dy_report_work
+        WHERE
+            ME_SFC_WIP_LOG_BO IS NOT NULL
+          AND OPERATION_BO = #{operationBo}
+          AND sfc = #{sfc}
+    </select>
+    
+    <select id="getCanReportQtyByStep" resultType="java.math.BigDecimal">
+        SELECT
+            ISNULL(sum(QTY) , 0)
+        FROM
+            d_dy_report_work rw
+        WHERE
+            rw.OPERATION_BO = #{operationBo }
+          AND rw.WORK_STEP_CODE_BO = #{workStepCodeBo}
+          AND rw.sfc = #{sfc}
+    </select>
+</mapper>

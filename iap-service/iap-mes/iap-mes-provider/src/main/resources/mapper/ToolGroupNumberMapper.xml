@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.itl.iap.mes.provider.mapper.ToolGroupNumberMapper">
+
+    <select id="findList" resultType="com.itl.iap.mes.api.vo.ToolGroupNumberVo">
+
+        SELECT
+            a.BO AS  bo,
+            a.TOOL_NUMBER AS toolNumber,
+            b.TOOL_GROUP AS toolGroup,
+            a.TN_DESC AS tnDesc,
+            a.QTY AS qty,
+            a.STATE AS state
+        FROM
+            m_tool_number a
+            LEFT JOIN m_tool_group b ON a.TOOL_GROUP_BO = b.BO
+        where a.site = #{toolGroupNumberQueryDTO.site}
+        <if test="toolGroupNumberQueryDTO.toolNumber!='' and toolGroupNumberQueryDTO.toolNumber != null ">
+            AND a.TOOL_NUMBER LIKE CONCAT(#{toolGroupNumberQueryDTO.toolNumber},'%')
+        </if>
+        <if test="toolGroupNumberQueryDTO.toolGroup!='' and toolGroupNumberQueryDTO.toolGroup != null">
+            AND b.TOOL_GROUP LIKE CONCAT(#{toolGroupNumberQueryDTO.toolGroup},'%')
+        </if>
+        <if test="toolGroupNumberQueryDTO.tnDesc!='' and toolGroupNumberQueryDTO.tnDesc != null">
+            AND a.TN_DESC LIKE CONCAT(#{toolGroupNumberQueryDTO.tnDesc},'%')
+        </if>
+        <if test="toolGroupNumberQueryDTO.state!='' and toolGroupNumberQueryDTO.state != null">
+            AND a.STATE = #{toolGroupNumberQueryDTO.state}
+        </if>
+        order by a.CREATE_DATE DESC
+    </select>
+</mapper>

@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.itl.mes.core.provider.mapper.ItemMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.itl.mes.core.api.entity.Item">
+        <id column="BO" property="bo" />
+        <result column="SITE" property="site" />
+        <result column="ITEM" property="item" />
+        <result column="VERSION" property="version" />
+        <result column="IS_CURRENT_VERSION" property="isCurrentVersion" />
+        <result column="ITEM_NAME" property="itemName" />
+        <result column="ITEM_DESC" property="itemDesc" />
+        <result column="ITEM_UNIT" property="itemUnit" />
+        <result column="ITEM_STATE_BO" property="itemStateBo" />
+        <result column="ITEM_TYPE" property="itemType" />
+        <result column="ROUTER_BO" property="routerBo" />
+        <result column="BOM_BO" property="bomBo" />
+        <result column="WAREHOUSE_BO" property="warehouseBo" />
+        <result column="LOT_SIZE" property="lotSize" />
+        <result column="CREATE_DATE" property="createDate" />
+        <result column="CREATE_USER" property="createUser" />
+        <result column="MODIFY_DATE" property="modifyDate" />
+        <result column="MODIFY_USER" property="modifyUser" />
+        <result column="OPERATION_ORDER_QTY" property="operationOrderQty"/>
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        BO, SITE, ITEM, VERSION, IS_CURRENT_VERSION, ITEM_NAME, ITEM_DESC, ITEM_UNIT, ITEM_STATE_BO, ITEM_TYPE, ROUTER_BO, BOM_BO,WAREHOUSE_BO, LOT_SIZE, CREATE_DATE, CREATE_USER, MODIFY_DATE, MODIFY_USER
+    </sql>
+
+    <select id="selectOperationOrderItem" parameterType="string" resultMap="BaseResultMap">
+        select m.operation_order_qty,t.item,t.item_name,t.item_desc from  m_operation_order m left join m_item t on m.item=t.item
+        where  m.operation_order= #{operationOrder}
+    </select>
+
+    <select id="selectProcessInfoByItem" parameterType="string" resultType="string">
+        select PROCESS_INFO from m_router_process where ROUTER_BO= #{routerBo}
+    </select>
+</mapper>

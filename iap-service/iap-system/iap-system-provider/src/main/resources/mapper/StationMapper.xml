@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.itl.iap.system.provider.mapper.StationMapper">
+
+    <select id="getByStation" resultType="java.util.Map">
+        select mpl.PRODUCT_LINE,mws.WORK_SHOP,mpl.PRODUCT_LINE_DESC,mws.WORK_SHOP_DESC as WORK_SHOP_NAME
+        from m_station ms
+                     left join m_product_line mpl on mpl.bo=ms.PRODUCT_LINE_BO
+                     left join m_work_shop mws on mws.BO=mpl.WORK_SHOP_BO
+        where ms.STATION=#{station}
+          and ms.SITE=#{site}
+    </select>
+
+    <select id="getProductLineBoByStation" resultType="String">
+        select product_line_bo from m_station where bo = #{stationBo}
+    </select>
+
+</mapper>

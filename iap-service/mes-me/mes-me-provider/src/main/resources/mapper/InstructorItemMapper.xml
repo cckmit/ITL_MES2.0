@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.itl.mes.me.provider.mapper.InstructorItemMapper">
+
+    <!-- 可根据自己的需求，是否要使用 -->
+    <resultMap type="com.itl.mes.me.api.dto.ItemWithTemplateDto" id="itemWithTemplate">
+        <result property="bo" column="BO"/>
+        <result property="site" column="SITE"/>
+        <result property="instructorBo" column="INSTRUCTOR_BO"/>
+        <result property="instructorItem" column="INSTRUCTOR_ITEM"/>
+        <result property="instructorItemName" column="INSTRUCTOR_ITEM_NAME"/>
+        <result property="state" column="STATE"/>
+        <result property="defaultShow" column="DEFAULT_SHOW"/>
+        <result property="template" column="TEMPLATE"/>
+    </resultMap>
+
+
+    <select id="selectWithTemplate" resultMap="itemWithTemplate">
+        SELECT BO,
+               SITE,
+               INSTRUCTOR_BO,
+               INSTRUCTOR_ITEM,
+               INSTRUCTOR_ITEM_NAME,
+               STATE,
+               DEFAULT_SHOW,
+               COLOR,
+               TEMPLATE
+        FROM m_instructor_item
+                 LEFT JOIN m_instructor_item_template miit ON m_instructor_item.BO = miit.INSTRUCTOR_ITEM_BO
+        WHERE INSTRUCTOR_BO = #{instructorBo}
+    </select>
+</mapper>

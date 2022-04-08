@@ -1,0 +1,252 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.itl.iap.report.provider.mapper.DeviceReportMapper">
+    <select id="getAllCount" resultType="map">
+        with t1 as (select count(*)  as allCount from TScadaData),
+             t2 as (select count(*) as 正常 from TScadaData where FMachState = '0'),
+             t3 as (select count(*) as 故障 from TScadaData where FMachState = '1'),
+             t4 as (select count(*) as 停机 from TScadaData where FMachState = '2'),
+             t5 as (select count(*) as 待料 from TScadaData where FMachState = '3')
+        select t1.*,t2.*,t3.*,t4.*,t5.* from t1,t2,t3,t4,t5
+    </select>
+    <select id="selectByTimes" resultType="com.itl.iap.report.api.entity.TScadaData" >
+        select FMachNo,FMachState,FMachCreateTime
+        from TScadaData
+        where FMachNo=#{device} and  FMachCreateTime between #{startTime} and #{endTime}
+        order by FMachCreateTime asc
+    </select>
+    <select id="selectMaxTimeByDate" resultType="string" parameterType="string">
+        select FMachState from TScadaData where FMachCreateTime=(
+        select max(FMachCreateTime) from TScadaData
+        where substring(Convert(varchar(10),FMachCreateTime,23),1,10) = #{date})
+    </select>
+
+    <select id="deviceStateDetail" resultType="com.itl.iap.report.api.vo.DeviceStateVo">
+        select distinct t.device,t.device_name,t.device_desc,t.work_shop_name,t.product_line_name,t.CreateDate,t.ContinuedTime,t.FMachState,t.state from(
+        select md.device,md.device_name,mpl.product_line_desc as product_line_name,md.device_desc,
+        md.work_shop_name,tsc.CreateDate,tsc.ContinuedTime,tsc.FMachState,
+        case
+        when tsc.FMachState='1' then '运行'
+        when tsc.FMachState='2' then '待机'
+        when tsc.FMachState='3' then '报警'
+        when tsc.FMachState='4' then '关机或者断网'
+        when tsc.FMachState='5' then '调试'
+        when tsc.FMachState='6' then '紧急停机'
+        when tsc.FMachState='7' then '开机或联网'
+        when tsc.FMachState='8' then '机床端程序异常'
+        else '无状态' end as state
+        from (
+        select m.FMachNo,m.CreateDate,m.ContinuedTime,m.FMachState
+        from TScadaDataState m left join
+        (select FMachNo,max(CreateDate) AS createDate from TScadaDataState group by FMachNo) t on m.FMachNo=t.FMachNo
+        where m.CreateDate=t.CreateDate and FMachState !=''
+        ) tsc
+        left join m_device md on tsc.FMachNo=md.device
+        left join m_product_line mpl on md.product_line_bo=mpl.bo) t
+        <where>
+            t.device !='' and t.FMachState !=''
+            and t.device is not null
+            <if test="deviceDto.device !=null and deviceDto.device !=''">
+               and t.device like concat('%',#{deviceDto.device},'%')
+            </if>
+            <if test="deviceDto.deviceName !=null and deviceDto.deviceName !=''">
+                and t.device_name like concat('%',#{deviceDto.deviceName},'%')
+            </if>
+            <if test="deviceDto.workShopName !=null and deviceDto.workShopName !=''">
+                and t.work_shop_name like concat('%',#{deviceDto.workShopName},'%')
+            </if>
+            <if test="deviceDto.productLineName !=null and deviceDto.productLineName !=''">
+                and t.product_line_name like concat('%',#{deviceDto.productLineName},'%')
+            </if>
+            <if test="deviceDto.fmachState !=null and deviceDto.fmachState !=''">
+                and t.FMachState = #{deviceDto.fmachState};
+            </if>
+        </where>
+
+    </select>
+
+    <select id="deviceState" resultType="com.itl.iap.report.api.vo.DeviceStateVo">
+        select ts.work_shop_name,ts.product_line_name,ts.FMachState,ts.count,ts.state from(
+            select t.work_shop_name,t.product_line_desc as product_line_name,t.FMachState,count(t.FMachState) as count,
+            case
+            when t.FMachState='1' then '运行'
+            when t.FMachState='2' then '待机'
+            when t.FMachState='3' then '报警'
+            when t.FMachState='4' then '关机或者断网'
+            when t.FMachState='5' then '调试'
+            when t.FMachState='6' then '紧急停机'
+            when t.FMachState='7' then '开机或联网'
+            when t.FMachState='8' then '机床端程序异常'
+            else '无状态' end as state
+            from (
+                select distinct
+                md.device,tsc.CreateDate,tsc.ContinuedTime,tsc.FMachState,md.work_shop_name,mpl.product_line_desc
+                from (select m.FMachNo,m.CreateDate,m.ContinuedTime,m.FMachState from TScadaDataState m
+                left join (select FMachNo,max(CreateDate) AS createDate from TScadaDataState group by FMachNo) t on
+                m.FMachNo=t.FMachNo
+            where m.CreateDate=t.CreateDate and FMachState !='') tsc
+            left join m_device md on tsc.FMachNo=md.device
+            left join m_product_line mpl on md.product_line_bo=mpl.bo
+            where md.device is not null and FMachState !='') t
+            group by t.work_shop_name,t.product_line_desc,t.FMachState
+            having 1=1
+            <if test="deviceDto.workShopName !=null and deviceDto.workShopName !=''">and t.work_shop_name like
+                concat('%',#{deviceDto.workShopName},'%')
+            </if>
+            <if test="deviceDto.productLineName !=null and deviceDto.productLineName !=''">and t.product_line_desc like
+                concat('%',#{deviceDto.productLineName},'%')
+            </if>
+        )ts
+        order by ts.work_shop_name desc
+    </select>
+    <select id="deviceDetail" resultType="com.itl.iap.report.api.vo.DeviceStateVo">
+        select t.device,t.device_name,t.device_desc from
+        (select distinct md.device,md.device_name,md.device_desc,tsc.CreateDate,tsc.ContinuedTime,tsc.FMachState,md.work_shop_name,mpl.product_line_desc
+        from (select m.FMachNo,m.CreateDate,m.ContinuedTime,m.FMachState from TScadaDataState m
+        left join (select FMachNo,max(CreateDate) AS createDate from TScadaDataState group by FMachNo) t on m.FMachNo=t.FMachNo
+        where m.CreateDate=t.CreateDate) tsc
+        left join m_device md on tsc.FMachNo=md.device
+        left join m_product_line mpl on md.product_line_bo=mpl.bo
+        where mpl.product_line_desc =#{deviceDto.productLineName}
+        and md.work_shop_name =#{deviceDto.workShopName}
+        and tsc.FMachState = #{deviceDto.fmachState})t
+    </select>
+
+    <select id="selectDeviceObjectTime" resultType="com.itl.iap.report.api.vo.EquipmentRunningRateVO">
+        SELECT
+        FMachNo as device,
+        DEVICE_NAME,
+        DEVICE_DESC,
+        b.WORK_SHOP_NAME as workShopDesc,
+        f.PRODUCT_LINE_DESC,
+        FMachState,
+        ContinuedTime,
+        CreateDate
+        FROM
+        TScadaDataState a
+        LEFT JOIN m_device b ON a.FMachNo= b.DEVICE
+        /*LEFT JOIN m_operation d ON b.operation_bo= d.bo
+        LEFT JOIN m_station e ON e.operation_bo= d.bo
+        LEFT JOIN m_product_line f ON e.product_line_bo= f.bo*/
+        /*Left join m_work_shop g on b.WORK_SHOP=g.WORK_SHOP*/
+        LEFT JOIN m_product_line f ON b.product_line_bo= f.bo
+        where CreateDate&gt;#{vo.startTime,jdbcType=DATE}
+        and CreateDate&lt;#{vo.endTime,jdbcType=DATE}
+          <if test="vo!=null">
+        <if test="vo.device !=null and vo.device !=''">
+            and a.FMachNo = #{vo.device}
+        </if>
+        <if test="vo.deviceName !=null and vo.deviceName !=''">
+            and b.DEVICE_NAME = #{vo.deviceName}
+        </if>
+        <if test="vo.workShopDesc !=null and vo.workShopDesc !=''">
+            and b.WORK_SHOP_NAME = #{vo.workShopDesc}
+        </if>
+        <if test="vo.productLineDesc !=null and vo.productLineDesc !=''">
+            and f.product_line_desc = #{vo.productLineDesc}
+        </if>
+    </if>
+        ORDER BY CreateDate desc
+    </select>
+
+    <select id="selectDeviceObjectTomorrow" resultType="com.itl.iap.report.api.vo.EquipmentRunningRateVO">
+        SELECT
+            a.FMachNo,
+            a.FMachState,
+            a.CreateDate
+        FROM
+            TScadaDataState a
+                JOIN (
+                SELECT MIN
+                ( CreateDate ) AS minCreateDate,
+                FMachNo
+                FROM
+                TScadaDataState
+                WHERE
+                CONVERT ( VARCHAR ( 100 ), CreateDate, 23 ) = CONVERT ( VARCHAR ( 100 ), #{endTime}, 23 )
+                and FmachNo IN
+                <foreach collection="list" index="index" item="item" open="(" separator="," close=")">
+                    #{item}
+                </foreach>
+                GROUP BY
+                FMachNo
+            ) b ON a.CreateDate= b.minCreateDate and a.FmachNo = b.FMachNo
+    </select>
+    <select id="selectDeviceObjectYesterday" resultType="com.itl.iap.report.api.vo.EquipmentRunningRateVO">
+        SELECT
+            a.FMachNo,
+            a.FMachState,
+            a.CreateDate
+        FROM
+            TScadaDataState a
+                JOIN (
+                SELECT MAX
+                           ( CreateDate ) AS minCreateDate,
+                       FMachNo
+                FROM
+                    TScadaDataState
+                WHERE
+                        CONVERT ( VARCHAR ( 100 ), CreateDate, 23 ) = CONVERT ( VARCHAR ( 100 ), #{startTime}, 23 )
+                and FmachNo IN
+                    <foreach collection="list" index="index" item="item" open="(" separator="," close=")">
+                        #{item}
+                    </foreach>
+                GROUP BY
+                    FMachNo
+            ) b ON a.CreateDate= b.minCreateDate
+                AND a.FMachNo= b.FMachNo
+    </select>
+    <select id="selectDeviceObject" resultType="com.itl.iap.report.api.vo.EquipmentRunningRateVO">
+        SELECT
+        FMachNo as device,
+        DEVICE_NAME,
+        DEVICE_DESC,
+        FMachState,
+        ContinuedTime,
+        CreateDate
+        FROM
+        TScadaDataState a
+        LEFT JOIN m_device b ON a.FMachNo= b.DEVICE
+        where CreateDate&gt;#{vo.startTime,jdbcType=DATE}
+        and CreateDate&lt;#{vo.endTime,jdbcType=DATE}
+        and a.FMachNo = #{vo.device}
+        and FMachState=#{vo.fMachState}
+        ORDER BY CreateDate desc
+    </select>
+
+    <select id="selectStateInfo" resultType="com.itl.iap.report.api.vo.DeviceStateVo">
+        select t.FMachState,count(t.FMachState) as count,
+        case
+        when t.FMachState='1' then '运行'
+        when t.FMachState='2' then '待机'
+        when t.FMachState='3' then '报警'
+        when t.FMachState='4' then '关机/断网'
+        when t.FMachState='5' then '调试'
+        when t.FMachState='6' then '紧急停机'
+        when t.FMachState='7' then '开机/联网'
+        when t.FMachState='8' then '机床端程序异常'
+        else '无状态' end as state
+        from (
+        select distinct md.device,tsc.CreateDate,tsc.ContinuedTime,tsc.FMachState,md.work_shop_name,mpl.product_line_desc
+        from (select m.FMachNo,m.CreateDate,m.ContinuedTime,m.FMachState from TScadaDataState m
+        left join (select FMachNo,max(CreateDate) AS createDate from TScadaDataState group by FMachNo) t on m.FMachNo=t.FMachNo
+        where m.CreateDate=t.CreateDate and FMachState !='' ) tsc
+        left join m_device md on tsc.FMachNo=md.device
+        left join m_product_line mpl on md.product_line_bo=mpl.bo
+         <where>
+             md.device is not null and FMachState !=''
+             <if test="deviceDto.workShopName !=null and deviceDto.workShopName !=''">
+                 and md.work_shop_name like concat('%',#{deviceDto.workShopName},'%')
+             </if>
+             <if test="deviceDto.productLineName !=null and deviceDto.productLineName !=''">
+                 and mpl.product_line_desc like concat('%',#{deviceDto.productLineName},'%')
+             </if>
+         </where>
+         ) t
+        group by t.FMachState
+    </select>
+    
+    <select id="selectAllDeviceState" resultType="string">
+        SELECT name FROM iap_dict_item_t WHERE iap_dict_id = 'a9dd500fd2144325b280ad257da860ff'
+    </select>
+</mapper>

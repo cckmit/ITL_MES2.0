@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.itl.im.provider.mapper.IapImSensitiveWordsMapper">
+
+    <resultMap type="iap.im.api.dto.IapImSensitiveWordsDto" id="IapImSensitiveWordsTMap">
+        <result property="id" column="id" jdbcType="VARCHAR"/>
+        <result property="word" column="word" jdbcType="VARCHAR"/>
+        <result property="type" column="type" jdbcType="INTEGER"/>
+    </resultMap>
+
+    <!--通过实体作为筛选条件查询-->
+    <select id="pageQuery" resultMap="IapImSensitiveWordsTMap">
+        select
+        id, word, type
+        from iap_im_sensitive_words_t
+        <where>
+            <if test="IapImSensitiveWordsDto.id != null and IapImSensitiveWordsDto.id != ''">
+                and id = #{IapImSensitiveWordsDto.id}
+            </if>
+            <if test="IapImSensitiveWordsDto.word != null and IapImSensitiveWordsDto.word != ''">
+                and word = #{IapImSensitiveWordsDto.word}
+            </if>
+            <if test="IapImSensitiveWordsDto.type != null">
+                and type = #{IapImSensitiveWordsDto.type}
+            </if>
+        </where>
+    </select>
+
+    <!-- 查询所有敏感词汇 -->
+    <select id="getAllSensitiveWords" resultType="iap.im.api.entity.IapImSensitiveWords">
+        select
+        id, word, type
+        from iap_im_sensitive_words_t
+        ORDER BY type ASC
+    </select>
+
+</mapper>

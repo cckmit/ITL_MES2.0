@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.itl.iap.mes.provider.mapper.UpkeepExecuteMapper">
+
+    <sql id="FIELD">
+        t.id AS id,t.upkeepPlanName AS upkeepPlanName,t.code AS code,t.name AS name,t.type AS type,t.productionLine AS productionLine,t.dataCollectionId AS dataCollectionId,t.dataCollectionName AS dataCollectionName,t.upkeepUserId AS upkeepUserId,t.upkeepUserName AS upkeepUserName,t.executeTime AS executeTime,t.state AS state,t.planExecuteTime AS planExecuteTime,t.deviceTypeName
+    </sql>
+    <sql id="WHERE_FIELD">
+        <where>
+            t.state=0 and t.upkeepPlanName !='2'
+            <if test="upkeepExecute.type != null and upkeepExecute.type!=''">
+                AND t.type LIKE CONCAT('%',#{upkeepExecute.type},'%')
+            </if>
+            <if test="upkeepExecute.code != null and upkeepExecute.code!=''">
+                AND t.code LIKE CONCAT('%',#{upkeepExecute.code},'%')
+            </if>
+            <if test="upkeepExecute.upkeepPlanName != null and upkeepExecute.upkeepPlanName !=''">
+                AND t.upkeepPlanName LIKE CONCAT('%',#{upkeepExecute.upkeepPlanName},'%')
+            </if>
+            <if test="upkeepExecute.dataCollectionName != null and upkeepExecute.dataCollectionName!=''">
+                AND t.dataCollectionName LIKE CONCAT('%',#{upkeepExecute.dataCollectionName},'%')
+            </if>
+            <if test="upkeepExecute.upkeepUserName != null and upkeepExecute.upkeepUserName !=''">
+                AND t.upkeepUserName LIKE CONCAT('%',#{upkeepExecute.upkeepUserName},'%')
+            </if>
+            <if test="upkeepExecute.deviceTypeName != null and upkeepExecute.deviceTypeName !=''">
+                AND t.deviceTypeName LIKE CONCAT('%',#{upkeepExecute.deviceTypeName},'%')
+            </if>
+
+            <if test="upkeepExecute.startTime != null and upkeepExecute.endTime != null">
+                AND t.planExecuteTime BETWEEN #{upkeepExecute.startTime} AND #{upkeepExecute.endTime}
+            </if>
+            <if test="planExecuteTime !=null and planExecuteTime !=''">
+                and CONVERT(varchar(100), t.planExecuteTime, 23) like concat('%',#{planExecuteTime},'%')
+            </if>
+        </where>
+    </sql>
+    <select id="findList" parameterType="com.itl.iap.mes.api.entity.UpkeepExecute" resultType="com.itl.iap.mes.api.entity.UpkeepExecute">
+        SELECT <include refid="FIELD"/>
+        FROM m_repair_upkeep_execute t left join  m_repair_upkeep_plan p on t.upkeepPlanId=p.id
+        <include refid="WHERE_FIELD"/>
+        order by planExecuteTime desc
+    </select>
+</mapper>

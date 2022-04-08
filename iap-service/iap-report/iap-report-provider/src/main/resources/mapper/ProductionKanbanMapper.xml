@@ -1,0 +1,169 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.itl.iap.report.provider.mapper.ProductionKanbanMapper">
+
+    <select id="selectDeviceState" resultType="java.util.Map">
+        select sum(case when FmachState = '8' then 1 else 0 end) as "机床端程序异常",
+               sum(case when FmachState = '3' then 1 else 0 end) as "报警",
+               sum(case when FmachState = '4' then 1 else 0 end) as "关机/断网",
+               sum(case when FmachState = '5' then 1 else 0 end) as "调试",
+               sum(case when FmachState = '2' then 1 else 0 end) as "待机",
+               sum(case when FmachState = '1' then 1 else 0 end) as "运行"
+        from (
+                 SELECT a.FMachNo,
+                        a.FMachState,
+                        a.CreateDate
+                 FROM TScadaDataState a
+                          JOIN (SELECT MAX(CreateDate) AS minCreateDate, FMachNo
+                                FROM TScadaDataState a
+                                         LEFT JOIN m_device b ON a.FMachNo = b.DEVICE
+                                         LEFT JOIN m_operation d ON b.operation_bo = d.bo
+                                         LEFT JOIN m_station e ON e.operation_bo = d.bo
+                                         LEFT JOIN m_product_line f ON e.product_line_bo = f.bo
+                                where f.product_line_desc = #{name}
+                                GROUP BY FMachNo) b ON a.CreateDate = b.minCreateDate
+                     AND a.FMachNo = b.FMachNo
+             ) a
+        where (a.FMachState!='' and a.FMachState is not null)
+
+    </select>
+    <select id="selectProductionWorkers" resultType="java.lang.Integer">
+        select count(1) from iap_sys_user_t a
+                                 LEFT JOIN m_product_line b
+                                           ON a.product_line_bo = b.bo
+        where product_line_desc = #{name}
+    </select>
+    <select id="selectProductionWorkersAttendance" resultType="java.lang.Integer">
+        SELECT COUNT
+                   ( user_id )
+        FROM
+            (
+                SELECT DISTINCT
+                    user_id
+                FROM
+                    iap_auth_access_token_t a
+                        JOIN iap_sys_user_t b ON a.user_id = b.id
+                        JOIN m_product_line c ON b.product_line_bo = c.bo
+                WHERE
+                        CONVERT ( CHAR ( 100 ), a.create_date, 23 ) = CONVERT ( CHAR ( 100 ), GETDATE( ), 23 )
+                  AND product_line_desc = #{name}
+            ) a
+    </select>
+    <select id="selectCapacity" resultType="java.lang.Integer">
+        select isnull(sum(DONE_QTY),0) from me_sfc_wip_log a
+            JOIN m_station e ON a.station_bo= e.bo
+            JOIN m_product_line f ON e.product_line_bo= f.bo
+            join m_operation g on e.operation_bo=g.bo
+            JOIN M_CUSTOM_DATA_VAL h on h.bo=g.bo
+        where h.vals='yes' and f.product_line_desc = #{name}
+          and CONVERT ( VARCHAR ( 100 ), IN_TIME, 23 ) = CONVERT ( VARCHAR ( 100 ), GETDATE( ), 23 )
+    </select>
+
+    <select id="selectCapacitys" resultType="java.util.Map">
+        select isnull(sum(DONE_QTY),0) as num, CONVERT(varchar(100), dateadd(day, -6, getdate()), 23) as day from me_sfc_wip_log a
+            JOIN m_station e ON a.station_bo= e.bo
+            JOIN m_product_line f ON e.product_line_bo= f.bo
+            join m_operation g on e.operation_bo=g.bo
+            JOIN M_CUSTOM_DATA_VAL h on h.bo=g.bo
+        where h.vals='yes' and f.product_line_desc = #{name}
+          and CONVERT ( VARCHAR ( 100 ), IN_TIME, 23 ) = CONVERT(varchar(100), dateadd(day, -6, getdate()), 23)
+        union all
+        select isnull(sum(DONE_QTY),0) as num, CONVERT(varchar(100), dateadd(day, -5, getdate()), 23) as day from me_sfc_wip_log a
+            JOIN m_station e ON a.station_bo= e.bo
+            JOIN m_product_line f ON e.product_line_bo= f.bo
+            join m_operation g on e.operation_bo=g.bo
+            JOIN M_CUSTOM_DATA_VAL h on h.bo=g.bo
+        where h.vals='yes' and f.product_line_desc = #{name}
+          and CONVERT ( VARCHAR ( 100 ), IN_TIME, 23 ) = CONVERT(varchar(100), dateadd(day, -5, getdate()), 23)
+        union all
+        select isnull(sum(DONE_QTY),0) as num, CONVERT(varchar(100), dateadd(day, -4, getdate()), 23) as day from me_sfc_wip_log a
+            JOIN m_station e ON a.station_bo= e.bo
+            JOIN m_product_line f ON e.product_line_bo= f.bo
+            join m_operation g on e.operation_bo=g.bo
+            JOIN M_CUSTOM_DATA_VAL h on h.bo=g.bo
+        where h.vals='yes' and f.product_line_desc = #{name}
+          and CONVERT ( VARCHAR ( 100 ), IN_TIME, 23 ) = CONVERT(varchar(100), dateadd(day, -4, getdate()), 23)
+        union all
+        select isnull(sum(DONE_QTY),0) as num, CONVERT(varchar(100), dateadd(day, -3, getdate()), 23) as day from me_sfc_wip_log a
+            JOIN m_station e ON a.station_bo= e.bo
+            JOIN m_product_line f ON e.product_line_bo= f.bo
+            join m_operation g on e.operation_bo=g.bo
+            JOIN M_CUSTOM_DATA_VAL h on h.bo=g.bo
+        where h.vals='yes' and f.product_line_desc = #{name}
+          and CONVERT ( VARCHAR ( 100 ), IN_TIME, 23 ) = CONVERT(varchar(100), dateadd(day, -3, getdate()), 23)
+        union all
+        select isnull(sum(DONE_QTY),0) as num, CONVERT(varchar(100), dateadd(day, -2, getdate()), 23) as day from me_sfc_wip_log a
+            JOIN m_station e ON a.station_bo= e.bo
+            JOIN m_product_line f ON e.product_line_bo= f.bo
+            join m_operation g on e.operation_bo=g.bo
+            JOIN M_CUSTOM_DATA_VAL h on h.bo=g.bo
+        where h.vals='yes' and f.product_line_desc = #{name}
+          and CONVERT ( VARCHAR ( 100 ), IN_TIME, 23 ) = CONVERT(varchar(100), dateadd(day, -2, getdate()), 23)
+        union all
+        select isnull(sum(DONE_QTY),0) as num, CONVERT(varchar(100), dateadd(day, -1, getdate()), 23) as day from me_sfc_wip_log a
+            JOIN m_station e ON a.station_bo= e.bo
+            JOIN m_product_line f ON e.product_line_bo= f.bo
+            join m_operation g on e.operation_bo=g.bo
+            JOIN M_CUSTOM_DATA_VAL h on h.bo=g.bo
+        where h.vals='yes' and f.product_line_desc = #{name}
+          and CONVERT ( VARCHAR ( 100 ), IN_TIME, 23 ) = CONVERT(varchar(100), dateadd(day, -1, getdate()), 23)
+        union all
+        select isnull(sum(DONE_QTY),0) as num ,CONVERT ( VARCHAR ( 100 ), GETDATE( ), 23 ) as day from me_sfc_wip_log a
+            JOIN m_station e ON a.station_bo= e.bo
+            JOIN m_product_line f ON e.product_line_bo= f.bo
+            join m_operation g on e.operation_bo=g.bo
+            JOIN M_CUSTOM_DATA_VAL h on h.bo=g.bo
+        where h.vals='yes' and f.product_line_desc = #{name}
+          and CONVERT ( VARCHAR ( 100 ), IN_TIME, 23 ) = CONVERT ( VARCHAR ( 100 ), GETDATE( ), 23 )
+    </select>
+    <select id="selectAndonObject" resultType="java.util.Map">
+        SELECT
+            DISTINCT
+            b.device,
+            andon_type_name,
+            SUBSTRING ( CONVERT ( VARCHAR, trigger_time, 120 ), 6, 11 ) AS DAY,
+	a.state
+        FROM
+            andon_exception AS a
+            JOIN m_device b ON a.device_bo= b.bo
+            JOIN m_product_line f ON b.product_line_bo = f.bo
+        WHERE
+            CONVERT ( VARCHAR ( 100 ), a.trigger_time, 23 ) = CONVERT ( VARCHAR ( 100 ), GETDATE( ), 23 )
+          AND f.product_line_desc = #{ name}
+    </select>
+
+    <select id="selectPersonQty" resultType="java.util.Map">
+        SELECT
+            n.real_name,
+            SUM ( m.qty ) AS qty
+        FROM
+            d_dy_report_work m
+                JOIN iap_sys_user_t n ON m.user_bo= n.user_name
+                JOIN m_operation r ON m.OPERATION_BO= r.bo
+                JOIN m_station s ON r.bo= s.operation_bo
+                JOIN m_product_line f ON s.product_line_bo= f.bo
+        WHERE
+                CONVERT ( VARCHAR ( 100 ), m.CREATE_DATE, 23 ) = CONVERT ( VARCHAR ( 100 ), GETDATE( ), 23 )
+          AND product_line_desc = #{name}
+        GROUP BY
+            real_name
+    </select>
+    <select id="selectPersonDoneQty" resultType="java.util.Map">
+        SELECT
+            o.real_name,
+            SUM ( m.done_qty ) AS done_qty
+        FROM
+            me_sfc_wip_log m
+                JOIN iap_sys_user_t o ON m.user_bo= o.user_name
+                JOIN m_operation r ON m.OPERATION_BO= r.bo
+                JOIN m_station s ON r.bo= s.operation_bo
+                JOIN m_product_line f ON s.product_line_bo= f.bo
+        WHERE
+                CONVERT ( VARCHAR ( 100 ), m.out_time, 23 ) = CONVERT ( VARCHAR ( 100 ), GETDATE( ), 23 )
+          AND product_line_desc = #{name}
+        GROUP BY
+            real_name
+    </select>
+
+
+</mapper>

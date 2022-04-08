@@ -1,0 +1,295 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.itl.mes.core.provider.mapper.SfcMapper">
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.itl.mes.core.api.entity.Sfc">
+        <id column="BO"  property="bo"/>
+        <result column="SITE" property="site"/>
+        <result column="SFC" property="sfc"/>
+        <result column="SCHEDULE_BO" property="scheduleBo"/>
+        <result column="SHOP_ORDER_BO" property="shopOrderBo"/>
+        <result column="WORK_SHOP_BO" property="wordkShopBo"/>
+        <result column="PRODUCT_LINE_BO" property="productLineBo"/>
+        <result column="OPERATION_BO" property="opeartionBo"/>
+        <result column="STATION_BO" property="stationBo"/>
+        <result column="DEVICE_BO" property="deviceBo"/>
+        <result column="USER_BO" property="userBo"/>
+        <result column="SHIT_BO" property="shitBo"/>
+        <result column="TEAM_BO" property="teamBo"/>
+        <result column="ITEM_BO" property="itemBo"/>
+        <result column="BOM_BO" property="bomBo"/>
+        <result column="SFC_ROUTER_BO" property="sfcRouterBo"/>
+        <result column="SFC_STEP_ID" property="sfcStepId"/>
+        <result column="PARENT_SFC_BO" property="parentSfcBo"/>
+        <result column="STATE" property="state"/>
+        <result column="IN_TIME" property="inTime"/>
+        <result column="IS_BATCH" property="isBatch"/>
+        <result column="PROCESS_LOT" property="processLot"/>
+        <result column="SFC_QTY" property="sfcQty"/>
+        <result column="INPUT_QTY" property="inputQty"/>
+        <result column="DONE_QTY" property="doneQty"/>
+        <result column="SCRAP_QTY" property="scrapQty"/>
+        <result column="MODIFY_USER" property="modifyUser"/>
+        <result column="MODIFY_DATE" property="modifyDate"/>
+        <result column="OPERATION_ORDER" property="operationOrder"/>
+        <result column="ITEM_NAME" property="itemName"/>
+        <result column="ITEM_DESC" property="itemDesc"/>
+        <result column="ITEM" property="item"/>
+    </resultMap>
+
+    <select id="selectSfc" resultMap="BaseResultMap" parameterType="String">
+        select m.sfc,m.sfc_qty,m.item_bo,t.item_name,t.item_desc,m.operation_order from me_sfc m left join m_item t on m.item_bo=t.bo
+        <where>
+            1=1
+            <if test="operationOrder != null and operationOrder != ''">
+                and m.operation_order like concat('%',#{operationOrder},'%')
+            </if>
+        </where>
+
+    </select>
+
+    <select id="selectSfcPage" resultMap="BaseResultMap" parameterType="String">
+        select m.dispatch_code,m.sfc,m.sfc_qty,m.item_bo,t.item_name,m.shop_order_bo,t.item_desc,m.operation_order,t.item,m.modify_date,o.shop_order from me_sfc m
+        left join m_item t on m.item_bo=t.bo
+        left join m_operation_order o on m.operation_order=o.operation_order
+        <where>
+            1=1
+            <if test="scDate != null and scDate != '' and jsDate==null">
+             and CONVERT(varchar(100), m.modify_date, 23) like #{scDate}
+            </if>
+            <if test="scDate != null and scDate != '' and jsDate !=null and jsDate !=''">
+             and m.modify_date between #{scDate} and #{jsDate}
+            </if>
+            <if test="operationOrder != null and operationOrder != ''">
+             and m.operation_order like concat('%',#{operationOrder},'%')
+            </if>
+            <if test="dispatchCode != null and dispatchCode != ''">
+                and m.dispatch_code = #{dispatchCode}
+            </if>
+        </where>
+        order by m.CREATE_DATE desc
+    </select>
+
+    <select id="selectBySfc" parameterType="string" resultType="com.itl.mes.core.api.entity.Sfc">
+        select m.*,n.item,n.item_name,n.item_desc,t.shop_order from me_sfc m
+        left join m_item n       on m.item_bo= n.bo
+        left join m_shop_order t on m.shop_order_bo=t.bo
+        where m.sfc=#{sfc}
+    </select>
+
+    <select id="checkOperation" resultType="String" parameterType="String">
+        SELECT PROCESS_INFO FROM m_router_process r
+                                     LEFT JOIN me_sfc sfc on sfc.SFC = '${sfc}'
+                                     LEFT JOIN m_shop_order o on o.BO = sfc.SHOP_ORDER_BO
+        WHERE r.ROUTER_BO = sfc.SFC_ROUTER_BO
+    </select>
+
+    <select id="selectSfcInfo" resultType="com.itl.mes.core.api.vo.SfcVo">
+        SELECT
+            sf.bo,
+            sf.state,
+            sf.sfc,
+            sf.sfc_qty as sfcQty,
+            sf.input_qty as inputQty,
+            sf.NC_QTY as ncQty,
+            sf.SCRAP_QTY as scrapQty,
+            sf.DONE_QTY as doneQty,
+            sf.operation_order as operationOrder,
+            sf.device_bo as deviceBo,
+            mi.bo as itemBo,
+            mi.item,
+            mi.item_name as itemName,
+            mi.item_desc as itemDesc,
+            so.shop_order as shopOrder,
+            sf.sfc_router_bo as sfcRouterBo,
+            sf.parent_sfc_bo as parentSfcBo,
+            sf.work_shop_bo as workShopBo
+        FROM
+            me_sfc sf
+                LEFT JOIN m_item mi ON sf.item_bo = mi.bo
+                LEFT JOIN m_shop_order so ON sf.shop_order_bo = so.bo
+        where sf.sfc = #{sfc}
+    </select>
+
+    <select id="selectReworkPartOne" resultType="com.itl.mes.core.api.vo.ReworkVo">
+        SELECT
+            nc.bo as ngLogBo,
+            sfc.sfc,
+            sfc.operation_order as operationOrder,
+            nc.nc_qty as ncQty,
+            nc.record_time as recordTime,
+            md.device,
+            md.device_name as deviceName,
+            op.operation_name as operationName,
+            op.operation as operation,
+            ur.real_name as userName,
+            ncc.nc_code as ncCode,
+            ncc.nc_name as ncName,
+            nc.remark,
+            nc.wip_log_bo as wipLogBo,
+            nc.nc_code_bo as ncCodeBo,
+            nc.op_ids as opIds,
+            mi.item,
+            mi.item_name as itemName,
+            mi.item_desc as itemDesc,
+            so.shop_order as shopOrder,
+            nc.operation_bo as operationBo,
+            nc.user_bo as userBo
+        FROM me_sfc_nc_log nc
+                 LEFT JOIN me_sfc sfc ON sfc.sfc = nc.sfc
+                 LEFT JOIN m_device md ON nc.device_bo = md.bo
+                 LEFT JOIN m_operation op ON nc.operation_bo = op.bo
+                 LEFT JOIN iap_sys_user_t ur ON nc.user_bo = ur.user_name
+                 LEFT JOIN m_nc_code ncc ON nc.nc_code_bo = ncc.bo
+                 LEFT JOIN m_item mi ON sfc.item_bo = mi.BO
+                 LEFT JOIN m_shop_order so ON sfc.SHOP_ORDER_BO = so.bo
+        WHERE nc.sfc = #{sfc} and nc.operation_bo = #{operationBo} and nc.is_repaired = '0' and nc.station_bo = #{stationBo}
+    </select>
+
+    <select id="selectReworkPartTwo" resultType="com.itl.mes.core.api.vo.ReworkVo">
+        SELECT
+            mi.item,
+            mi.item_name as itemName,
+            mi.item_desc as itemDesc,
+            so.shop_order shopOrder
+        FROM me_sfc sfc
+                 LEFT JOIN m_item mi ON sfc.item_bo = mi.bo
+                 LEFT JOIN m_shop_order so ON sfc.shop_order_bo = so.bo
+        where sfc.sfc = #{sfc}
+    </select>
+
+    <select id="selectSfcList" resultType="java.util.Map" parameterType="String">
+        SELECT sfc.site,sfc.PARENT_SFC_BO parentSfcBo,sfc.SFC_QTY sfcQty,s.SHOP_ORDER shopOrder,i.ITEM item,s.STATE_BO stateBo,s.CREATE_DATE createDate,s.COMPLETE_QTY completeQty,sfc.SFC sfc FROM me_sfc sfc
+        LEFT JOIN m_shop_order s ON s.BO = sfc.SHOP_ORDER_BO
+        LEFT JOIN m_item i ON i.BO = sfc.ITEM_BO
+        WHERE 1 = 1
+        <if test="sfc != null and sfc != ''">
+            and sfc.SFC = '${sfc}'
+        </if>
+    </select>
+
+    <select id="selectSum" resultType="java.util.Map" parameterType="java.util.Map">
+        SELECT sum(SFC_QTY) SFC_QTY,MAX(INPUT_QTY) INPUT_QTY,SUM(DONE_QTY) DONE_QTY,SUM(SCRAP_QTY) SCRAP_QTY,SUM(NC_QTY) NC_QTY FROM me_sfc_wip_log
+        WHERE 1 = 1
+        <if test="param.operationBo != null and param.operationBo != ''">
+            and OPERATION_BO = '${param.operationBo}'
+        </if>
+        <if test="param.sfc != null and param.sfc != ''">
+            and SFC = '${param.sfc}'
+        </if>
+    </select>
+
+    <select id="selectOperationOrder" resultType="java.util.Map" parameterType="java.util.Map">
+        SELECT o.OPERATION_ORDER operationOrder,
+               o.OPERATION_ORDER_QTY orderQty,
+               o.SHOP_ORDER shopOrder,
+               o.ITEM item,
+               o.ITEM_NAME itemName,
+               i.ITEM_DESC itemDesc,
+               n.WORK_SHOP_DESC as workShopName
+        FROM m_operation_order o
+        LEFT JOIN m_item i on i.ITEM = o.ITEM
+        LEFT JOIN m_work_shop n on o.WORKSHOP=n.WORK_SHOP
+        WHERE 1 = 1  and OPERATION_ORDER_STATE = '1'
+        <if test="param.shopOrder != null and param.shopOrder != ''">
+            AND o.SHOP_ORDER = '${param.shopOrder}'
+        </if>
+        <if test="param.workShop != null and param.workShop != ''">
+            AND o.WORKSHOP = '${param.workShop}'
+        </if>
+        <if test="param.workShopName != null and param.workShopName != ''">
+            AND n.WORK_SHOP_DESC like concat('%','${param.workShopName}','%')
+        </if>
+
+    </select>
+
+    <select id="getSfcByOperationOrder" parameterType="java.util.Map" resultType="com.itl.mes.core.api.entity.Sfc">
+        SELECT m.SFC,
+               m.OPERATION_BO,
+               m.SFC_QTY,
+               m.INPUT_QTY,
+               m.DONE_QTY,
+               m.SCRAP_QTY,
+               m.STATE,
+               o.OPERATION_NAME,
+               m.OPERATION_ORDER
+        from me_sfc m
+            LEFT JOIN m_operation o ON m.OPERATION_BO = o.BO
+        WHERE 1 = 1
+        <if test="param.operationOrder != null and param.operationOrder != ''">
+            AND m.OPERATION_ORDER = '${param.operationOrder}'
+        </if>
+        <if test="param.operationBo != null and param.operationBo != ''">
+            AND m.OPERATION_BO = '${param.operationBo}'
+        </if>
+        <if test="param.operationNameList != null and param.operationNameList.size() > 0">
+            AND o.OPERATION_NAME in
+            <foreach collection="param.operationNameList" item="operationName" open="(" separator="," close=")">
+                #{operationName}
+            </foreach>
+        </if>
+    </select>
+
+    <select id="getOutQty" resultType="java.lang.Integer" parameterType="String">
+        SELECT DONE_QTY FROM me_sfc
+        WHERE 1 = 1
+        <if test="sfc != null and sfc != ''">
+            and SFC = '${sfc}'
+        </if>
+    </select>
+
+    <select id="querySfcList" resultType="String" parameterType="java.util.Map">
+        SELECT DISTINCT(wip.SFC) from me_sfc_wip_log wip
+        WHERE 1 = 1
+        <if test="param.operationBo != null and param.operationBo != ''">
+            and wip.OPERATION_BO = '${param.operationBo}'
+        </if>
+        <if test="param.sfc != null and param.sfc != ''">
+            and wip.SFC = '${param.sfc}'
+        </if>
+        <if test="param.workShopBo != null and param.workShopBo != ''">
+            and wip.WORK_SHOP_BO = '${param.workShopBo}'
+        </if>
+        <if test="param.shopOrderBo != null and param.shopOrderBo != ''">
+            and wip.SHOP_ORDER_BO = '${param.shopOrderBo}'
+        </if>
+    </select>
+
+    <select id="getSfcInfoBySfc" resultType="com.itl.mes.core.api.entity.Sfc">
+        SELECT
+            sfc.*,
+            op.OPERATION as operation,
+            op.OPERATION_NAME as operationName,
+            so.shop_order as shopOrder,
+            mr.router as router,
+            mr.router_name as routerName,
+            mr.version as routerVersion,
+            mi.item as item,
+            mi.item_name as itemName
+        FROM
+            me_sfc sfc
+                LEFT JOIN m_operation op ON sfc.OPERATION_BO = op.BO
+                LEFT JOIN m_shop_order so ON sfc.SHOP_ORDER_BO = so.bo
+                LEFT JOIN m_router mr ON sfc.SFC_ROUTER_BO = mr.BO
+                LEFT JOIN m_item mi ON sfc.ITEM_BO = mi.bo
+        where sfc.sfc = #{sfc}
+    </select>
+    <select id="selectWorkShopBoByUserId" resultType="java.lang.String">
+        SELECT work_shop_bo from iap_sys_user_t t where t.user_name = #{userId}
+    </select>
+    <select id="listAllSendMsgUser" resultType="String">
+        SELECT
+            PUSH_TO_USER
+        FROM
+            andon_grade_push
+        WHERE
+            CALL_TYPE_ID = (
+                SELECT
+                    id
+                FROM
+                    andon_call_type
+                WHERE
+                    workshop_name = #{workShopName}
+        AND andon_type_name = #{typeName})
+    </select>
+</mapper>

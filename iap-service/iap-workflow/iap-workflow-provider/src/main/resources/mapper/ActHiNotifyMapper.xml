@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.itl.iap.workflow.workflow.mapper.ActHiNotifyMapper">
+
+    <resultMap type="com.itl.iap.workflow.api.dto.ActHiNotifyDto" id="ActHiNotifyMap">
+        <result property="id" column="id" jdbcType="INTEGER"/>
+        <result property="executionId" column="execution_id" jdbcType="VARCHAR"/>
+        <result property="notifyId" column="notify_id" jdbcType="VARCHAR"/>
+        <result property="notifyState" column="notify_state" jdbcType="INTEGER"/>
+        <result property="creater" column="creater" jdbcType="VARCHAR"/>
+        <result property="createDate" column="create_date" jdbcType="TIMESTAMP"/>
+        <result property="lastUpdateBy" column="last_update_by" jdbcType="VARCHAR"/>
+        <result property="lastUpdateDate" column="last_update_date" jdbcType="TIMESTAMP"/>
+    </resultMap>
+
+    <!--通过实体作为筛选条件查询-->
+    <select id="pageQuery" resultMap="ActHiNotifyMap">
+        select
+          id, execution_id, notify_id, notify_state, creater, create_date, last_update_by, last_update_date
+        from ACT_HI_NOTIFY
+        <where>
+            <if test="actHiNotifyDto.id != null">
+                and id = #{actHiNotifyDto.id}
+            </if>
+            <if test="actHiNotifyDto.executionId != null and actHiNotifyDto.executionId != ''">
+                and execution_id = #{actHiNotifyDto.executionId}
+            </if>
+            <if test="actHiNotifyDto.notifyId != null and actHiNotifyDto.notifyId != ''">
+                and notify_id = #{actHiNotifyDto.notifyId}
+            </if>
+            <if test="actHiNotifyDto.notifyState != null">
+                and notify_state = #{actHiNotifyDto.notifyState}
+            </if>
+            <if test="actHiNotifyDto.creater != null and actHiNotifyDto.creater != ''">
+                and creater = #{actHiNotifyDto.creater}
+            </if>
+            <if test="actHiNotifyDto.createDate != null">
+                and create_date = #{actHiNotifyDto.createDate}
+            </if>
+            <if test="actHiNotifyDto.lastUpdateBy != null and actHiNotifyDto.lastUpdateBy != ''">
+                and last_update_by = #{actHiNotifyDto.lastUpdateBy}
+            </if>
+            <if test="actHiNotifyDto.lastUpdateDate != null">
+                and last_update_date = #{actHiNotifyDto.lastUpdateDate}
+            </if>
+        </where>
+    </select>
+
+</mapper>

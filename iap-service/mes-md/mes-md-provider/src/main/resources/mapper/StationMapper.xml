@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.itl.mes.core.provider.mapper.StationMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.itl.mes.core.api.entity.Station">
+        <id column="BO" property="bo" />
+        <result column="SITE" property="site" />
+        <result column="STATION" property="station" />
+        <result column="STATION_NAME" property="stationName" />
+        <result column="STATION_DESC" property="stationDesc" />
+        <result column="OPERATION_BO" property="operationBo" />
+        <result column="STATE" property="state" />
+        <result column="CREATE_DATE" property="createDate" />
+        <result column="CREATE_USER" property="createUser" />
+        <result column="MODIFY_DATE" property="modifyDate" />
+        <result column="MODIFY_USER" property="modifyUser" />
+        <result column="STATION_TYPE_BO" property="stationTypeBo" />
+        <result column="PRODUCT_LINE_BO" property="productLineBo" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        BO, SITE, STATION, STATION_NAME, STATION_DESC, OPERATION_BO, STATE, CREATE_DATE, CREATE_USER, MODIFY_DATE, MODIFY_USER, STATION_TYPE_BO, PRODUCT_LINE_BO
+    </sql>
+
+    <select id="getStationBySiteAndUserName" parameterType="string" resultMap="BaseResultMap">
+        select m.BO, m.SITE, m.STATION, m.STATION_NAME, m.STATION_DESC, m.OPERATION_BO, m.STATE, m.CREATE_DATE, m.CREATE_USER, m.MODIFY_DATE, m.MODIFY_USER, m.STATION_TYPE_BO, m.PRODUCT_LINE_BO
+        from m_station m
+        left join iap_sys_user_station_t n on m.bo=n.STATION_BO
+        left join iap_sys_user_t o on o.id=n.user_id
+        where n.site=#{site} and o.user_name=#{userName} ORDER BY m.BO
+    </select>
+
+    <select id="getStationBySiteAndCardNumber" parameterType="string" resultMap="BaseResultMap">
+        select m.BO, m.SITE, m.STATION, m.STATION_NAME, m.STATION_DESC, m.OPERATION_BO, m.STATE, m.CREATE_DATE, m.CREATE_USER, m.MODIFY_DATE, m.MODIFY_USER, m.STATION_TYPE_BO, m.PRODUCT_LINE_BO
+        from m_station m
+                 left join iap_sys_user_station_t n on m.bo=n.STATION_BO
+                 left join iap_sys_user_t o on o.id=n.user_id
+        where n.site=#{site} and o.user_card_number=#{userCardNumber} ORDER BY m.BO
+    </select>
+
+    <select id="findUserStations" resultMap="BaseResultMap">
+        SELECT
+            a.BO,
+            a.STATION,
+            a.STATION_DESC
+        FROM
+            m_station a,
+            iap_sys_user_station_t b
+        WHERE
+            a.BO = b.STATION_BO
+            AND a.SITE = #{userStationQueryDTO.site}
+            AND b.user_id = #{userStationQueryDTO.userId}
+        <if test='userStationQueryDTO.station !="" and userStationQueryDTO.station !=null'>
+            AND a.station LIKE CONCAT(#{userStationQueryDTO.station},'%')
+        </if>
+    </select>
+    <select id="getByStation" resultType="java.util.Map">
+        select mpl.PRODUCT_LINE,mws.WORK_SHOP
+        from m_station ms
+                     left join m_product_line mpl on mpl.bo=ms.PRODUCT_LINE_BO
+                     left join m_work_shop mws on mws.BO=mpl.WORK_SHOP_BO
+        where ms.STATION=#{station}
+          and ms.SITE=#{site}
+    </select>
+    <select id="findUncorrelatedUserStations" resultMap="BaseResultMap">
+
+        SELECT
+            m.BO,
+            m.STATION,
+            m.STATION_DESC
+        FROM
+            m_station m
+        left join m_operation n on m.OPERATION_BO=n.BO
+        left join m_work_shop o on n.WORK_SHOP=o.WORK_SHOP
+        WHERE
+            NOT EXISTS (
+            select 1 from iap_sys_user_station_t where m.BO = station_bo
+            and user_id = #{userStationQueryDTO.userId}
+            )
+            and m.site = #{userStationQueryDTO.site}
+        <if test='userStationQueryDTO.station !="" and userStationQueryDTO.station !=null'>
+            AND m.station LIKE CONCAT(#{userStationQueryDTO.station},'%')
+        </if>
+        <if test="userStationQueryDTO.workShopBo !=null and userStationQueryDTO.workShopBo !=''">
+            AND o.bo =  #{userStationQueryDTO.workShopBo}
+        </if>
+    </select>
+    <select id="getUserByStationBo" resultType="string">
+        SELECT
+            user_name
+        FROM
+            iap_sys_user_t
+        WHERE
+                id IN (
+                SELECT
+                    user_id
+                FROM
+                    iap_sys_user_station_t
+                WHERE
+                    STATION_bo = #{stationBo})
+    </select>
+    <select id="getUserNameByUserBo" resultType="string">
+        SELECT
+            real_name
+        FROM
+            iap_sys_user_t
+        WHERE user_name = #{userBo}
+    </select>
+    <select id="getStationByStepAndProductLineBo" resultType="com.itl.mes.core.api.entity.Station">
+        SELECT
+            *
+        FROM
+            m_station
+        WHERE
+            WORKSTATION_BO = #{stepBo}
+          AND PRODUCT_LINE_BO = #{productLineBo}
+    </select>
+    <select id="getProductLineBoByUser" resultType="string">
+        select product_line_bo from iap_sys_user_t where user_name = #{userName}
+    </select>
+</mapper>

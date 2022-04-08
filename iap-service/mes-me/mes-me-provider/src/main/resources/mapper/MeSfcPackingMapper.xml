@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.itl.mes.me.provider.mapper.MeSfcPackingMapper">
+
+	<!-- 可根据自己的需求，是否要使用 -->
+    <resultMap type="com.itl.mes.me.api.entity.MeSfcPacking" id="meSfcPackingMap">
+        <result property="bo" column="BO"/>
+        <result property="site" column="SITE"/>
+        <result property="cartonNo" column="CARTON_NO"/>
+        <result property="wipLogBo" column="WIP_LOG_BO"/>
+        <result property="createTime" column="CREATE_TIME"/>
+        <result property="maxCount" column="MAX_COUNT"/>
+        <result property="currentCount" column="CURRENT_COUNT"/>
+        <result property="state" column="STATE"/>
+        <result property="remark" column="REMARK"/>
+    </resultMap>
+
+
+</mapper>

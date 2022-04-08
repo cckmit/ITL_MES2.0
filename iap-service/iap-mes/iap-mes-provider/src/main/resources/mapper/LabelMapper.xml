@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.itl.iap.mes.provider.mapper.LabelMapper">
+
+    <select id="selectFieldByTableName" parameterType="String" resultType="String">
+         select name from syscolumns where id =object_id(#{tableName});
+    </select>
+
+    <select id="selectSfcByFiled" parameterType="String" resultType="String">
+        select ${fieldName} from me_sfc m left join me_sfc t on m.sfc=t.sfc where m.sfc=#{sfc};
+    </select>
+
+    <select id="selectOperationOrderByFiled" parameterType="String" resultType="String">
+        select ${fieldName} from me_sfc m left join m_operation_order t on m.operation_order = t.operation_order where m.sfc=#{sfc};
+    </select>
+
+    <select id="selectItemByFiled" parameterType="String" resultType="String">
+        select ${fieldName} from me_sfc m left join m_item t on m.item_bo = t.bo where m.sfc=#{sfc};
+    </select>
+
+    <!-- fieldName相当于router -->
+    <select id="selectRouterByFiled" parameterType="String" resultType="String">
+        select ${fieldName} from me_sfc m left join m_router t on m.sfc_router_bo = t.bo where m.sfc=#{sfc};
+    </select>
+    <!-- fieldName相当于router_name -->
+    <select id="selectRouterNameByFiled" parameterType="String" resultType="String">
+        select ${fieldName} from me_sfc m left join m_router t on m.sfc_router_bo = t.bo where m.sfc=#{sfc};
+    </select>
+
+    <!-- fieldName相当于operation_name -->
+    <select id="selectOperationNameByFiled" parameterType="String" resultType="String">
+        select ${fieldName} from me_sfc m
+         left join m_router_process_table t on m.sfc_router_bo = t.router_bo
+         left join m_operation n on t.operation_bo = n.bo
+        where m.sfc=#{sfc} ORDER BY t.position_flag ASC
+    </select>
+
+    <!-- fieldName相当于device -->
+    <select id="selectDeviceByFiled" parameterType="String" resultType="String">
+        select ${fieldName} from me_sfc m left join m_dispatch t on m.dispatch_code = t.dispatch_code where m.sfc=#{sfc};
+    </select>
+</mapper>

@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.itl.iap.notice.provider.mapper.MsgTypeMapper" >
+    <resultMap id="BaseResultMap" type="com.itl.iap.notice.api.entity.MsgType" >
+        <id column="ID" property="id" jdbcType="VARCHAR" />
+        <result column="code" property="code" jdbcType="VARCHAR" />
+        <result column="name" property="name" jdbcType="VARCHAR" />
+        <result column="parent_id" property="parentId" jdbcType="VARCHAR" />
+        <result column="create_name" property="createName" jdbcType="VARCHAR" />
+        <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
+        <result column="update_name" property="updateName" jdbcType="VARCHAR" />
+        <result column="update_time" property="updateTime" jdbcType="TIMESTAMP" />
+        <collection column="id=id" property="subModules" select="selectMsgTypeByParentId" />
+    </resultMap>
+
+    <select id="selectMsgTypeByParentId" resultMap="BaseResultMap">
+        SELECT * from msg_type where parent_id=#{id}
+    </select>
+    <select id="selectMsgTypeTree" resultMap="BaseResultMap">
+        SELECT * FROM msg_type
+        <where>
+            <if test="id == 'root'">
+                parent_id IS NULL
+            </if>
+            <if test="id != 'root'">
+                parent_id = #{id}
+            </if>
+        </where>
+    </select>
+    <select id="selectDynamicMsgTypes" resultMap="BaseResultMap" parameterType="com.itl.iap.notice.api.dto.MsgTypeDto">
+        SELECT * from msg_type where id in (
+        SELECT mpt.msg_type_id from msg_send_record ms
+        LEFT join msg_public_template mpt on ms.msg_public_template_id=mpt.id
+        left join msg_type ty on mpt.msg_type_id=ty.id  where ms.receiver_uid=#{receiverUid} and ms.enabled_flag=0 and ms.send_type=1  GROUP BY mpt.msg_type_id
+        ) ORDER BY create_time DESC
+    </select>
+</mapper>

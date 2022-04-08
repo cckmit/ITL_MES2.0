@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.itl.iap.notice.provider.mapper.MsgMailConfigurationMapper" >
+    <update id="updateOther" parameterType="map">
+        UPDATE msg_mail_configuration
+        SET enable = #{enable}
+        WHERE id != #{id} AND type = #{type}
+    </update>
+
+    <select id="queryPage" resultType="com.itl.iap.notice.api.dto.MsgMailConfigurationDto">
+        SELECT id,
+               code,
+               enable,
+               ip,
+               password,
+               port,
+               protocol,
+               type,
+               username,
+        (SELECT B.name FROM iap_dict_t A LEFT JOIN iap_dict_item_t B ON B.iap_dict_id = A.id
+            WHERE A.code = #{type} AND key_value = type ) as typeName
+        FROM msg_mail_configuration
+        WHERE 1=1
+        <if test="query.code != null and query.code.trim() !=''">
+            AND code LIKE CONCAT('%',#{query.code},'%')
+        </if>
+    </select>
+</mapper>

@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.itl.im.provider.mapper.IapImIMSessionMapper">
+
+    <resultMap type="iap.im.api.sendDto.IapImSessionDto" id="IapImImsessionTMap">
+        <result property="id" column="id" jdbcType="VARCHAR"/>
+        <result property="account" column="account" jdbcType="VARCHAR"/>
+        <result property="nid" column="nid" jdbcType="VARCHAR"/>
+        <result property="deviceId" column="device_id" jdbcType="VARCHAR"/>
+        <result property="host" column="host" jdbcType="VARCHAR"/>
+        <result property="channel" column="channel" jdbcType="VARCHAR"/>
+        <result property="deviceModel" column="device_model" jdbcType="VARCHAR"/>
+        <result property="clientVersion" column="client_version" jdbcType="VARCHAR"/>
+        <result property="systemVersion" column="system_version" jdbcType="VARCHAR"/>
+        <result property="longitude" column="longitude" jdbcType="DOUBLE"/>
+        <result property="latitude" column="latitude" jdbcType="DOUBLE"/>
+        <result property="location" column="location" jdbcType="VARCHAR"/>
+        <result property="apns" column="apns" jdbcType="INTEGER"/>
+        <result property="state" column="state" jdbcType="INTEGER"/>
+        <result property="bindTime" column="bind_time" jdbcType="BIGINT"/>
+    </resultMap>
+
+    <!--通过实体作为筛选条件查询-->
+    <select id="pageQuery" resultMap="IapImImsessionTMap">
+        select
+        id, account, nid, deviceId, host, channel, device_model, client_version, system_version, longitude, latitude,
+        location, apns, state, bind_time
+        from iap_im_cimsession_t
+        <where>
+            <if test="IapImSessionDto.id != null and IapImSessionDto.id != ''">
+                and id = #{IapImSessionDto.id}
+            </if>
+            <if test="IapImSessionDto.account != null and IapImSessionDto.account != ''">
+                and account = #{IapImSessionDto.account}
+            </if>
+            <if test="IapImSessionDto.nid != null and IapImSessionDto.nid != ''">
+                and nid = #{IapImSessionDto.nid}
+            </if>
+            <if test="IapImSessionDto.deviceid != null and IapImSessionDto.deviceid != ''">
+                and deviceId = #{IapImSessionDto.deviceid}
+            </if>
+            <if test="IapImSessionDto.host != null and IapImSessionDto.host != ''">
+                and host = #{IapImSessionDto.host}
+            </if>
+            <if test="IapImSessionDto.channel != null and IapImSessionDto.channel != ''">
+                and channel = #{IapImSessionDto.channel}
+            </if>
+            <if test="IapImSessionDto.deviceModel != null and IapImSessionDto.deviceModel != ''">
+                and device_model = #{IapImSessionDto.deviceModel}
+            </if>
+            <if test="IapImSessionDto.clientVersion != null and IapImSessionDto.clientVersion != ''">
+                and client_version = #{IapImSessionDto.clientVersion}
+            </if>
+            <if test="IapImSessionDto.systemVersion != null and IapImSessionDto.systemVersion != ''">
+                and system_version = #{IapImSessionDto.systemVersion}
+            </if>
+            <if test="IapImSessionDto.longitude != null">
+                and longitude = #{IapImSessionDto.longitude}
+            </if>
+            <if test="IapImSessionDto.latitude != null">
+                and latitude = #{IapImSessionDto.latitude}
+            </if>
+            <if test="IapImSessionDto.location != null and IapImSessionDto.location != ''">
+                and location = #{IapImSessionDto.location}
+            </if>
+            <if test="IapImSessionDto.apns != null">
+                and apns = #{IapImSessionDto.apns}
+            </if>
+            <if test="IapImSessionDto.state != null">
+                and state = #{IapImSessionDto.state}
+            </if>
+            <if test="IapImSessionDto.bindTime != null">
+                and bind_time = #{IapImSessionDto.bindTime}
+            </if>
+        </where>
+    </select>
+
+</mapper>

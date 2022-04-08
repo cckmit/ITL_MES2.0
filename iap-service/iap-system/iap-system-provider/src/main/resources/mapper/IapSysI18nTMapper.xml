@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.itl.iap.system.provider.mapper.IapSysI18nTMapper">
+    <resultMap id="iapSysI18nMap" type="com.itl.iap.system.api.dto.IapSysI18nTDto">
+        <result property="id" column="id" jdbcType="VARCHAR"/>
+        <result property="i18nKey" column="i18n_key" jdbcType="VARCHAR"/>
+        <result property="i18nValue" column="i18n_value" jdbcType="VARCHAR"/>
+        <result property="creater" column="creater" jdbcType="VARCHAR"/>
+        <result property="createDate" column="creater_date" jdbcType="TIMESTAMP"/>
+        <result property="createOrg" column="creater_org" jdbcType="VARCHAR"/>
+        <result property="lastUpdateBy" column="last_update_by" jdbcType="TIMESTAMP"/>
+        <result property="lastUpdateDate" column="last_update_date" jdbcType="VARCHAR"/>
+        <collection property="multipleLanguagesList" column="{primaryKey=i18n_key }"
+                    select="queryMultipleLanguageByI18nKey"/>
+    </resultMap>
+
+    <!--分页查询，其中A.language_type是取的字典表中国际化的中文 -->
+    <select id="queryAll" resultMap="iapSysI18nMap">
+        SELECT
+        A.i18n_key
+        FROM
+        `iap_sys_i18n_t` AS A
+        <where>
+            <if test="iapSysI18nTDto.i18nKey != null and iapSysI18nTDto.i18nKey.trim() != ''">
+                and A.i18n_key like concat('%', #{iapSysI18nTDto.i18nKey}, '%')
+            </if>
+            <if test="iapSysI18nTDto.i18nValue != null and iapSysI18nTDto.i18nValue.trim() != ''">
+                and A.i18n_value like concat('%', #{iapSysI18nTDto.i18nValue}, '%')
+            </if>
+        </where>
+        GROUP BY A.i18n_key
+        ORDER BY A.create_date DESC
+
+    </select>
+
+    <!-- 通过键查找对应的多语言列表 -->
+    <select id="queryMultipleLanguageByI18nKey" resultType="com.itl.iap.system.api.dto.IapSysI18nTDto">
+        SELECT
+            B.id,
+            B.i18n_key,
+            B.i18n_value,
+            B.create_date,
+            B.last_update_date
+        FROM
+            `iap_sys_i18n_t` AS B
+        WHERE
+            B.i18n_key = #{primaryKey}
+    </select>
+
+    <!-- 批量修改键 -->
+    <update id="updateKey">
+        UPDATE `iap_sys_i18n_t`
+        SET i18n_key = #{iapSysI18nDto.newI18nKey}
+        WHERE i18n_key = #{iapSysI18nDto.i18nKey}
+    </update>
+
+</mapper>

@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.itl.mes.core.provider.mapper.ProductLineMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.itl.mes.core.api.entity.ProductLine">
+        <id column="BO" property="bo" />
+        <result column="SITE" property="site" />
+        <result column="PRODUCT_LINE" property="productLine" />
+        <result column="PRODUCT_LINE_DESC" property="productLineDesc" />
+        <result column="WORK_SHOP_BO" property="workShopBo" />
+        <result column="STATE" property="state" />
+        <result column="CREATE_DATE" property="createDate" />
+        <result column="CREATE_USER" property="createUser" />
+        <result column="MODIFY_DATE" property="modifyDate" />
+        <result column="MODIFY_USER" property="modifyUser" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        BO, SITE, PRODUCT_LINE, PRODUCT_LINE_DESC, WORK_SHOP_BO, STATE, CREATE_DATE, CREATE_USER, MODIFY_DATE, MODIFY_USER
+    </sql>
+
+    <select id="listByWorkShop" resultType="com.itl.mes.core.api.entity.ProductLine">
+        SELECT BO,
+        SITE,
+        PRODUCT_LINE,
+        PRODUCT_LINE_DESC,
+        WORK_SHOP_BO,
+        STATE,
+        CALENDAR_SCHEME,
+        PERCENTAGE,
+        RATED_TIME,
+        MAX_TIME,
+        MAINTENANCE_TIME
+        FROM m_product_line
+        WHERE SITE = #{queryVo.site}
+        <if test="queryVo.workShopBo != null and queryVo.workShopBo !=''">
+            AND WORK_SHOP_BO = #{queryVo.workShopBo}
+        </if>
+    </select>
+</mapper>

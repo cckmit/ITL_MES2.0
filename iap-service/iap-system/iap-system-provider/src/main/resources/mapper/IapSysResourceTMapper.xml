@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.itl.iap.system.provider.mapper.IapSysResourceTMapper">
+
+    <resultMap type="com.itl.iap.system.api.dto.IapSysResourceTDto" id="IapSysResourceTMap">
+        <result property="id" column="id" jdbcType="VARCHAR"/>
+        <result property="resourcesName" column="resources_name" jdbcType="VARCHAR"/>
+        <result property="resourcesCode" column="resources_code" jdbcType="VARCHAR"/>
+        <result property="resourcesIcon" column="resources_icon" jdbcType="VARCHAR"/>
+        <result property="sort" column="sort" jdbcType="SMALLINT"/>
+        <result property="parentId" column="parent_id" jdbcType="VARCHAR"/>
+        <result property="routerPath" column="router_path" jdbcType="VARCHAR"/>
+        <result property="resourceType" column="resource_type" jdbcType="INTEGER"/>
+        <result property="state" column="state" jdbcType="SMALLINT"/>
+        <result property="description" column="description" jdbcType="VARCHAR"/>
+        <result property="creater" column="creater" jdbcType="VARCHAR"/>
+        <result property="createDate" column="create_date" jdbcType="TIMESTAMP"/>
+        <result property="createOrg" column="create_org" jdbcType="VARCHAR"/>
+        <result property="lastUpdateBy" column="last_update_by" jdbcType="VARCHAR"/>
+        <result property="lastUpdateDate" column="last_update_date" jdbcType="TIMESTAMP"/>
+        <result property="component" column="component" jdbcType="VARCHAR"/>
+        <result property="componentName" column="component_name" jdbcType="VARCHAR"></result>
+        <result property="cache" column="cache"></result>
+    </resultMap>
+    <resultMap type="com.itl.iap.system.api.dto.AuthClientDto" id="authClientMap">
+        <result property="id" column="id" jdbcType="VARCHAR"/>
+        <result property="clientName" column="client_name" jdbcType="VARCHAR"/>
+        <result property="clientId" column="client_id" jdbcType="VARCHAR"/>
+        <result property="clientSecret" column="client_secret" jdbcType="VARCHAR"/>
+        <result property="clientUri" column="client_uri" jdbcType="VARCHAR"/>
+        <result property="clientIconUri" column="client_icon_uri" jdbcType="VARCHAR"/>
+        <result property="resourceIds" column="resource_ids" jdbcType="VARCHAR"/>
+        <result property="scope" column="scope" jdbcType="VARCHAR"/>
+        <result property="grantTypes" column="grant_types" jdbcType="VARCHAR"/>
+        <result property="redirectUri" column="redirect_uri" jdbcType="VARCHAR"/>
+        <result property="state" column="state" jdbcType="SMALLINT"/>
+        <result property="description" column="description" jdbcType="VARCHAR"/>
+        <result property="creater" column="creater" jdbcType="VARCHAR"/>
+        <result property="createDate" column="create_date" jdbcType="TIMESTAMP"/>
+        <result property="createOrg" column="create_org" jdbcType="VARCHAR"/>
+        <result property="lastUpdateBy" column="last_update_by" jdbcType="VARCHAR"/>
+        <result property="lastUpdateDate" column="last_update_date" jdbcType="TIMESTAMP"/>
+    </resultMap>
+    <!--通过实体作为筛选条件查询-->
+    <select id="queryList" resultMap="IapSysResourceTMap">
+        select
+        id, resources_name, resources_code, resources_icon, sort, parent_id, router_path, resource_type, state,
+        description, creater, create_date, create_org, last_update_by, last_update_date, component,component_name,cache
+        from iap_sys_resource_t
+       WHERE  1=1   ORDER BY sort ASC
+    </select>
+
+    <select id="getAllClient" resultMap="authClientMap">
+        SELECT
+        id,
+        client_name,
+        client_id,
+        client_secret,
+        client_uri,
+        client_icon_uri,
+        resource_ids,
+        scope,
+        grant_types,
+        redirect_uri,
+        state,
+        description,
+        creater,
+        create_date,
+        create_org,
+        last_update_by,
+        last_update_date
+        FROM
+        iap_auth_client_t
+        <where>
+            <if test="authClientDto.state != null ">
+                state != #{authClientDto.state}
+            </if>
+            <if test="authClientDto.clientId != null and authClientDto.clientId != '' ">
+                client_id = #{authClientDto.clientId }
+            </if>
+        </where>
+        ORDER BY state ASC
+    </select>
+
+    <!--通过实体作为筛选条件查询-->
+    <select id="getAllMenu" resultMap="IapSysResourceTMap">
+        SELECT
+            B.id,
+            B.resources_name,
+            B.resources_code,
+            B.resources_icon,
+            B.sort,
+            B.parent_id,
+            B.router_path,
+            B.resource_type,
+            B.state,
+            B.description,
+            B.creater,
+            B.create_org,
+            B.last_update_by,
+            B.last_update_date,
+            B.component,
+            B.component_name,
+            B.cache
+        FROM
+            (
+            SELECT
+                C.resource_id AS resource_id,
+                A.user_id AS id
+            FROM
+                iap_sys_user_t D LEFT JOIN
+                iap_sys_user_role_t A ON D.id = A.user_id
+                LEFT JOIN iap_sys_role_auth_t B ON A.role_id = B.role_id
+                LEFT JOIN iap_sys_auth_resource_t C ON B.auth_id = C.auth_id
+            WHERE
+                D.user_name = #{userName}
+                AND B.del_flag = '0'
+                AND C.del_flag = '0'
+            ) A
+            LEFT JOIN iap_sys_resource_t B ON A.resource_id = B.id
+        WHERE
+            B.state = 1
+        ORDER BY  B.sort ASC
+    </select>
+
+</mapper>

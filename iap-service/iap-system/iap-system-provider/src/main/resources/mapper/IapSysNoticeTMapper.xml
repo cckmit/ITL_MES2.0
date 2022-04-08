@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.itl.iap.system.provider.mapper.IapSysNoticeTMapper">
+
+    <select id="query" resultType="com.itl.iap.system.api.dto.IapSysNoticeTDto"
+            parameterType="com.itl.iap.system.api.dto.IapSysNoticeTDto">
+        SELECT
+        id,
+        content,
+        create_date AS createDate,
+        creater,
+        last_update_by AS lastUpdateBy,
+        notice_category AS noticeCategory,
+        notice_type AS noticeType ,
+        publisher_category AS publisherCategory,
+        remark,
+        status,
+        term_end AS termEnd,
+        term_start AS termStart,
+        title,
+        last_update_date AS lastUpdateDate,
+        company_id AS companyId,
+        enterprise_id AS enterpriseId
+        FROM
+        iap_sys_notice_t
+        <where>
+            <if test="noticeDto.title != null and noticeDto.title != ''">
+                title like concat('%', #{noticeDto.title}, '%')
+            </if>
+			<if test="noticeDto.publisherCategory != null">
+				and publisher_category = #{noticeDto.publisherCategory}
+			</if>
+			<if test="noticeDto.status != null">
+                and status = #{noticeDto.status}
+            </if>
+            <if test="noticeDto.companyId != null and noticeDto.companyId != ''">
+                and company_id like concat('%', #{noticeDto.companyId}, '%')
+            </if>
+            <if test="noticeDto.enterpriseId != null and noticeDto.enterpriseId != ''">
+                and enterprise_id like concat('%', #{noticeDto.enterpriseId}, '%')
+            </if>
+            <if test="noticeDto.termStart != null ">
+                and term_start <![CDATA[>=]]> #{noticeDto.termStart}
+            </if>
+            <if test="noticeDto.termEnd != null">
+                and term_end  <![CDATA[<=]]>#{noticeDto.termEnd}
+            </if>
+        </where>
+    </select>
+
+</mapper>

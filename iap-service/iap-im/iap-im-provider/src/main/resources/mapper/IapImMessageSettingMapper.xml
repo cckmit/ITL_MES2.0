@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.itl.im.provider.mapper.IapImMessageSettingMapper">
+
+    <resultMap type="iap.im.api.dto.IapImMessageSettingDto" id="IapImSettingTMap">
+        <result property="id" column="id" jdbcType="VARCHAR"/>
+        <result property="autoType" column="auto_type" jdbcType="INTEGER"/>
+        <result property="timestamp" column="timestamp" jdbcType="BIGINT"/>
+        <result property="timeType" column="time_type" jdbcType="SMALLINT"/>
+        <result property="frequency" column="frequency" jdbcType="INTEGER"/>
+        <result property="userId" column="user_id" jdbcType="VARCHAR"/>
+        <result property="creater" column="creater" jdbcType="VARCHAR"/>
+        <result property="lastUpdateBy" column="last_update_by" jdbcType="VARCHAR"/>
+        <result property="lastUpdateDate" column="last_update_date" jdbcType="TIMESTAMP"/>
+        <result property="createDate" column="create_date" jdbcType="TIMESTAMP"/>
+        <collection property="customizeDto" ofType="iap.im.api.dto.IapImMessageCustomizeDto">
+            <result property="id" column="custom_id" jdbcType="VARCHAR"/>
+            <result property="customizeMessage" column="customize_message" jdbcType="VARCHAR"/>
+            <result property="customizeShort" column="customize_short" jdbcType="INTEGER"/>
+            <result property="settingId" column="setting_id" jdbcType="VARCHAR"/>
+            <result property="creater" column="custom_creater" jdbcType="VARCHAR"/>
+            <result property="lastUpdateBy" column="custom_last_update_by" jdbcType="VARCHAR"/>
+            <result property="lastUpdateDate" column="custom_last_update_date" jdbcType="TIMESTAMP"/>
+            <result property="createDate" column="custom_create_date" jdbcType="TIMESTAMP"/>
+        </collection>
+    </resultMap>
+
+    <!--通过实体作为筛选条件查询-->
+    <select id="queryUserSetting" resultMap="IapImSettingTMap">
+        select
+        A.id, A.auto_type, A.timestamp, A.time_type, A.frequency, A.user_id,
+        A.create_date,A.last_update_date,A.creater,A.last_update_by,
+        B.id as custom_id,B.customize_message,B.customize_short,B.setting_id, B.create_date as custom_create_date,
+        B.last_update_date as custom_last_update_date, B.creater as custom_creater,B.last_update_by as
+        custom_last_update_by
+        from iap_im_setting_t A LEFT JOIN iap_im_customize_t B ON A.id = B.setting_id
+        <where>
+            <if test="iapImMessageSettingDto.id != null">
+                and A.id = #{iapImMessageSettingDto.id}
+            </if>
+            <if test="iapImMessageSettingDto.autoType != null">
+                and A.auto_type = #{iapImMessageSettingDto.autoType}
+            </if>
+            <if test="iapImMessageSettingDto.timestamp != null">
+                and A.timestamp = #{iapImMessageSettingDto.timestamp}
+            </if>
+            <if test="iapImMessageSettingDto.timeType != null">
+                and A.time_type = #{iapImMessageSettingDto.timeType}
+            </if>
+            <if test="iapImMessageSettingDto.frequency != null">
+                and A.frequency = #{iapImMessageSettingDto.frequency}
+            </if>
+            <if test="iapImMessageSettingDto.userId != null and iapImMessageSettingDto.userId != ''">
+                and A.user_id = #{iapImMessageSettingDto.userId}
+            </if>
+        </where>
+        ORDER BY B.customize_short ASC
+    </select>
+
+
+</mapper>

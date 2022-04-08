@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.itl.mes.pp.provider.mapper.StrategyMapper">
+
+    <sql id="BASE_FIELD">
+        T.strategyKey AS strategyKey,T.strategyBz AS strategyBz,T.id AS id,T.isUse AS isUse,T.bz AS bz,T.workshop AS workshop,T.productionLine AS productionLine,
+        T.isDefault AS isDefault,T.isUnique AS isUnique
+    </sql>
+
+    <sql id="QUERY_FIELD">
+        <where>
+            <if test="workshop != null and workshop !=''">
+                AND T.workshop = #{workshop}
+            </if>
+            <if test="productionLine != null and productionLine !=''">
+                AND T.productionLine = #{productionLine}
+            </if>
+            <if test="isDefault != null and isDefault != 0">
+                AND T.isDefault = #{isDefault}
+            </if>
+        </where>
+    </sql>
+
+    <select id="getByWorkshopAndLine" parameterType="com.itl.mes.pp.api.entity.Strategy" resultType="com.itl.mes.pp.api.entity.Strategy">
+        SELECT
+        <include refid="BASE_FIELD"/>
+        FROM p_strategy T
+        <include refid="QUERY_FIELD"/>
+    </select>
+
+
+</mapper>   

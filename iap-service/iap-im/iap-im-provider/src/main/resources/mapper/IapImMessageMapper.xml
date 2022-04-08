@@ -1,0 +1,345 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.itl.im.provider.mapper.IapImMessageMapper">
+
+    <resultMap type="iap.im.api.dto.IapImMessageDto" id="IapImMessageTMap">
+        <result property="id" column="id" jdbcType="VARCHAR"/>
+        <result property="action" column="action" jdbcType="VARCHAR"/>
+        <result property="content" column="content" jdbcType="VARCHAR"/>
+        <result property="extra" column="extra" jdbcType="VARCHAR"/>
+        <result property="format" column="format" jdbcType="VARCHAR"/>
+        <result property="receiver" column="receiver" jdbcType="VARCHAR"/>
+        <result property="sender" column="sender" jdbcType="VARCHAR"/>
+        <result property="state" column="state" jdbcType="VARCHAR"/>
+        <result property="timestamp" column="timestamp" jdbcType="BIGINT"/>
+        <result property="title" column="title" jdbcType="VARCHAR"/>
+        <result property="hideMessage" column="hide_message" jdbcType="VARCHAR"/>
+        <result property="senderRealName" column="senderRealName" jdbcType="VARCHAR"/>
+        <result property="sendAvatar" column="sendAvatar" jdbcType="VARCHAR"/>
+        <result property="receiverRealName" column="receiverRealName" jdbcType="VARCHAR"/>
+        <result property="receiverAvatar" column="receiverAvatar" jdbcType="VARCHAR"/>
+        <result property="messageNumber" column="messageNumber" jdbcType="INTEGER"/>
+        <result property="groupNumber" column="groupNumber" jdbcType="INTEGER"/>
+    </resultMap>
+
+    <resultMap type="iap.im.api.dto.IapImMessageListDto" id="IapImMessageListMap">
+        <result property="id" column="m_id" jdbcType="VARCHAR"/>
+        <result property="listType" column="listType" jdbcType="INTEGER"/>
+        <result property="showType" column="showType" jdbcType="VARCHAR"/>
+        <result property="sender" column="m_sender" jdbcType="VARCHAR"/>
+        <result property="topTime" column="top_time" jdbcType="BIGINT"/>
+        <result property="realName" column="realName" jdbcType="VARCHAR"/>
+        <result property="receiverAvatar" column="m_receiverAvatar" jdbcType="VARCHAR"/>
+        <result property="receiver" column="m_receiver" jdbcType="VARCHAR"/>
+        <result property="groupName" column="groupName" jdbcType="VARCHAR"/>
+        <result property="groupAvatar" column="groupAvatar" jdbcType="VARCHAR"/>
+        <result property="timestamp" column="m_timestamp" jdbcType="BIGINT"/>
+        <result property="messageNumber" column="messageNumber" jdbcType="BIGINT"/>
+        <collection property="messageTopDto" javaType="list" ofType="iap.im.api.dto.IapImMessageTopDto">
+            <id property="id" column="top_id"/>
+            <result property="messageId" column="message_id"/>
+            <result property="messageListId" column="message_list_id"/>
+            <result property="topPerson" column="top_realName"/>
+            <result property="topContent" column="top_content"/>
+            <result property="topTimestamp" column="top_timestamp"/>
+        </collection>
+        <collection property="iapImMessageDtos" javaType="list" resultMap="IapImMessageTMap"
+                    autoMapping="true"></collection>
+    </resultMap>
+
+    <resultMap type="iap.im.api.dto.IapImMessageListDto" id="IapImFileMessageMap">
+        <result property="id" column="A_id" jdbcType="VARCHAR"/>
+        <result property="listType" column="listType" jdbcType="INTEGER"/>
+        <result property="showType" column="showType" jdbcType="VARCHAR"/>
+        <result property="sender" column="A_sender" jdbcType="VARCHAR"/>
+        <result property="topTime" column="top_time" jdbcType="BIGINT"/>
+        <result property="realName" column="realName" jdbcType="VARCHAR"/>
+        <result property="receiverAvatar" column="A_receiverAvatar" jdbcType="VARCHAR"/>
+        <result property="receiver" column="A_receiver" jdbcType="VARCHAR"/>
+        <result property="groupName" column="groupName" jdbcType="VARCHAR"/>
+        <result property="groupAvatar" column="groupAvatar" jdbcType="VARCHAR"/>
+        <result property="timestamp" column="A_timestamp" jdbcType="BIGINT"/>
+        <result property="messageNumber" column="messageNumber" jdbcType="BIGINT"/>
+        <result property="historyTime" column="historyTime" jdbcType="VARCHAR"/>
+        <collection property="iapImMessageDtos" javaType="list" ofType="iap.im.api.dto.IapImMessageDto">
+            <result property="id" column="m_id" jdbcType="VARCHAR"/>
+            <result property="action" column="m_action" jdbcType="VARCHAR"/>
+            <result property="content" column="m_content" jdbcType="VARCHAR"/>
+            <result property="extra" column="m_extra" jdbcType="VARCHAR"/>
+            <result property="format" column="m_format" jdbcType="VARCHAR"/>
+            <result property="receiver" column="m_receiver" jdbcType="VARCHAR"/>
+            <result property="sender" column="m_sender" jdbcType="VARCHAR"/>
+            <result property="state" column="m_state" jdbcType="VARCHAR"/>
+            <result property="timestamp" column="m_timestamp" jdbcType="BIGINT"/>
+            <result property="title" column="m_title" jdbcType="VARCHAR"/>
+            <result property="hideMessage" column="m_hide_message" jdbcType="VARCHAR"/>
+            <result property="senderRealName" column="m_senderRealName" jdbcType="VARCHAR"/>
+            <result property="sendAvatar" column="m_sendAvatar" jdbcType="VARCHAR"/>
+            <result property="receiverRealName" column="m_receiverRealName" jdbcType="VARCHAR"/>
+            <result property="receiverAvatar" column="m_receiverAvatar" jdbcType="VARCHAR"/>
+            <result property="messageNumber" column="m_messageNumber" jdbcType="INTEGER"/>
+            <result property="groupNumber" column="m_groupNumber" jdbcType="INTEGER"/>
+        </collection>
+    </resultMap>
+
+    <!-- 修改消息状态 -->
+    <update id="updateMsgState">
+        update iap_im_message_t
+        <set>
+            state = 2
+        </set>
+        <where>
+            id IN
+            <foreach collection="list" item="item" separator="," open="(" close=")">
+                #{item.id}
+            </foreach>
+        </where>
+    </update>
+
+    <!-- 获取会话列表+会话 -->
+    <select id="msgAll" resultMap="IapImMessageListMap">
+        SELECT
+        A.id AS m_id,
+        A.receiver AS m_receiver,
+        A.sender AS m_sender,
+        A.show_type AS showType,
+        A.list_type AS listType,
+        A.top_time,
+        E.`name` AS groupName,
+        E.avatar AS groupAvatar,
+        D.real_name AS realName,
+        D.avatar AS m_receiverAvatar,
+        ( SELECT count( 1 ) FROM iap_im_message_t WHERE sender = m_receiver AND receiver = #{user} AND state IN ( 0, 1 ) ) AS messageNumber,
+        B.id,
+        B.sender,
+        B.receiver,
+        B.title,
+        B.content,
+        B.action,
+        B.state,
+        B.format,
+        B.TIMESTAMP,
+        B.hide_message,
+        B.senderRealName,
+        B.sendAvatar,
+        B.receiverRealName,
+        B.receiverAvatar,
+        F.id top_id,
+        F.message_id,
+        F.message_list_id,
+        G.real_name AS top_realName,
+        F.top_content,
+        F.top_timestamp
+        FROM
+        ( SELECT id, list_type, receiver, sender, show_type, top_time FROM iap_im_message_user_t WHERE sender = #{user} AND show_type != 1 ) A
+        LEFT JOIN (
+        SELECT
+        A.id,
+        A.sender,
+        A.receiver,
+        A.title,
+        A.content,
+        A.action,
+        A.state,
+        A.format,
+        A.TIMESTAMP,
+        A.hide_message,
+        C.real_name AS senderRealName,
+        C.avatar AS sendAvatar,
+        D.real_name AS receiverRealName,
+        D.avatar AS receiverAvatar
+        FROM
+        iap_im_message_t A
+        LEFT JOIN iap_sys_user_t C ON A.sender = C.user_name
+        LEFT JOIN iap_sys_user_t D ON A.receiver = D.user_name
+        WHERE
+        (
+        SELECT
+        count( 1 )
+        FROM
+        iap_im_message_t
+        WHERE
+        ( sender = A.sender OR sender = A.receiver )
+        AND ( receiver = A.receiver OR receiver = A.sender )
+        AND `timestamp`  <![CDATA[ > ]]>   A.`timestamp` )  <![CDATA[ < ]]> 20
+        AND ( sender = #{user} OR receiver = #{user} )
+        AND ( hide_message NOT IN ( #{user} ) OR hide_message IS NULL )
+        AND action IN ( 0, 1, 3 )
+        ORDER BY
+        A.sender,
+        A.receiver,
+        A.`timestamp` DESC
+        ) B ON ( A.sender = B.sender AND A.receiver = B.receiver )
+        OR ( A.sender = B.receiver AND A.receiver = B.sender )
+        LEFT JOIN iap_sys_user_t D ON A.receiver = D.user_name
+        LEFT JOIN iap_im_group_t E ON ( A.sender = E.id OR A.receiver = E.id )
+        LEFT JOIN iap_im_message_top_t F ON A.id = F.id
+        LEFT JOIN iap_sys_user_t G ON G.user_name = F.top_person
+        GROUP BY
+        A.id,
+        B.id
+    </select>
+
+    <!-- 查询群组消息已读数和发消息人姓名及头像 -->
+    <select id="GroupSendMsg" resultMap="IapImMessageTMap">
+        SELECT
+            A.`timestamp`,
+            (SELECT count( 1 ) FROM iap_im_message_t WHERE action = 3 AND `timestamp` = A.`timestamp` AND state IN ( 1, 2 )) messageNumber,
+            B.real_name AS senderRealName,
+            B.avatar AS sendAvatar,
+            ( SELECT count( 1 ) FROM iap_im_group_member_t WHERE group_id = A.receiver ) AS groupNumber
+        FROM
+            ( SELECT id, sender, receiver, `timestamp` FROM iap_im_message_t WHERE action = 1 ) A
+                LEFT JOIN iap_sys_user_t B ON B.user_name = A.sender
+        GROUP BY
+            A.id
+    </select>
+
+    <!-- 消息历史记录 -->
+    <select id="messageHistory" resultMap="IapImMessageTMap">
+        SELECT
+        A.id,
+        A.action,
+        A.content,
+        A.extra,
+        A.format,
+        A.receiver,
+        A.sender,
+        A.state,
+        A.`timestamp`,
+        A.title,
+        B.real_name AS senderRealName,
+        B.avatar AS sendAvatar,
+        C.real_name AS receiverRealName,
+        C.avatar AS receiverAvatar
+        FROM
+        (
+        SELECT
+        id,
+        action,
+        content,
+        extra,
+        format,
+        receiver,
+        sender,
+        state,
+        `timestamp`,
+        title
+        FROM
+        iap_im_message_t
+        WHERE
+        ( sender = #{messageDto.receiver} OR sender = #{messageDto.sender} )
+        AND ( receiver = #{messageDto.receiver} OR receiver = #{messageDto.sender} )
+        AND ( hide_message NOT IN ( #{messageDto.sender} ) OR hide_message IS NULL )
+        AND action IN (0,1,3)
+        ) A
+        LEFT JOIN iap_sys_user_t B ON A.sender = B.user_name
+        LEFT JOIN iap_sys_user_t C ON A.receiver = C.user_name
+        <where>
+            <if test="messageDto.format != 0 and messageDto.format == 1">
+                AND A.format in (1,5)
+            </if>
+            <if test="messageDto.format != 0 and messageDto.format == 3">
+                AND A.format = 3
+            </if>
+            <if test="messageDto.content != null and messageDto.content != ''">
+                AND A.content LIKE CONCAT('%',#{messageDto.content},'%')
+            </if>
+        </where>
+        GROUP BY
+        A.id
+        ORDER BY
+        A.`timestamp` DESC
+    </select>
+
+    <!-- 修改消息状态 -->
+    <select id="findListMessage" resultMap="IapImMessageTMap">
+        SELECT
+        id,
+        sender,
+        receiver
+        FROM iap_im_message_t WHERE state != #{state} AND( sender in
+        <foreach collection="senders" item="item" separator="," open="(" close=")">
+            #{item}
+        </foreach>
+        OR receiver IN
+        <foreach collection="senders" item="item" separator="," open="(" close=")">
+            #{item}
+        </foreach>
+        AND receiver = #{receiver} OR sender = #{receiver} )
+    </select>
+
+    <!-- 文件消息历史 -->
+    <select id="fileMessages" resultMap="IapImFileMessageMap">
+        SELECT
+        from_unixtime( A.`timestamp` / 1000, '%Y-%m-%d' ) historyTime,
+        A.id as m_id,
+        A.receiver as m_receiver,
+        A.sender as m_sender ,
+        B.real_name as m_senderRealName,
+        A.`timestamp` as m_timestamp,
+        A.content as m_content
+        FROM
+        iap_im_message_t A LEFT JOIN iap_sys_user_t B ON A.sender = B.user_name
+        WHERE
+        (A.sender = #{messageDto.sender} OR A.sender = #{messageDto.receiver})
+        AND (A.receiver = #{messageDto.sender} OR A.receiver = #{messageDto.receiver})
+        AND A.format IN
+        <foreach collection="format" item="item" separator="," open="(" close=")">
+            #{item}
+        </foreach>
+    </select>
+
+    <select id="findOneMessageUser" resultMap="IapImFileMessageMap">
+        SELECT
+            A.id AS A_id,
+            A.list_type AS listType,
+            A.sender AS A_receiver,
+            A.show_type AS showType,
+            A.receiver AS A_sender,
+            B.avatar AS A_receiverAvatar,
+            B.real_name AS realName,
+            C.*
+        FROM
+            iap_im_message_user_t A
+            LEFT JOIN iap_sys_user_t B ON A.sender = B.user_name
+            LEFT  JOIN (
+            SELECT
+                A.sender as m_sender,
+                A.receiver as m_receiver,
+                A.content as m_content,
+                A.action as m_action,
+                A.state as m_state,
+                A.`timestamp` as m_timestamp,
+                A.id AS m_id,
+                B.real_name as m_receiverRealName,
+                B.avatar as m_receiverAvatar,
+                C.real_name as m_senderRealName,
+                C.avatar as m_sendAvatar,
+                A.hide_message as m_hide_message
+            FROM
+                iap_im_message_t A
+                LEFT JOIN iap_sys_user_t B ON A.receiver = B.user_name
+                LEFT JOIN iap_sys_user_t C ON A.sender = C.user_name
+            WHERE
+                ( A.sender = #{sender} AND A.receiver = #{receiver} )
+                OR ( A.receiver = #{sender} AND A.sender = #{receiver} )
+            ORDER BY
+                A.`timestamp` DESC  LIMIT 0,20
+            ) C ON ( A.sender = C.m_sender OR A.sender = C.m_receiver ) 	AND ( A.receiver = C.m_sender OR A.receiver = C.m_receiver )
+        WHERE
+            C.m_hide_message != #{sender}
+            AND ( A.sender = #{sender} AND A.receiver = #{receiver} ) 	OR ( A.receiver = #{sender} AND A.sender = #{receiver} )
+            GROUP BY C.m_id
+    </select>
+
+    <!-- 批量添加 -->
+    <insert id="insertList">
+        INSERT INTO iap_im_message_t (id, action , content, extra, format, receiver, sender, state, timestamp, title,
+        hide_message)
+        VALUES
+        <foreach collection="list" separator="," item="item">
+            (#{item.id},#{item.action},#{item.content},#{item.extra},#{item.format},#{item.receiver},#{item.sender},#{item.state},#{item.timestamp},#{item.title},#{item.hideMessage})
+        </foreach>
+    </insert>
+</mapper>

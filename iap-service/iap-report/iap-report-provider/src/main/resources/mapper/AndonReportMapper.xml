@@ -1,0 +1,329 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.itl.iap.report.provider.mapper.AndonReportMapper">
+    <resultMap type="com.itl.iap.report.api.entity.AndonException" id="AndonExceptionMap">
+        <result property="id" column="id"/>
+        <result property="exceptionCode" column="exception_code"/>
+        <result property="workshopBo" column="workshop_bo"/>
+        <result property="workshopName" column="workshop_name"/>
+        <result property="deviceBo" column="device_bo"/>
+        <result property="deviceName" column="device_name"/>
+        <result property="andonTypeBo" column="andon_type_bo"/>
+        <result property="andonTypeName" column="andon_typeName"/>
+        <result property="andonDetail" column="andon_detail"/>
+        <result property="faultCode" column="fault_code"/>
+        <result property="triggerUser" column="trigger_user"/>
+        <result property="triggerUserName" column="trigger_user_name"/>
+        <result property="triggerTime" column="trigger_time"/>
+        <result property="checkUser" column="check_user"/>
+        <result property="checkUserName" column="check_user_name"/>
+        <result property="checkTime" column="check_time"/>
+        <result property="responseTime" column="response_time"/>
+        <result property="relieveUser" column="relieve_user"/>
+        <result property="relieveUserName" column="relieve_user_name"/>
+        <result property="relieveTime" column="relieve_time"/>
+        <result property="continueTime" column="continue_time"/>
+        <result property="exceptionDesc" column="exception_desc"/>
+        <result property="processMethod" column="process_method"/>
+        <result property="state" column="state"/>
+        <result property="fileImage" column="file_image"/>
+        <result property="andonDescBo" column="andon_desc_bo"/>
+        <result property="jobIds" column="job_ids"/>
+        <result property="device" column="device"/>
+    </resultMap>
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id,exception_code,workshop_bo,workshop_name,device_bo,device_name,andon_type_bo,andon_type_name,andon_detail,fault_code,trigger_user,trigger_user_name,trigger_time,check_user,check_user_name,check_time,response_time,relieve_user,relieve_user_name,relieve_time,continue_time,exception_desc,process_method,state,andon_desc_bo,device
+    </sql>
+    <select id="selectCountInfo" resultType="com.itl.iap.report.api.vo.AndonVo">
+        select 'all' as name,count(*) as value from andon_exception
+        union all
+        select 'TheLastMonth' as name,count(*) as value from andon_exception where trigger_time>=dateadd(month,-1,getdate())
+        union all
+        select 'Today' as name,count(*) as value from andon_exception where DateDiff(dd,trigger_time,getDate())=0
+        union all
+        select 'TodayUnsolved' as name,count(*) as value from andon_exception where DateDiff(dd,trigger_time,getDate())=0 and state !='2'
+
+    </select>
+    <select id="selectGroupByAndonType" resultType="com.itl.iap.report.api.vo.AndonVo">
+        select andon_type_name as name,count(*) as value from andon_exception  where andon_type_name is not null group by andon_type_name
+    </select>
+    <select id="selectTimeGroupByAndonType" resultType="com.itl.iap.report.api.vo.AndonVo">
+        select andon_type_name as name,sum(continue_time) as value from andon_exception where andon_type_name is not null group by andon_type_name
+    </select>
+    <select id="selectGroupByWorkShopName" resultType="com.itl.iap.report.api.vo.AndonVo">
+        select workshop_name  as name,count(*) as value from andon_exception where workshop_name is not null group by workshop_name
+    </select>
+    <select id="selectGoupByMonth" resultType="com.itl.iap.report.api.vo.AndonVo">
+        select m.trigger_time as name,m.count as value from
+        (select substring(Convert(varchar(10),trigger_time,23),1,7) as trigger_time,count(*) as count from andon_exception group by substring(Convert(varchar(10),trigger_time,23),1,7)) m where substring(Convert(varchar(10),m.trigger_time,23),1,4)=datepart(yy,getdate())
+        order by m.trigger_time
+    </select>
+    <select id="selectGroupByWeek" resultType="int" parameterType="int">
+        select count(*) as count  from andon_exception where datediff(week,trigger_time,getdate()) = #{diff}
+    </select>
+    <select id="selectGroupByDay" resultType="com.itl.iap.report.api.vo.AndonVo">
+        select  substring(Convert(varchar(10),trigger_time,23),1,10) as name,count(*) as value
+        from andon_exception group by substring(Convert(varchar(10),trigger_time,23),1,10) order by name desc
+    </select>
+    <select id="selectAllInfo" resultType="com.itl.iap.report.api.vo.AndonVo" parameterType="int">
+        select workshop_name as name,count(*) as value from andon_exception where workshop_name is not null and state=#{state} group by workshop_name
+    </select>
+    <select id="selectAndonException" resultType="com.itl.iap.report.api.entity.AndonException">
+        select m.exception_code,m.workshop_bo,m.device_bo,m.device,m.andon_type_name,m.andon_detail,m.fault_code,m.trigger_user,m.trigger_time,m.check_user,m.check_time,m.relieve_user,m.relieve_time,m.continue_time,m.exception_desc,m.process_method,m.state,m.file_image,m.andon_desc_bo,m.response_time,m.andon_type_bo,m.device_name,m.id,m.workshop_name,m.trigger_user_name
+        from andon_exception m
+        where m.state !=2 order by m.state ,m.trigger_time desc
+    </select>
+    <select id="selectAndonType" resultType="com.itl.iap.report.api.vo.AndonTypeVo">
+        select m.device,n.device_name,m.count,m.sumTime from
+        (select device,count(*) as count,sum(continue_time) as sumTime from andon_exception
+        <where>
+            device is not null and device !=''
+            <if test="andonParamDto.workShopBo !=null and andonParamDto.workShopBo !=''">
+                and workshop_bo=#{andonParamDto.workShopBo}
+            </if>
+            <if test="andonParamDto.device !=null and andonParamDto.device !=''">
+                and device = #{andonParamDto.device}
+            </if>
+            <!--开始日期不为空，结束日期为空-->
+            <if test="andonParamDto.startDate !=null and andonParamDto.startDate !='' and andonParamDto.endDate ==null ">
+                and substring(Convert(varchar(10),trigger_time,23),1,10) = #{andonParamDto.startDate}
+            </if>
+            <!--结束日期不为空，开始日期为空-->
+            <if test="andonParamDto.endDate !=null and andonParamDto.endDate !='' and andonParamDto.startDate ==null">
+                and substring(Convert(varchar(10),trigger_time,23),1,10) = #{andonParamDto.endDate}
+            </if>
+            <!--开始日期和结束日期都不为空-->
+            <if test="andonParamDto.startDate !=null and andonParamDto.startDate !='' and andonParamDto.endDate !=null and andonParamDto.endDate !=''">
+                and  substring(Convert(varchar(10),trigger_time,23),1,10) between  #{andonParamDto.startDate} and #{andonParamDto.endDate}
+            </if>
+        </where>
+
+        group by device)m
+        left join m_device n on m.device=n.device
+        order by m.sumTime desc
+    </select>
+    <select id="selectAndonAllTime" resultType="com.itl.iap.report.api.vo.AndonTypeVo">
+        select andon_type_name,count(*) as count,sum(continue_time) as sumTime from andon_exception
+        <where>
+            andon_type_name is not null and andon_type_name !=''
+            <if test="andonParamDto.workShopBo !=null and andonParamDto.workShopBo !=''">
+                and workshop_bo=#{andonParamDto.workShopBo}
+            </if>
+            <if test="andonParamDto.device !=null and andonParamDto.device !=''">
+                and device = #{andonParamDto.device}
+            </if>
+            <if test="andonParamDto.andonTypeName !=null and andonParamDto.andonTypeName !=''">
+                and andon_type_name like concat('%',#{andonParamDto.andonTypeName},'%')
+            </if>
+            <if test="andonParamDto.triggerUser !=null and andonParamDto.triggerUser !=''">
+                and trigger_user = #{andonParamDto.triggerUser}
+            </if>
+            <!--开始日期不为空，结束日期为空-->
+            <if test="andonParamDto.startDate !=null and andonParamDto.startDate !='' and andonParamDto.endDate ==null ">
+                and substring(Convert(varchar(10),trigger_time,23),1,10) = #{andonParamDto.startDate}
+            </if>
+            <!--结束日期不为空，开始日期为空-->
+            <if test="andonParamDto.endDate !=null and andonParamDto.endDate !='' and andonParamDto.startDate ==null ">
+                and substring(Convert(varchar(10),trigger_time,23),1,10) = #{andonParamDto.endDate}
+            </if>
+            <!--开始日期和结束日期都不为空-->
+            <if test="andonParamDto.startDate !=null and andonParamDto.startDate !='' and andonParamDto.endDate !=null and andonParamDto.endDate !=''">
+                and  substring(Convert(varchar(10),trigger_time,23),1,10) between  #{andonParamDto.startDate} and #{andonParamDto.endDate}
+            </if>
+        </where>
+        group by andon_type_name
+    </select>
+    
+    <select id="selectAndonExceptionInfo" resultType="com.itl.iap.report.api.vo.AndonExceptionVo">
+        select m.workshop_name,m.andon_type_name,avg(m.response_time) as responseTime,avg(m.continue_time) as handleTime
+        from (
+            select workshop_name,andon_type_name,response_time,continue_time from andon_exception
+            <where>
+                1=1
+                <if test="andonParamDto.workShopName !=null and andonParamDto.workShopName !=''">
+                    and workshop_name like concat('%',#{andonParamDto.workShopName},'%')
+                </if>
+                <if test="andonParamDto.andonTypeName !=null and andonParamDto.andonTypeName !=''">
+                    and andon_type_name like concat('%',#{andonParamDto.andonTypeName},'%')
+                </if>
+                <!--开始日期不为空，结束日期为空-->
+                <if test="andonParamDto.startDate !=null and andonParamDto.startDate !='' and andonParamDto.endDate ==null ">
+                    and trigger_time between #{andonParamDto.startDate} and getdate()
+                </if>
+                <!--结束日期不为空，开始日期为空-->
+                <if test="andonParamDto.endDate !=null and andonParamDto.endDate !='' and andonParamDto.startDate ==null ">
+                    and trigger_time between getdate() and #{andonParamDto.endDate}
+                </if>
+                <!--开始日期和结束日期都不为空-->
+                <if test="andonParamDto.startDate !=null and andonParamDto.startDate !='' and andonParamDto.endDate !=null and andonParamDto.endDate !=''">
+                    and trigger_time between  #{andonParamDto.startDate} and #{andonParamDto.endDate}
+                </if>
+            </where>
+            ) m
+        group by m.workshop_name,m.andon_type_name
+    </select>
+
+    <select id="selectDistinctAndonTypeName" resultType="string">
+        select distinct andon_type_name from andon_exception
+        <where>
+            1=1
+            <if test="andonParamDto.workShopName !=null and andonParamDto.workShopName !=''">
+                and workshop_name like concat('%',#{andonParamDto.workShopName},'%')
+            </if>
+            <if test="andonParamDto.andonTypeName !=null and andonParamDto.andonTypeName !=''">
+                and andon_type_name like concat('%',#{andonParamDto.andonTypeName},'%')
+            </if>
+            <!--开始日期不为空，结束日期为空-->
+            <if test="andonParamDto.startDate !=null and andonParamDto.startDate !='' and andonParamDto.endDate ==null ">
+                and trigger_time between #{andonParamDto.startDate} and getdate()
+            </if>
+            <!--结束日期不为空，开始日期为空-->
+            <if test="andonParamDto.endDate !=null and andonParamDto.endDate !='' and andonParamDto.startDate ==null ">
+                and trigger_time between getdate() and #{andonParamDto.endDate}
+            </if>
+            <!--开始日期和结束日期都不为空-->
+            <if test="andonParamDto.startDate !=null and andonParamDto.startDate !='' and andonParamDto.endDate !=null and andonParamDto.endDate !=''">
+                and trigger_time between  #{andonParamDto.startDate} and #{andonParamDto.endDate}
+            </if>
+        </where>
+    </select>
+    <select id="selectNumByAndonTypeName" resultType="com.itl.iap.report.api.dto.AndonStateDto" parameterType="string">
+        with t1 as (
+             select count(state) as signNum from andon_exception
+             <where>
+            andon_type_name =#{andonTypeName} and state='0'
+            <!--开始日期不为空，结束日期为空-->
+            <if test="andonParamDto.startDate !=null and andonParamDto.startDate !='' and andonParamDto.endDate ==null ">
+                and trigger_time between #{andonParamDto.startDate} and getdate()
+            </if>
+            <!--结束日期不为空，开始日期为空-->
+            <if test="andonParamDto.endDate !=null and andonParamDto.endDate !='' and andonParamDto.startDate ==null ">
+                and trigger_time between getdate() and #{andonParamDto.endDate}
+            </if>
+            <!--开始日期和结束日期都不为空-->
+            <if test="andonParamDto.startDate !=null and andonParamDto.startDate !='' and andonParamDto.endDate !=null and andonParamDto.endDate !=''">
+                and trigger_time between  #{andonParamDto.startDate} and #{andonParamDto.endDate}
+            </if>
+             </where>
+             ),
+             t2 as (
+             select count(state) as runNum from andon_exception
+            <where>
+            andon_type_name =#{andonTypeName} and state='1'
+            <!--开始日期不为空，结束日期为空-->
+            <if test="andonParamDto.startDate !=null and andonParamDto.startDate !='' and andonParamDto.endDate ==null ">
+                and trigger_time between #{andonParamDto.startDate} and getdate()
+            </if>
+            <!--结束日期不为空，开始日期为空-->
+            <if test="andonParamDto.endDate !=null and andonParamDto.endDate !='' and andonParamDto.startDate ==null ">
+                and trigger_time between getdate() and #{andonParamDto.endDate}
+            </if>
+            <!--开始日期和结束日期都不为空-->
+            <if test="andonParamDto.startDate !=null and andonParamDto.startDate !='' and andonParamDto.endDate !=null and andonParamDto.endDate !=''">
+                and trigger_time between  #{andonParamDto.startDate} and #{andonParamDto.endDate}
+            </if>
+            </where>
+            ),
+             t3 as (
+             select count(state) as finshedNum from andon_exception
+            <where>
+             andon_type_name =#{andonTypeName} and state='2'
+            <!--开始日期不为空，结束日期为空-->
+            <if test="andonParamDto.startDate !=null and andonParamDto.startDate !='' and andonParamDto.endDate ==null ">
+                and trigger_time between #{andonParamDto.startDate} and getdate()
+            </if>
+            <!--结束日期不为空，开始日期为空-->
+            <if test="andonParamDto.endDate !=null and andonParamDto.endDate !='' and andonParamDto.startDate ==null ">
+                and trigger_time between getdate() and #{andonParamDto.endDate}
+            </if>
+            <!--开始日期和结束日期都不为空-->
+            <if test="andonParamDto.startDate !=null and andonParamDto.startDate !='' and andonParamDto.endDate !=null and andonParamDto.endDate !=''">
+                and trigger_time between  #{andonParamDto.startDate} and #{andonParamDto.endDate}
+            </if>
+            </where>
+             )
+        select t1.signNum,t2.runNum,t3.finshedNum from t1,t2,t3
+    </select>
+    <select id="selectNumByWorkshopNameAndAndonTypeName" resultType="com.itl.iap.report.api.dto.AndonStateDto">
+        with t1 as (
+            select count(state) as signNum from andon_exception
+            <where>
+            andon_type_name =#{andonTypeName} and workshop_name=#{workShopName} and state='0'
+            <!--开始日期不为空，结束日期为空-->
+            <if test="andonParamDto.startDate !=null and andonParamDto.startDate !='' and andonParamDto.endDate ==null ">
+                and trigger_time between #{andonParamDto.startDate} and getdate()
+            </if>
+            <!--结束日期不为空，开始日期为空-->
+            <if test="andonParamDto.endDate !=null and andonParamDto.endDate !='' and andonParamDto.startDate ==null ">
+                and trigger_time between getdate() and #{andonParamDto.endDate}
+            </if>
+            <!--开始日期和结束日期都不为空-->
+            <if test="andonParamDto.startDate !=null and andonParamDto.startDate !='' and andonParamDto.endDate !=null and andonParamDto.endDate !=''">
+                and trigger_time between  #{andonParamDto.startDate} and #{andonParamDto.endDate}
+            </if>
+            </where>
+            ),
+            t2 as (
+            select count(state) as runNum from andon_exception
+            <where>
+            andon_type_name =#{andonTypeName} and workshop_name=#{workShopName} and state='1'
+            <!--开始日期不为空，结束日期为空-->
+            <if test="andonParamDto.startDate !=null and andonParamDto.startDate !='' and andonParamDto.endDate ==null ">
+                and trigger_time between #{andonParamDto.startDate} and getdate()
+            </if>
+            <!--结束日期不为空，开始日期为空-->
+            <if test="andonParamDto.endDate !=null and andonParamDto.endDate !='' and andonParamDto.startDate ==null ">
+                and trigger_time between getdate() and #{andonParamDto.endDate}
+            </if>
+            <!--开始日期和结束日期都不为空-->
+            <if test="andonParamDto.startDate !=null and andonParamDto.startDate !='' and andonParamDto.endDate !=null and andonParamDto.endDate !=''">
+                and trigger_time between  #{andonParamDto.startDate} and #{andonParamDto.endDate}
+            </if>
+            </where>
+            ),
+            t3 as (
+            select count(state) as finshedNum from andon_exception
+            <where>
+            andon_type_name =#{andonTypeName} and workshop_name=#{workShopName} and state='2'
+            <!--开始日期不为空，结束日期为空-->
+            <if test="andonParamDto.startDate !=null and andonParamDto.startDate !='' and andonParamDto.endDate ==null ">
+                and trigger_time between #{andonParamDto.startDate} and getdate()
+            </if>
+            <!--结束日期不为空，开始日期为空-->
+            <if test="andonParamDto.endDate !=null and andonParamDto.endDate !='' and andonParamDto.startDate ==null ">
+                and trigger_time between getdate() and #{andonParamDto.endDate}
+            </if>
+            <!--开始日期和结束日期都不为空-->
+            <if test="andonParamDto.startDate !=null and andonParamDto.startDate !='' and andonParamDto.endDate !=null and andonParamDto.endDate !=''">
+                and trigger_time between  #{andonParamDto.startDate} and #{andonParamDto.endDate}
+            </if>
+            </where>
+            )
+        select t1.signNum,t2.runNum,t3.finshedNum from t1,t2,t3
+    </select>
+
+    <select id="selectListByState" resultType="com.itl.iap.report.api.entity.AndonException">
+        select <include refid="Base_Column_List" />
+        from  andon_exception
+        <where>
+            andon_type_name =#{andonTypeName} and workshop_name=#{workShopName} and state=#{state}
+            <!--开始日期不为空，结束日期为空-->
+            <if test="andonParamDto.startDate !=null and andonParamDto.startDate !='' and andonParamDto.endDate ==null ">
+                and trigger_time between #{andonParamDto.startDate} and getdate()
+            </if>
+            <!--结束日期不为空，开始日期为空-->
+            <if test="andonParamDto.endDate !=null and andonParamDto.endDate !='' and andonParamDto.startDate ==null ">
+                and trigger_time between getdate() and #{andonParamDto.endDate}
+            </if>
+            <!--开始日期和结束日期都不为空-->
+            <if test="andonParamDto.startDate !=null and andonParamDto.startDate !='' and andonParamDto.endDate !=null and andonParamDto.endDate !=''">
+                and trigger_time between  #{andonParamDto.startDate} and #{andonParamDto.endDate}
+            </if>
+        </where>
+    </select>
+
+
+
+
+</mapper>

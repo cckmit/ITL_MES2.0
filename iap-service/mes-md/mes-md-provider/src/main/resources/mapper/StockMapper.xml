@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.itl.mes.core.provider.mapper.StockMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.itl.mes.core.api.entity.Stock">
+        <id column="BO" property="bo"/>
+        <result column="SITE" property="site"/>
+        <result column="SFC" property="sfc"/>
+        <result column="WAREHOUSE" property="warehouse"/>
+        <result column="OK_QTY" property="okQty"/>
+        <result column="SCRAP" property="scrap"/>
+        <result column="SHOP_ORDER_BO" property="shopOrderBo"/>
+        <result column="ITEM_BO" property="itemBo"/>
+        <result column="CHECK_USER" property="checkUser"/>
+        <result column="CHECK_USER_NAME" property="checkUserName"/>
+        <result column="APPLY_USER" property="applyUser"/>
+        <result column="APPLY_USER_NAME" property="applyUserName"/>
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        BO, SITE, SFC, WAREHOUSE, OK_QTY, SCRAP, SHOP_ORDER_BO, ITEM_BO, CHECK_USER, CHECK_USER, CHECK_USER_NAME, APPLY_USER
+        ,APPLY_USER_NAME
+    </sql>
+
+    <select id="getStock" resultType="com.itl.mes.core.api.entity.Stock">
+        select
+            st.*,
+            mi.item,
+            so.shop_order as shopOrder,
+            sfc.sfc_qty as sfcQty
+        from
+            m_dy_stock st
+        left join m_item mi on st.ITEM_BO = mi.bo
+        left join m_shop_order so on st.SHOP_ORDER_BO = so.bo
+        left join me_sfc sfc on st.sfc = sfc.sfc
+        <where>
+            1=1
+            <if test="stockDTO.bo != null and stockDTO.bo != ''">
+                and st.bo like CONCAT('%',#{stockDTO.bo},'%')
+            </if>
+            <if test="stockDTO.item != null and stockDTO.item != ''">
+                and mi.item like CONCAT('%',#{stockDTO.item},'%')
+            </if>
+            <if test="stockDTO.sfc != null and stockDTO.sfc != ''">
+                and st.sfc like CONCAT('%',#{stockDTO.sfc},'%')
+            </if>
+            <if test="stockDTO.successFlag != null and stockDTO.successFlag != '' and stockDTO.successFlag == 1 ">
+                and st.success_flag = '1'
+            </if>
+            <if test="stockDTO.successFlag != null and stockDTO.successFlag != '' and stockDTO.successFlag == 0 ">
+                and st.success_flag = '0'
+            </if>
+        </where>
+    </select>
+</mapper>

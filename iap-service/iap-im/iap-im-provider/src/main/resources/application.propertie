@@ -1,0 +1,81 @@
+spring.jackson.default-property-inclusion=non_null
+spring.servlet.multipart.max-file-size=50MB
+spring.servlet.multipart.max-request-size=50MB
+
+##################################################################
+#                         JPA Config                             #
+##################################################################
+spring.jpa.database = MYSQL
+spring.jpa.database-platform=org.hibernate.dialect.MySQL5InnoDBDialect
+spring.jpa.hibernate.ddl-auto = update
+spring.jpa.open-in-view = false
+spring.jpa.hibernate.naming.implicit-strategy= org.hibernate.boot.model.naming.ImplicitNamingStrategyJpaCompliantImpl
+spring.jpa.hibernate.naming.physical-strategy= org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
+spring.jpa.mapping-resources[0]=/META-INF/hibernate/cimsession.hbm.xml
+
+##################################################################
+#                         Redis Config                           #
+##################################################################
+spring.redis.port=6379
+spring.redis.host=127.0.0.1
+spring.redis.lettuce.pool.max-active=10
+spring.redis.lettuce.pool.max-wait= 10s
+spring.redis.lettuce.pool.max-idle=5
+spring.redis.lettuce.pool.min-idle=1
+spring.redis.timeout=60s
+
+##################################################################
+#                         CIM Config                             #
+##################################################################
+cim.app.port =23456
+cim.web.port =34567
+
+apple.apns.debug=false
+apple.apns.p12.password= your p12 password
+apple.apns.p12.file= /apns/im.p12
+
+##################################################################
+#                         System Config                          #
+##################################################################
+#\u6D88\u606F\u8F6C\u53D1\u63A5\u53E3\u5730\u5740
+sys.message.dispatch.url = http://%1$s:${server.port}/api/message/dispatch
+sys.manager.name=\u7CFB\u7EDF\u7BA1\u7406\u5458
+
+#后台导入模板文件最大5M
+sys.dashboard.template.multipart.max-file-size=5MB
+#后台上传Logo文件最大200KB
+sys.dashboard.logo.multipart.max-file-size=200KB
+#app上传文件最大50M
+sys.app.multipart.max-file-size=50MB
+
+#\u7CFB\u7EDF\u542F\u52A8\u65F6\u5728\u5F53\u524D\u76EE\u5F55\u7684bucket\u76EE\u5F55\u4E0B\u521B\u5EFA\u7684\u5B50\u76EE\u5F55\uFF0C\u7528\u4E8E\u5B58\u653E\u6587\u4EF6
+sys.local.bucket.list=group-icon|user-icon|user-banner|sqlite|chat-space|moment-space|chat-wallpaper|moment-wallpaper|microapp-icon|microserver-icon
+
+sys.snowflake.work.id = 1
+sys.snowflake.data.center.id= 1
+
+##################################################################
+#                         OSS Config                             #
+##################################################################
+# on/off
+aliyun.oss.switch=off
+aliyun.oss.endpoint=http://oss-cn-hangzhou.aliyuncs.com
+aliyun.oss.accessid=xxxxxxxxxx
+aliyun.oss.accesskey=xxxxxxxxxx
+aliyun.oss.bucket=xxxxxxxxxxxx
+
+##################################################################
+#                         Feign Config                           #
+##################################################################
+feign.compression.request.enabled=true
+feign.compression.request.mime-types=text/xml,application/xml,application/json
+feign.compression.request.min-request-size=2048
+feign.compression.response.enabled=true
+logging.level.IRemoteMessageService=debug
+logging.level.ISubscriberEventService=debug
+
+#配置管理员的账号和密码
+sys.manager.account=system
+sys.manager.password=system
+
+web.file.url = http://${server.host}:${server.port}/files/%s/%s

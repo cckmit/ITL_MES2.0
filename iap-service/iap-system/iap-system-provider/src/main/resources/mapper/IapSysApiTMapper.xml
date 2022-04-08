@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.itl.iap.system.provider.mapper.IapSysApiTMapper">
+
+    <!-- 通过微服务名称删除接口 -->
+    <delete id="deleteByIapSysApiT">
+        DELETE FROM iap_sys_api_t
+        WHERE iap_sys_api_t.model_name = #{iapSysApiT.modelName}
+    </delete>
+
+    <!-- 根据传入的对象查询 -->
+    <select id="queryList" resultType="com.itl.iap.system.api.dto.IapSysApiTDto">
+        SELECT
+            A.id,
+            A.system_code AS systemCode,
+            A.model_name AS modelName,
+            A.class_name AS className,
+            A.class_desc AS classDesc,
+            A.class_url AS classUrl,
+            A.method_name AS methodName,
+            A.method_desc AS methodDesc,
+            A.method_url AS methodUrl,
+            A.request_type AS requestType,
+            A.enabled,
+            A.last_update_by AS latUpdateBy,
+            A.last_update_date AS lastUpdateDate
+        FROM
+            iap_sys_api_t AS A
+        where 1=1
+        <if test="iapSysApiT.systemCode != null">
+            AND A.system_code LIKE CONCAT('%',#{iapSysApiT.systemCode},'%')
+        </if>
+        <if test="iapSysApiT.methodDesc != null">
+            AND A.method_desc LIKE CONCAT('%',#{iapSysApiT.methodDesc},'%')
+        </if>
+        <if test="iapSysApiT.enabled != null">
+            AND A.enabled = #{iapSysApiT.enabled}
+        </if>
+        ORDER BY A.model_name
+    </select>
+
+</mapper>

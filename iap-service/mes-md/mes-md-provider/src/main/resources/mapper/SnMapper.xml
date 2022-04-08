@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.itl.mes.core.provider.mapper.SnMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.itl.mes.core.api.entity.Sn">
+        <id column="BO" property="bo" />
+        <result column="SITE" property="site" />
+        <result column="SN" property="sn" />
+        <result column="OLD_SN" property="oldSn" />
+        <result column="COMPLEMENT_CODE_STATE" property="complementCodeState" />
+        <result column="ITEM_BO" property="itemBo" />
+        <result column="ORIGINAL_ITEM_BO" property="originalItemBo" />
+        <result column="QTY" property="qty" />
+        <result column="SHOP_ORDER" property="shopOrder" />
+        <result column="TASK_NO" property="taskNo" />
+        <result column="BOM_BO" property="bomBo" />
+        <result column="SHAP_ORDER_BO" property="shapOrderBo" />
+        <result column="PAINT_ORDER_BO" property="paintOrderBo" />
+        <result column="FIRE_ORDER_BO" property="fireOrderBo" />
+        <result column="PACK_ORDER_BO" property="packOrderBo" />
+        <result column="PRODUCT_LINE_BO" property="productLineBo" />
+        <result column="STATE" property="state" />
+        <result column="IS_BOUTIQUE" property="isBoutique" />
+        <result column="INPUT_QTY" property="inputQty" />
+        <result column="OUT_QTY" property="outQty" />
+        <result column="SCRAP_QTY" property="scrapQty" />
+        <result column="LATELY_PASS_DATE" property="latelyPassDate" />
+        <result column="LATELY_PASS_OPERATION" property="latelyPassOperation" />
+        <result column="LATELY_PASS_STATION" property="latelyPassStation" />
+        <result column="COMPLETE_DATE" property="completeDate" />
+        <result column="ITEM_TYPE" property="itemType" />
+        <result column="MAX_SERIAL_NUMBER" property="maxSerialNumber" />
+        <result column="CREATE_USER" property="createUser" />
+        <result column="CREATE_DATE" property="createDate" />
+        <result column="MODIFY_USER" property="modifyUser" />
+        <result column="MODIFY_DATE" property="modifyDate" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        BO, SITE, SN, OLD_SN, COMPLEMENT_CODE_STATE, ITEM_BO, ORIGINAL_ITEM_BO, QTY, SHOP_ORDER, TASK_NO, BOM_BO, SHAP_ORDER_BO, PAINT_ORDER_BO, FIRE_ORDER_BO, PACK_ORDER_BO, PRODUCT_LINE_BO, STATE, IS_BOUTIQUE, INPUT_QTY, OUT_QTY, SCRAP_QTY, LATELY_PASS_DATE, LATELY_PASS_OPERATION, LATELY_PASS_STATION, COMPLETE_DATE, ITEM_TYPE, MAX_SERIAL_NUMBER, CREATE_USER, CREATE_DATE, MODIFY_USER, MODIFY_DATE
+    </sql>
+
+    <!--修改工单排产数量-->
+    <update id="updateShopOrderSchedulQty">
+        UPDATE M_SHOP_ORDER SET SCHEDUL_QTY = ISNULL(SCHEDUL_QTY,0)+#{qty}
+        WHERE BO=#{shopOrderBO}
+    </update>
+
+    <!--修改工单超产状态及超产数量 加一-->
+    <update id="updateShopOrderOverfulfillQty">
+        UPDATE M_SHOP_ORDER SET OVERFULFILL_QTY = ISNULL(OVERFULFILL_QTY,0)+#{qty},IS_OVERFULFILL = 'Y'
+        WHERE BO=#{shopOrderBO}
+    </update>
+
+    <!--获取自定义字段的值-->
+    <select id="getSelfDefiningData" resultType="java.lang.String">
+      SELECT VALS FROM M_CUSTOM_DATA_VAL CDV
+      INNER JOIN M_CUSTOM_DATA CD
+      ON CD.BO = CDV.CUSTOM_DATA_BO
+      WHERE CD.SITE = #{site} AND CD.CUSTOM_DATA_TYPE = #{customDataType}
+      AND CD.CD_FIELD = #{field} AND CDV.BO = #{customDataValBo}
+    </select>
+
+    <select id="selectPageSN" resultType="java.util.Map">
+        SELECT SN,SITE,QTY FROM z_sn
+        WHERE SITE=#{params.site}
+        <if test="params.router != null and params.router != '' ">
+            AND SN LIKE '${params.sn}%'
+        </if>
+    </select>
+
+    <select id="selectPageShopOrderByShape" resultType="java.util.Map">
+        SELECT SO.SHOP_ORDER,SO.ORDER_DESC,dbo.SPLIT(SO.STATE_BO,1) STATE,SO.PLAN_END_DATE, SO.ORDER_QTY, MI.ITEM, MI.ITEM_DESC FROM M_SHOP_ORDER SO
+        LEFT JOIN M_ITEM MI ON SO.ITEM_BO = MI.BO
+        WHERE SO.SITE = #{params.site}  AND SO.STATE_BO = #{params.stateBo}
+        <if test="params.shopOrder != null and params.shopOrder != '' ">
+            AND SO.SHOP_ORDER LIKE '${params.shopOrder}%'
+        </if>
+        <if test="params.item != null and params.item != '' ">
+            AND MI.ITEM LIKE '${params.item}%'
+        </if>
+        <if test="params.itemDesc != null and params.itemDesc != '' ">
+            AND MI.ITEM_DESC LIKE '${params.itemDesc}%'
+        </if>
+    </select>
+
+    <select id="selectMaxSerial" resultType="com.itl.mes.core.api.entity.Sn">
+      SELECT TOP 1 *  FROM Z_SN WHERE SITE = #{site}
+      AND COMPLEMENT_CODE_STATE = #{complementCodeState} AND ITEM_TYPE = #{ruleCode} AND SUBSTRING(SN,2,1) = #{newDateSt}
+      ORDER BY MAX_SERIAL_NUMBER DESC
+    </select>
+
+    <!--修改生产前工单返坯数-->
+    <update id="updateAttribute2ByShopOrderBoAndQty">
+        UPDATE M_SHOP_ORDER SET ATTRIBUTE2 = ISNULL(ATTRIBUTE2,0)+#{qty}
+        WHERE BO=#{shopOrderBO}
+    </update>
+
+    <!--修改生产前工单破损数-->
+    <update id="updateAttribute3ByShopOrderBoAndQty">
+        UPDATE M_SHOP_ORDER SET ATTRIBUTE3 = ISNULL(ATTRIBUTE3,0)+#{qty}
+        WHERE BO=#{shopOrderBO}
+    </update>
+
+    <!--修改生产后工单返坯数-->
+    <update id="updateAttribute4ByShopOrderBoAndQty">
+        UPDATE M_SHOP_ORDER SET ATTRIBUTE4 = ISNULL(ATTRIBUTE4,0)+#{qty}
+        WHERE BO=#{shopOrderBO}
+    </update>
+
+    <!--修改生产后工单破损数-->
+    <update id="updateAttribute5ByShopOrderBoAndQty">
+        UPDATE M_SHOP_ORDER SET ATTRIBUTE5 = ISNULL(ATTRIBUTE5,0)+#{qty}
+        WHERE BO=#{shopOrderBO}
+    </update>
+
+
+</mapper>

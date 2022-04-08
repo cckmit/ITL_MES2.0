@@ -1,0 +1,296 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.itl.mes.pp.provider.mapper.ResourcesCalendarMapper">
+
+    <select id="workShopUnderResources" resultType="com.itl.mes.pp.api.dto.scheduleplan.WorkShopUnderResourcesRespDTO">
+
+
+            SELECT
+                BO AS bo,
+                PRODUCT_LINE_DESC AS name,
+                3 AS type
+            FROM
+                m_product_line
+            WHERE
+                WORK_SHOP_BO =  #{workShopBo}
+            UNION
+            SELECT
+                b.BO AS bo,
+                b.DEVICE_NAME AS name,
+                4 AS type
+            FROM
+                m_product_line a,
+                m_device b
+            WHERE
+                a.BO = b.PRODUCT_LINE_BO
+                AND a.WORK_SHOP_BO = #{workShopBo}
+            UNION
+            SELECT
+                c.USER_BO AS bo,
+                d.REAL_NAME AS name,
+                5 AS type
+            FROM
+                m_product_line a,
+                m_team b,
+                m_team_member c,
+                iap_sys_user_t d
+            WHERE
+                a.BO = b.PRODUCT_LINE_BO
+                AND b.BO = c.TEAM_BO
+                AND c.USER_BO = d.USER_NAME
+                AND a.WORK_SHOP_BO = #{workShopBo}
+
+    </select>
+
+
+    <select id="getSiteResourcesCalendars" resultType="com.itl.mes.pp.api.dto.scheduleplan.ResourcesCalendarRespDTO">
+
+            SELECT
+                a.ID as id,
+                a.SITE as site,
+                a.DATE as date,
+                a.IS_WORK_OVERTIME as isWorkOvertime,
+                b.SITE_DESC as siteName,
+                c.NAME as classFrequencyName,
+                c.CLASS_SYSTEM_ID as classSystemId,
+                a.START_DATE_STR as startDateStr,
+                a.END_DATE_STR as endDateStr,
+                a.RESOURCES_TYPE as resourceType,
+                a.DAY as day,
+                a.CLASS_FREQUENCY_ID as classFrequencyId,
+                a.STATE as state,
+                a.WORK_HOUR as workHour,
+                a.SORT as sort
+            FROM
+                p_resources_calendar a,
+                m_site b,
+                p_class_frequency c
+            WHERE
+                a.SITE = b.SITE
+                AND a.CLASS_FREQUENCY_ID = c.ID
+                AND a.SITE = #{rcq.site}
+                AND a.RESOURCES_TYPE = #{rcq.resourceType}
+                AND YEAR = #{rcq.year}
+                AND MONTH = #{rcq.month}
+            ORDER BY a.CREATE_DATE,SORT
+    </select>
+
+    <select id="getWorkShopResourcesCalendars"
+            resultType="com.itl.mes.pp.api.dto.scheduleplan.ResourcesCalendarRespDTO">
+        SELECT
+        a.ID as id,
+        a.SITE as site,
+        a.WORK_SHOP_BO as workShopBo,
+        a.DATE as date,
+        a.IS_WORK_OVERTIME as isWorkOvertime,
+        b.SITE_DESC as siteName,
+        d.WORK_SHOP_DESC as workShopName,
+        c.NAME as classFrequencyName,
+        c.CLASS_SYSTEM_ID as classSystemId,
+        a.START_DATE_STR as startDateStr,
+        a.END_DATE_STR as endDateStr,
+        a.RESOURCES_TYPE as resourceType,
+        a.DAY as day,
+        a.CLASS_FREQUENCY_ID as classFrequencyId,
+        a.STATE as state,
+        a.WORK_HOUR as workHour,
+        a.SORT as sort
+        FROM
+        p_resources_calendar a,
+        m_site b,
+        p_class_frequency c,
+        m_work_shop d
+        WHERE
+        a.SITE = b.SITE
+        AND a.CLASS_FREQUENCY_ID = c.ID
+        AND a.SITE = #{rcq.site}
+        AND a.WORK_SHOP_BO = #{rcq.workShopBo}
+        AND a.WORK_SHOP_BO = d.BO
+        AND a.RESOURCES_TYPE = #{rcq.resourceType}
+        AND YEAR = #{rcq.year}
+        AND MONTH = #{rcq.month}
+        ORDER BY a.CREATE_DATE,SORT
+    </select>
+
+
+    <select id="getProductLineResourcesCalendars"
+            resultType="com.itl.mes.pp.api.dto.scheduleplan.ResourcesCalendarRespDTO">
+
+        SELECT
+        a.ID as id,
+        a.SITE as site,
+        a.WORK_SHOP_BO as workShopBo,
+        a.DATE as date,
+        a.IS_WORK_OVERTIME as isWorkOvertime,
+        b.SITE_DESC as siteName,
+        d.WORK_SHOP_DESC as workShopName,
+        e.PRODUCT_LINE_DESC as resourceName,
+        e.BO as resourceBo,
+        c.NAME as classFrequencyName,
+        c.CLASS_SYSTEM_ID as classSystemId,
+        a.START_DATE_STR as startDateStr,
+        a.END_DATE_STR as endDateStr,
+        a.RESOURCES_TYPE as resourceType,
+        a.DAY as day,
+        a.CLASS_FREQUENCY_ID as classFrequencyId,
+        a.STATE as state,
+        a.WORK_HOUR as workHour,
+        a.SORT as sort
+        FROM
+        p_resources_calendar a,
+        m_site b,
+        p_class_frequency c,
+        m_work_shop d,
+        m_product_line e
+        WHERE
+        a.SITE = b.SITE
+        AND a.CLASS_FREQUENCY_ID = c.ID
+        AND a.SITE = #{rcq.site}
+        AND a.WORK_SHOP_BO = #{rcq.workShopBo}
+        AND a.WORK_SHOP_BO = d.BO
+        AND a.PRODUCT_LINE_BO = e.BO
+        AND a.PRODUCT_LINE_BO = #{rcq.resourceBo}
+        AND a.RESOURCES_TYPE = #{rcq.resourceType}
+        AND YEAR = #{rcq.year}
+        AND MONTH = #{rcq.month}
+        ORDER BY a.CREATE_DATE,SORT
+    </select>
+
+    <select id="getDeviceResourcesCalendars" resultType="com.itl.mes.pp.api.dto.scheduleplan.ResourcesCalendarRespDTO">
+        SELECT
+        a.ID as id,
+        a.SITE as site,
+        a.WORK_SHOP_BO as workShopBo,
+        a.DATE as date,
+        a.IS_WORK_OVERTIME as isWorkOvertime,
+        b.SITE_DESC as siteName,
+        d.WORK_SHOP_DESC as workShopName,
+        e.DEVICE_NAME as resourceName,
+        e.BO as resourceBo,
+        c.NAME as classFrequencyName,
+        c.CLASS_SYSTEM_ID as classSystemId,
+        a.START_DATE_STR as startDateStr,
+        a.END_DATE_STR as endDateStr,
+        a.RESOURCES_TYPE as resourceType,
+        a.DAY as day,
+        a.CLASS_FREQUENCY_ID as classFrequencyId,
+        a.STATE as state,
+        a.WORK_HOUR as workHour,
+        a.SORT as sort
+        FROM
+        p_resources_calendar a,
+        m_site b,
+        p_class_frequency c,
+        m_work_shop d,
+        m_device e
+        WHERE
+        a.SITE = b.SITE
+        AND a.CLASS_FREQUENCY_ID = c.ID
+        AND a.SITE = #{rcq.site}
+        AND a.WORK_SHOP_BO = #{rcq.workShopBo}
+        AND a.WORK_SHOP_BO = d.BO
+        AND a.DEVICE_BO = e.BO
+        AND a.DEVICE_BO = #{rcq.resourceBo}
+        AND a.RESOURCES_TYPE = #{rcq.resourceType}
+        AND YEAR = #{rcq.year}
+        AND MONTH = #{rcq.month}
+        ORDER BY a.CREATE_DATE,SORT
+    </select>
+
+    <select id="getUserResourcesCalendars" resultType="com.itl.mes.pp.api.dto.scheduleplan.ResourcesCalendarRespDTO">
+
+        SELECT
+        a.ID as id,
+        a.SITE as site,
+        a.WORK_SHOP_BO as workShopBo,
+        a.DATE as date,
+        a.IS_WORK_OVERTIME as isWorkOvertime,
+        b.SITE_DESC as siteName,
+        d.WORK_SHOP_DESC as workShopName,
+        e.REAL_NAME as resourceName,
+        e.USER_NAME as resourceBo,
+        c.NAME as classFrequencyName,
+        c.CLASS_SYSTEM_ID as classSystemId,
+        a.START_DATE_STR as startDateStr,
+        a.END_DATE_STR as endDateStr,
+        a.RESOURCES_TYPE as resourceType,
+        a.DAY as day,
+        a.CLASS_FREQUENCY_ID as classFrequencyId,
+        a.STATE as state,
+        a.WORK_HOUR as workHour,
+        a.SORT as sort
+        FROM
+        p_resources_calendar a,
+        m_site b,
+        p_class_frequency c,
+        m_work_shop d,
+        iap_sys_user_t e
+        WHERE
+        a.SITE = b.SITE
+        AND a.CLASS_FREQUENCY_ID = c.ID
+        AND a.SITE = #{rcq.site}
+        AND a.WORK_SHOP_BO = #{rcq.workShopBo}
+        AND a.WORK_SHOP_BO = d.BO
+        AND a.USER_BO = e.USER_NAME
+        AND a.RESOURCES_TYPE = #{rcq.resourceType}
+        AND a.USER_BO  = #{rcq.resourceBo}
+        AND YEAR = #{rcq.year}
+        AND MONTH = #{rcq.month}
+        ORDER BY a.CREATE_DATE,SORT
+    </select>
+
+    <select id="classResources" resultType="com.itl.mes.pp.api.dto.scheduleplan.ClassSystemFrequencyDTO">
+
+
+                SELECT
+                    ID,
+                    NAME,
+                    1 AS LEVEL,
+                    '0' AS classSystemId,
+                    '0' AS startDateStr,
+                    '0' AS endDateStr,
+                    null AS code
+                FROM
+                    p_class_system
+                    UNION
+                SELECT
+                    ID,
+                    NAME,
+                    2 AS LEVEL,
+                    CLASS_SYSTEM_ID AS classSystemId,
+                    START_DATE_STR AS startDateStr,
+                    END_DATE_STR AS endDateStr,
+                    CODE AS code
+                FROM
+                    p_class_frequency
+                ORDER BY
+                    CODE
+
+
+    </select>
+
+    <select id="getResourceCalender" parameterType="map" resultType="com.itl.mes.pp.api.entity.scheduleplan.ResourcesCalendarEntity">
+        SELECT
+        a.ID as id,
+        a.START_DATE_STR as startDateStr,
+        a.END_DATE_STR as endDateStr,
+        a.YEAR AS year,
+        a.MONTH AS month,
+        a.DAY AS day,
+        a.DATE AS date
+        FROM
+        p_resources_calendar a
+        where a.PRODUCT_LINE_BO = #{productLineBo}
+        AND a.DATE >= #{nowTime}
+        order by a.DATE,a.START_DATE_STR
+    </select>
+
+    <select id="getProductLineBoByDeviceBo" resultType="java.lang.String">
+
+        select product_line_bo from m_device where bo = #{deviceBo}
+
+    </select>
+
+
+</mapper>

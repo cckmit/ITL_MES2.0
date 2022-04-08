@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.itl.mes.me.provider.mapper.MeSfcWipLogMapper">
+
+	<!-- 可根据自己的需求，是否要使用 -->
+    <resultMap type="com.itl.mes.me.api.entity.MeSfcWipLog" id="meSfcWipLogMap">
+        <result property="bo" column="BO"/>
+        <result property="site" column="SITE"/>
+        <result property="sfc" column="SFC"/>
+        <result property="scheduleBo" column="SCHEDULE_BO"/>
+        <result property="shopOrderBo" column="SHOP_ORDER_BO"/>
+        <result property="workShopBo" column="WORK_SHOP_BO"/>
+        <result property="productLineBo" column="PRODUCT_LINE_BO"/>
+        <result property="operationBo" column="OPERATION_BO"/>
+        <result property="stationBo" column="STATION_BO"/>
+        <result property="deviceBo" column="DEVICE_BO"/>
+        <result property="userBo" column="USER_BO"/>
+        <result property="shitBo" column="SHIT_BO"/>
+        <result property="teamBo" column="TEAM_BO"/>
+        <result property="itemBo" column="ITEM_BO"/>
+        <result property="bomBo" column="BOM_BO"/>
+        <result property="sfcRouterBo" column="SFC_ROUTER_BO"/>
+        <result property="sfcStepId" column="SFC_STEP_ID"/>
+        <result property="parentSfcBo" column="PARENT_SFC_BO"/>
+        <result property="state" column="STATE"/>
+        <result property="inTime" column="IN_TIME"/>
+        <result property="outTime" column="OUT_TIME"/>
+        <result property="isBatch" column="IS_BATCH"/>
+        <result property="processLot" column="PROCESS_LOT"/>
+        <result property="sfcQty" column="SFC_QTY"/>
+        <result property="inputQty" column="INPUT_QTY"/>
+        <result property="doneQty" column="DONE_QTY"/>
+        <result property="scrapQty" column="SCRAP_QTY"/>
+        <result property="isRework" column="IS_REWORK"/>
+        <result property="result" column="RESULT"/>
+        <result property="createDate" column="CREATE_DATE"/>
+    </resultMap>
+
+    <select id="getStationRecord" resultType="com.itl.mes.me.api.dto.snLifeCycle.StationRecord">
+        select mswl.STATE,
+               mswl.IN_TIME,
+               mswl.OUT_TIME,
+               mswl.STATION_BO,
+               mswl.USER_BO as user_name,
+               mswl.ITEM_BO,
+               mswl.SHOP_ORDER_BO,
+               ps.SCHEDULE_NO
+        from me_sfc_wip_log mswl
+        join  p_schedule ps on mswl.SCHEDULE_BO = ps.BO
+        where    mswl.SFC=#{sn}
+    </select>
+
+</mapper>

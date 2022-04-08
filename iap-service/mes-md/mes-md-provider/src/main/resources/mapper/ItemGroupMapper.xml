@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.itl.mes.core.provider.mapper.ItemGroupMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.itl.mes.core.api.entity.ItemGroup">
+        <id column="BO" property="bo" />
+        <result column="SITE" property="site" />
+        <result column="ITEM_GROUP" property="itemGroup" />
+        <result column="GROUP_NAME" property="groupName" />
+        <result column="GROUP_DESC" property="groupDesc" />
+        <result column="CREATE_DATE" property="createDate" />
+        <result column="CREATE_USER" property="createUser" />
+        <result column="MODIFY_DATE" property="modifyDate" />
+        <result column="MODIFY_USER" property="modifyUser" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        BO, SITE, ITEM_GROUP, GROUP_NAME, GROUP_DESC, CREATE_DATE, CREATE_USER, MODIFY_DATE, MODIFY_USER
+    </sql>
+
+    <!-- 查询物料可分配物料组 -->
+    <select id="getAvailableItemGroupListBySiteAndItemBO" resultType="java.lang.String">
+        SELECT ITEM_GROUP FROM M_ITEM_GROUP IG WHERE IG.SITE=#{site}
+        AND NOT EXISTS( SELECT ITEM_GROUP_BO FROM M_ITEM_GROUP_MEMBER IGM WHERE ITEM_BO=#{itemBo} AND IG.BO=IGM.ITEM_GROUP_BO )
+    </select>
+
+    <!-- 查询物料已分配物料组 -->
+    <select id="getAssignedItemGroupListBySiteAndItemBO" resultType="java.lang.String">
+    SELECT ITEM_GROUP FROM M_ITEM_GROUP IG WHERE IG.SITE=#{site}
+    AND EXISTS( SELECT ITEM_GROUP_BO FROM M_ITEM_GROUP_MEMBER IGM WHERE ITEM_BO=#{itemBo} AND IG.BO=IGM.ITEM_GROUP_BO )
+   </select>
+
+    <!-- 查询物料组关联的物料-->
+    <select id="selectItemByItemGroupBO" resultMap="com.itl.mes.core.provider.mapper.ItemMapper.BaseResultMap"
+            resultType="com.itl.mes.core.api.entity.Item">
+        SELECT IT.BO, IT.SITE, IT.ITEM, IT.VERSION, IT.IS_CURRENT_VERSION, IT.ITEM_NAME, IT.ITEM_DESC, IT.ITEM_UNIT, IT.ITEM_STATE_BO, IT.ITEM_TYPE,
+        IT.ROUTER_BO,IT. BOM_BO, IT.LOT_SIZE, IT.CREATE_DATE, IT.CREATE_USER, IT.MODIFY_DATE, IT.MODIFY_USER FROM M_ITEM_GROUP_MEMBER IGM
+        INNER JOIN M_ITEM IT ON IGM.ITEM_BO=IT.BO
+        WHERE IGM.ITEM_GROUP_BO=#{itemGroupBo}
+    </select>
+
+    <!-- 查询物料组字符-->
+    <select id="selectItemGroupListBySite" resultType="string">
+        SELECT ITEM_GROUP FROM M_ITEM_GROUP WHERE SITE=#{site}
+    </select>
+
+</mapper>

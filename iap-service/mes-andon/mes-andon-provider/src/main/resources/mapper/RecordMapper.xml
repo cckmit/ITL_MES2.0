@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.itl.mes.andon.provider.mapper.RecordMapper">
+
+	<!-- 可根据自己的需求，是否要使用 -->
+    <resultMap type="com.itl.mes.andon.api.entity.Record" id="recordMap">
+        <result property="pid" column="PID"/>
+        <result property="site" column="SITE"/>
+        <result property="andonBo" column="ANDON_BO"/>
+        <result property="resourceType" column="RESOURCE_TYPE"/>
+        <result property="workShopBo" column="WORK_SHOP_BO"/>
+        <result property="productLineBo" column="PRODUCT_LINE_BO"/>
+        <result property="stationBo" column="STATION_BO"/>
+        <result property="deviceBo" column="DEVICE_BO"/>
+        <result property="abnormalTime" column="ABNORMAL_TIME"/>
+        <result property="faultCodeBo" column="FAULT_CODE_BO"/>
+        <result property="callQuantity" column="CALL_QUANTITY"/>
+        <result property="abnormalImg" column="ABNORMAL_IMG"/>
+        <result property="abnormalRemark" column="ABNORMAL_REMARK"/>
+        <result property="repairTime" column="REPAIR_TIME"/>
+        <result property="repairMan" column="REPAIR_MAN"/>
+        <result property="repairImg" column="REPAIR_IMG"/>
+        <result property="repairRemark" column="REPAIR_REMARK"/>
+        <result property="state" column="STATE"/>
+    </resultMap>
+
+    <select id="getRevord" resultType="com.itl.mes.andon.api.vo.RecordVo">
+
+        SELECT
+            a.TRIGGER_MAN as triggerMan,
+            a.TRIGGER_TIME as triggerTime,
+            a.FAULT_CODE_BO as faultCodeBo,
+            d.faultCode as faultCode,
+            d.type as deviceType,
+            e.DEVICE_TYPE_NAME as deviceTypeName,
+            a.CALL_QUANTITY as callQuantity,
+            a.ABNORMAL_IMG as abnormalImg,
+            a.ABNORMAL_REMARK as abnormalRemark,
+            b.DEVICE as device,
+            C.ITEM as item
+        FROM
+            andon_record a
+            LEFT JOIN m_device b ON a.DEVICE_BO = b.BO
+            LEFT JOIN m_item c ON a.ITEM_BO = c.BO
+            LEFT JOIN m_repair_fault d ON a.FAULT_CODE_BO = d.ID
+            LEFT JOIN m_device_type e ON d.TYPE = e.DEVICE_TYPE
+        WHERE
+            a.ANDON_BO = #{andonBo} and a.STATE = '1'
+    </select>
+</mapper>

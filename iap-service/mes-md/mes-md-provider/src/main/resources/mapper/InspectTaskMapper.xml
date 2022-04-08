@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.itl.mes.core.provider.mapper.InspectTaskMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.itl.mes.core.api.entity.InspectTask">
+        <id column="BO" property="bo" />
+        <result column="SITE" property="site" />
+        <result column="INSPECT_TASK" property="inspectTask" />
+        <result column="INSPECT_TYPE" property="inspectType" />
+        <result column="INSPECT_RESULT" property="inspectResult" />
+        <result column="WORK_SHOP" property="workShop" />
+        <result column="PRODUCT_LINE" property="productLine" />
+        <result column="OPERATION" property="operation" />
+        <result column="ITEM" property="item" />
+        <result column="SHOP_ORDER" property="shopOrder" />
+        <result column="SN" property="sn" />
+        <result column="STATE" property="state" />
+        <result column="QUALITY_PLAN_BO" property="qualityPlanBo" />
+        <result column="CREATE_METHOD" property="createMethod" />
+        <result column="CREATE_USER" property="createUser" />
+        <result column="CREATE_DATE" property="createDate" />
+        <result column="MODIFY_DATE" property="modifyDate" />
+        <result column="MODIFY_USER" property="modifyUser" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        BO, SITE, INSPECT_TASK, INSPECT_TYPE, INSPECT_RESULT, WORK_SHOP, PRODUCT_LINE, OPERATION, ITEM, SHOP_ORDER, SN, STATE, QUALITY_PLAN_BO, CREATE_METHOD, CREATE_USER, CREATE_DATE, MODIFY_DATE, MODIFY_USER
+    </sql>
+
+    <select id="selectinspectTaskPage" resultType="com.itl.mes.core.api.entity.InspectTask">
+      SELECT * FROM Z_INSPECT_TASK WHERE site = #{params.site} AND INSPECT_RESULT is null
+        <if test="params.inspectType != null and params.inspectType != ''">
+            AND INSPECT_TYPE = #{params.inspectType}
+        </if>
+        <if test="params.workShop != null and params.workShop != ''">
+            AND WORK_SHOP = #{params.workShop}
+        </if>
+        <if test="params.productLine != null and params.productLine != ''">
+            AND PRODUCT_LINE = #{params.productLine}
+        </if>
+        <if test="params.item != null and params.item != ''">
+            AND ITEM = #{params.item}
+        </if>
+        <if test="params.shopOrder != null and params.shopOrder != ''">
+            AND SHOP_ORDER = #{params.shopOrder}
+        </if>
+        <if test="params.operation != null and params.operation != ''">
+            AND OPERATION = #{params.operation}
+        </if>
+        <if test="params.sn != null and params.sn != ''">
+            AND SN = #{params.sn}
+        </if>
+        <if test="params.state != null and params.state != ''">
+            AND STATE = #{params.state}
+        </if>
+        <if test="params.startCreateDate != null and params.startCreateDate != ''">
+            AND CREATE_DATE &gt;= #{params.startCreateDate}
+        </if>
+        <if test="params.endCreateDate != null and params.endCreateDate != ''">
+            AND CREATE_DATE &lt;= #{params.endCreateDate}
+        </if>
+        <if test="params.mobile != null and params.mobile != ''">
+            AND STATE IN ('0','1')
+        </if>
+        ORDER BY CREATE_DATE DESC
+    </select>
+
+    <select id="selectAttached" resultType="com.itl.mes.core.api.entity.Attached">
+        SELECT * FROM M_ATTACHED MA
+        INNER JOIN (SELECT DISTINCT(QP.BO) FROM  M_QUALITY_PLAN QP
+        INNER JOIN M_QUALITY_PLAN_PARAMETER QPP ON QPP.QUALITY_PLAN_BO = QP.BO AND QPP.INSPECT_TYPE = #{params.inspectType})QP ON MA.ATTACHED_FROM_BO IN (QP.BO)
+        WHERE MA.SITE = #{params.site} AND MA.CONTEXT_BO IN (
+        <if test="params.workShop != null and params.workShop != ''">
+            #{params.workShop},
+        </if>
+        <if test="params.productLine != null and params.productLine != ''">
+            #{params.productLine},
+        </if>
+        <if test="params.item != null and params.item != ''">
+            #{params.item},
+        </if>
+        <if test="params.shopOrder != null and params.shopOrder != ''">
+            #{params.shopOrder},
+        </if>
+        <if test="params.operation != null and params.operation != ''">
+            #{params.operation},
+        </if>
+        <if test="params.sn != null and params.sn != ''">
+            #{params.sn},
+        </if>
+        ''
+        ) AND MA.ATTACHED_TYPE = 'Q' AND MA.COUNT_TOTAL &lt;= #{params.num}
+    </select>
+
+</mapper>

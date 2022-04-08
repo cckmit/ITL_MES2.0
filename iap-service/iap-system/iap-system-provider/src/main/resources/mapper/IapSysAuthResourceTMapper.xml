@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.itl.iap.system.provider.mapper.IapSysAuthResourceTMapper">
+
+    <resultMap type="com.itl.iap.system.api.dto.IapSysAuthResourceTDto" id="IapSysAuthResourceTMap">
+        <result property="id" column="id" jdbcType="VARCHAR"/>
+        <result property="resourceId" column="resource_id" jdbcType="VARCHAR"/>
+        <result property="authId" column="auth_id" jdbcType="VARCHAR"/>
+        <result property="creater" column="creater" jdbcType="VARCHAR"/>
+        <result property="createDate" column="create_date" jdbcType="TIMESTAMP"/>
+        <result property="createOrg" column="create_org" jdbcType="VARCHAR"/>
+        <result property="lastUpdateBy" column="last_update_by" jdbcType="VARCHAR"/>
+        <result property="lastUpdateDate" column="last_update_date" jdbcType="TIMESTAMP"/>
+        <result property="delFlag" column="del_flag" jdbcType="SMALLINT"/>
+    </resultMap>
+
+    <!--通过实体作为筛选条件查询-->
+    <select id="pageQuery" resultMap="IapSysAuthResourceTMap">
+        select
+          id, resource_id, auth_id, creater, create_date, create_org, last_update_by, last_update_date, del_flag
+        from iap_sys_auth_resource_t
+        <where>
+            <if test="iapSysAuthResourceTDto.id != null and iapSysAuthResourceTDto.id != ''">
+                and id = #{iapSysAuthResourceTDto.id}
+            </if>
+            <if test="iapSysAuthResourceTDto.resourceId != null and iapSysAuthResourceTDto.resourceId != ''">
+                and resource_id = #{iapSysAuthResourceTDto.resourceId}
+            </if>
+            <if test="iapSysAuthResourceTDto.authId != null and iapSysAuthResourceTDto.authId != ''">
+                and auth_id = #{iapSysAuthResourceTDto.authId}
+            </if>
+            <if test="iapSysAuthResourceTDto.creater != null and iapSysAuthResourceTDto.creater != ''">
+                and creater = #{iapSysAuthResourceTDto.creater}
+            </if>
+            <if test="iapSysAuthResourceTDto.createDate != null">
+                and create_date = #{iapSysAuthResourceTDto.createDate}
+            </if>
+            <if test="iapSysAuthResourceTDto.createOrg != null and iapSysAuthResourceTDto.createOrg != ''">
+                and create_org = #{iapSysAuthResourceTDto.createOrg}
+            </if>
+            <if test="iapSysAuthResourceTDto.lastUpdateBy != null and iapSysAuthResourceTDto.lastUpdateBy != ''">
+                and last_update_by = #{iapSysAuthResourceTDto.lastUpdateBy}
+            </if>
+            <if test="iapSysAuthResourceTDto.lastUpdateDate != null">
+                and last_update_date = #{iapSysAuthResourceTDto.lastUpdateDate}
+            </if>
+            <if test="iapSysAuthResourceTDto.delFlag != null">
+                and del_flag = #{iapSysAuthResourceTDto.delFlag}
+            </if>
+        </where>
+    </select>
+
+    <delete id="deleteByAuthId">
+        DELETE  FROM  iap_sys_auth_resource_t where  auth_id = #{authId}
+    </delete>
+
+    <!-- 通过权限列表批量删除权限-菜单中间表 -->
+    <delete id="deleteBatchByAuthIdList">
+        DELETE FROM iap_sys_auth_resource_t WHERE iap_sys_auth_resource_t.auth_id IN
+        <foreach collection="sysAuthList" item="item" open="(" separator="," close=")">
+            #{item.id}
+        </foreach>
+    </delete>
+
+</mapper>

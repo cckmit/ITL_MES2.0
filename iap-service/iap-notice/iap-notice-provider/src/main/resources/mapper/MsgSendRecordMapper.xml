@@ -1,0 +1,200 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.itl.iap.notice.provider.mapper.MsgSendRecordMapper">
+    <resultMap id="BaseResultMap" type="com.itl.iap.notice.api.entity.MsgSendRecord">
+        <id column="ID" property="id" jdbcType="VARCHAR"/>
+        <result column="send_type" property="sendType" jdbcType="INTEGER"/>
+        <result column="status" property="status" jdbcType="INTEGER"/>
+        <result column="read_flag" property="readFlag" jdbcType="INTEGER"/>
+        <result column="enabled_flag" property="enabledFlag" jdbcType="INTEGER"/>
+        <result column="title" property="title" jdbcType="VARCHAR"/>
+        <result column="content" property="content" jdbcType="VARCHAR"/>
+        <result column="msg_public_template_id" property="msgPublicTemplateId" jdbcType="VARCHAR"/>
+        <result column="notice_type" property="noticeType" jdbcType="INTEGER"/>
+        <result column="msg_type" property="msgType" jdbcType="VARCHAR"/>
+        <result column="receiver_uid" property="receiverUid" jdbcType="VARCHAR"/>
+        <result column="receiver_name" property="receiverName" jdbcType="VARCHAR"/>
+        <result column="create_name" property="createName" jdbcType="VARCHAR"/>
+        <result column="create_time" property="createTime" jdbcType="TIMESTAMP"/>
+        <result column="update_name" property="updateName" jdbcType="VARCHAR"/>
+        <result column="update_time" property="updateTime" jdbcType="TIMESTAMP"/>
+        <result column="send_time" property="sendTime" jdbcType="TIMESTAMP"/>
+    </resultMap>
+    <select id="getById" resultType="com.itl.iap.notice.api.dto.MsgSendRecordDto">
+        SELECT
+               A.ID,
+               A.content,
+               A.title,
+               A.business_id AS businessId,
+               A.receiver_name AS recevierName,
+               A.create_name,
+               A.send_time AS sendTime,
+               (SELECT B. NAME FROM iap_dict_t A LEFT JOIN iap_dict_item_t B ON B.iap_dict_id = A.id
+                WHERE A. CODE = #{status} AND key_value = t.status ) as statusName,
+               (SELECT B. NAME FROM iap_dict_t A LEFT JOIN iap_dict_item_t B ON B.iap_dict_id = A.id
+                WHERE A. CODE = #{serviceModule} AND key_value = s.service_module_code ) as serviceModuleName,
+               (SELECT B. NAME FROM iap_dict_t A LEFT JOIN iap_dict_item_t B ON B.iap_dict_id = A.id
+                WHERE A. CODE = #{sendType} AND key_value = t.send_type ) as sendTypeName,
+               B.pc_url AS pcUrl,
+               B.code AS msgPublicTemplateCode,
+               B.name AS msgPublicTemplateName
+        FROM msg_send_record A
+        LEFT JOIN msg_public_template B ON A.msg_public_template_id = B.id
+        WHERE A.ID = #{id}
+    </select>
+
+    <update id="updateReadFlag" parameterType="com.itl.iap.notice.api.entity.MsgSendRecord">
+        UPDATE msg_send_record set read_flag=1 where id=#{id}
+    </update>
+
+    <select id="getMsgSendRecordList" resultType="com.itl.iap.notice.api.dto.MsgSendRecordDto">
+        SELECT
+        re.*
+        FROM
+        msg_send_record re
+        LEFT JOIN msg_public_template tem ON re.msg_public_template_id = tem.
+        id
+        WHERE
+        1 = 1
+        <if test="receiverUid!=null and receiverUid!=''">
+            and re.receiver_uid=#{receiverUid}
+        </if>
+        <if test="msgTypeId!=null and msgTypeId!=''">
+            and tem.msg_type_id=#{msgTypeId}
+        </if>
+        <if test="startTime!=null and startTime!=''">
+            and re.send_time &gt;=#{startTime}
+        </if>
+        <if test="endTime!=null and endTime!=''">
+            and re.send_time &lt;=#{endTime}
+        </if>
+        <if test="status!=null and status!=0">
+            and re.status=#{status}
+        </if>
+        <if test="sendType!=null and sendType!=0">
+            and re.send_type=#{sendType}
+        </if>
+        ORDER BY re.create_time DESC
+    </select>
+
+    <select id="findList" resultType="com.itl.iap.notice.api.dto.MsgSendRecordDto">
+        SELECT
+        t.id AS id,
+        t.send_type AS sendType,
+        t.receiver_name AS receiverName,
+        t.create_name AS createName,
+        t. STATUS AS STATUS,
+        t.send_time AS sendTime,
+        t.title AS title,
+        t.content AS content,
+        s.CODE AS msgPublicTemplateCode,
+        s.NAME AS msgPublicTemplateName,
+        s.service_module_code AS serviceModuleCode,
+        (SELECT B.NAME FROM iap_dict_t A LEFT JOIN iap_dict_item_t B ON B.iap_dict_id = A.id
+        WHERE A.CODE = #{status} AND key_value = t.status ) as statusName,
+        (SELECT B.NAME FROM iap_dict_t A LEFT JOIN iap_dict_item_t B ON B.iap_dict_id = A.id
+        WHERE A.CODE = #{serviceModule} AND key_value = s.service_module_code ) as serviceModuleName,
+        (SELECT B.NAME FROM iap_dict_t A LEFT JOIN iap_dict_item_t B ON B.iap_dict_id = A.id
+        WHERE A.CODE = #{sendType} AND key_value = t.send_type ) as sendTypeName
+        FROM
+        msg_send_record t
+        LEFT JOIN msg_public_template s
+        ON t.msg_public_template_id = s.id
+        <where>
+            <if test="query.msgPublicTemplateCode != null and query.msgPublicTemplateCode != ''">
+                AND s.code LIKE CONCAT('%',#{query.msgPublicTemplateCode},'%')
+            </if>
+            <if test="query.msgPublicTemplateName != null and query.msgPublicTemplateName != ''">
+                AND s.name LIKE CONCAT('%',#{query.msgPublicTemplateName},'%')
+            </if>
+            <if test="query.serviceModuleCode != null and query.serviceModuleCode != ''">
+                AND s.service_module_code = #{query.serviceModuleCode}
+            </if>
+            <if test="query.content != null and query.content != ''">
+                AND t.content LIKE CONCAT('%',#{query.content},'%')
+            </if>
+            <if test="query.sendType != null">
+                AND t.send_type = #{query.sendType}
+            </if>
+            <if test="query.receiverName != null and query.receiverName !=''">
+                AND t.receiver_name = #{query.receiverName}
+            </if>
+            <if test="query.startTime != null and query.startTime !='' and query.endTime != null and query.endTime != ''">
+                AND t.send_time BETWEEN #{query.startTime} AND #{query.endTime}
+            </if>
+        </where>
+        ORDER BY t.send_time DESC
+    </select>
+
+    <select id="findListByUsername" resultType="map">
+        SELECT
+        t.id               AS id,
+        t.create_name      AS createName,
+        t.send_time        AS sendTime,
+        t.business_id      AS businessId,
+        t.title            AS title,
+        t.read_flag        AS readFlag,
+        t.content          AS content,
+        s.notice_type_code AS noticeTypeCode,
+        s.pc_url           AS pcUrl,
+        s.message_type_code AS messageTypeCode
+        FROM msg_send_record t
+        LEFT JOIN msg_public_template s
+        ON t.msg_public_template_id = s.id
+        WHERE t.status = 2
+        AND t.send_type = 1
+        <if test="userId != null">
+            AND t.receiver_uid = #{userId}
+        </if>
+        <if test="noticeType != null and noticeType != 0">
+            AND s.notice_type_code = #{noticeType}
+        </if>
+        ORDER BY t.send_time DESC
+    </select>
+
+    <select id="findReceiveListByUsername" resultType="com.itl.iap.notice.api.dto.MsgSendRecordDto">
+        SELECT
+        t.id,
+        t.create_name AS createName,
+        t.receiver_name AS receiverName,
+        t.create_time AS createTime,
+        t.title,
+        t.read_flag AS readFlag,
+        t.content,
+        t.business_id AS businessId,
+        s.pc_url AS pcUrl,
+        s.code AS msgPublicTemplateCode,
+        s.name AS msgPublicTemplateName,
+        s.notice_type_code AS noticeTypeCode,
+        t.send_time AS sendTime,
+        (SELECT B.NAME FROM iap_dict_t A LEFT JOIN iap_dict_item_t B ON B.iap_dict_id = A.id
+        WHERE A.CODE = #{status} AND key_value = t.status ) as statusName,
+        (SELECT B.NAME FROM iap_dict_t A LEFT JOIN iap_dict_item_t B ON B.iap_dict_id = A.id
+        WHERE A.CODE = #{serviceModule} AND key_value = s.service_module_code ) as serviceModuleName,
+        (SELECT B.NAME FROM iap_dict_t A LEFT JOIN iap_dict_item_t B ON B.iap_dict_id = A.id
+        WHERE A.CODE = #{sendType} AND key_value = t.send_type ) as sendTypeName
+        FROM
+        msg_send_record t
+        LEFT JOIN msg_public_template s ON t.msg_public_template_id = s.id
+        WHERE t.receiver_uid = #{query.userId}
+        AND t.status = 2
+        AND t.send_type = 1
+        <if test="query.msgPublicTemplateCode != null and query.msgPublicTemplateCode != ''">
+            AND s.code LIKE CONCAT('%', #{query.msgPublicTemplateCode},'%')
+        </if>
+        <if test="query.msgPublicTemplateName != null and query.msgPublicTemplateName != ''">
+            AND s.name LIKE CONCAT('%',#{query.msgPublicTemplateName},'%')
+        </if>
+        <if test="query.receiverName != null and query.receiverName !=''">
+            AND t.receiver_name LIKE CONCAT('%', #{query.receiverName},'%')
+        </if>
+        <if test="query.startTime != null and query.startTime !='' and query.endTime != null and query.endTime != ''">
+            AND t.send_time BETWEEN #{query.startTime} AND #{query.endTime}
+        </if>
+        <if test="query.serviceModuleCode != null and query.serviceModuleCode != ''">
+            AND s.service_module_code = #{query.serviceModuleCode}
+        </if>
+        ORDER BY t.send_time DESC
+    </select>
+
+</mapper>

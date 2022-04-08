@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.itl.iap.report.provider.mapper.SfcNcLogReportMapper">
+
+
+    <select id="queryList" resultType="com.itl.iap.report.api.entity.SfcNcLog" parameterType="string">
+        select
+        m.sfc,n.shop_order,t.operation_order,q.item,q.item_name,m.nc_qty,u.nc_name,p.operation_name,v.station_name,s.real_name,w.repair_qty,w.scrap_qty,w.erp_success_flag
+        AS erpSuccessFlag,x.operation_name
+        as dutyOperation,y.real_name as dutyUser,t.state,w.repair_time from me_sfc_nc_log m
+        left join me_sfc_repair w on m.bo=w.NG_LOG_BO
+        left join me_sfc t on m.sfc=t.sfc
+        left join m_shop_order n on t.shop_order_bo= n.bo
+        left join m_item q on t.item_bo = q.bo
+        left join m_nc_code u on m.nc_code_bo=u.bo
+        left join m_operation p on m.operation_bo=p.bo
+        left join m_operation x on w.duty_operation=x.bo
+        left join m_station v on m.station_bo=v.bo
+        left join iap_sys_user_t s on m.user_bo=s.user_name
+        left join iap_sys_user_t y on w.duty_user=y.user_name
+        <where>
+            1=1
+            <if test="shopOrder !=null and shopOrder !=''">
+                and n.shop_order like concat('%',#{shopOrder},'%')
+            </if>
+            <if test="operationOrder !=null and operationOrder !=''">
+                and t.operation_order like concat('%',#{operationOrder},'%')
+            </if>
+            <if test="operationName !=null and operationName !=''">
+                and p.operation_name like concat('%',#{operationName},'%')
+            </if>
+            <if test="state !=null and state !=''">
+                and t.state like concat('%',#{state},'%')
+            </if>
+            <if test="item !=null and item !=''">
+                and q.item like concat('%',#{item},'%')
+            </if>
+            <if test="sfc !=null and sfc !=''">
+                and m.sfc like concat('%',#{sfc},'%')
+            </if>
+            <if test="dutyOperation !=null and dutyOperation !=''">
+                and x.operation_name like concat('%',#{dutyOperation},'%')
+            </if>
+            <if test="ncName !=null and ncName !=''">
+                and u.nc_name like concat('%',#{ncName},'%')
+            </if>
+        </where>
+    </select>
+
+    <select id="querySfcScrap" resultType="com.itl.iap.report.api.entity.SfcScrap">
+        select
+        m.BO,m.sfc,n.shop_order,t.operation_order,q.item,q.item_name,m.scrap_qty,u.nc_name,x.operation_name,v.station_name
+        as scrapStationName,y.real_name as dutyUserName,m.repair_time,(case when m.erp_success_flag = '1' then '是' else
+        '' end) AS erpSuccessFlag from me_sfc_repair m
+        left join me_sfc t on m.sfc=t.sfc
+        left join m_shop_order n on t.shop_order_bo= n.bo
+        left join m_item q on t.item_bo = q.bo
+        left join m_nc_code u on m.nc_code_bo=u.bo
+        left join m_operation x on m.duty_operation=x.bo
+        left join m_station v on m.station_bo=v.bo
+        left join iap_sys_user_t y on m.duty_user=y.user_name
+        <where>
+            m.scrap_qty is not null and m.scrap_qty !=0
+            <if test="sfcScrapDto.sfc !=null and sfcScrapDto.sfc !=''">
+                and m.sfc like concat('%',#{sfcScrapDto.sfc},'%')
+            </if>
+            <if test="sfcScrapDto.shopOrder !=null and sfcScrapDto.shopOrder !=''">
+                and n.shop_order like concat('%',#{sfcScrapDto.shopOrder},'%')
+            </if>
+            <if test="sfcScrapDto.itemName !=null and sfcScrapDto.itemName !=''">
+                and q.item_name like concat('%',#{sfcScrapDto.itemName},'%')
+            </if>
+            <if test="sfcScrapDto.operationName !=null and sfcScrapDto.operationName !=''">
+                and x.operation_name like concat('%',#{sfcScrapDto.operationName},'%')
+            </if>
+            <if test="sfcScrapDto.scrapStationName !=null and sfcScrapDto.scrapStationName !=''">
+                and v.station_name like concat('%',#{sfcScrapDto.scrapStationName},'%')
+            </if>
+            <if test="sfcScrapDto.ncName !=null and sfcScrapDto.ncName !=''">
+                and u.nc_name like concat('%',#{sfcScrapDto.ncName},'%')
+            </if>
+            <if test="sfcScrapDto.dutyUserName !=null and sfcScrapDto.dutyUserName !=''">
+                and y.real_name like concat('%',#{sfcScrapDto.dutyUserName},'%')
+            </if>
+        </where>
+    </select>
+
+    <select id="selectSyncState" resultType="java.lang.String">
+      select ERP_SUCCESS_FLAG from me_sfc_repair  where bo=#{bo}
+    </select>
+
+    <select id="selectMaxOrderNumber" resultType="java.lang.String">
+         select MAX(SUBSTRING(ERP_NO,13,3))  from me_sfc_repair  where ERP_NO like concat('%',#{ERP_NO_PART},'%')
+    </select>
+    <select id="selectOrderNumber" resultType="java.lang.String">
+          select erp_no  from me_sfc_repair  where bo=#{bo}
+    </select>
+
+    <select id="findTruename" resultType="java.lang.String">
+       select real_name from iap_sys_user_t  where user_name = #{dutyUser}
+    </select>
+
+    <select id="catchUsers" resultType="java.lang.String">
+        select DUTY_USER from me_sfc_repair where bo=#{bo}
+    </select>
+
+    <update id="updateSyncStatus">
+        update me_sfc_repair  set ERP_SUCCESS_FLAG ='1' where bo=#{bo}
+    </update>
+
+    <update id="updateFailReason">
+        update me_sfc_repair  set ERP_FAILED_REASON =#{json} where bo=#{bo}
+    </update>
+
+    <update id="updateOrderNumber">
+         update me_sfc_repair set ERP_NO =#{orderNumber} where bo=#{bo}
+    </update>
+
+</mapper>

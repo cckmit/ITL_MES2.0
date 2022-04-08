@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.itl.mes.core.provider.mapper.CustomDataValMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.itl.mes.core.api.entity.CustomDataVal">
+        <result column="BO" property="bo" />
+        <result column="CUSTOM_DATA_BO" property="customDataBo" />
+        <result column="ATTRIBUTE" property="attribute" />
+        <result column="VALS" property="vals" />
+    </resultMap>
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="CustomDataAndValVo" type="com.itl.mes.core.api.vo.CustomDataAndValVo">
+        <result column="SEQUENCE" property="sequence" />
+        <result column="CUSTOM_DATA_TYPE" property="customDataType" />
+        <result column="CD_FIELD" property="cdField" />
+        <result column="CD_LABEL" property="cdLabel" />
+        <result column="IS_DATA_REQUIRED" property="isDataRequired" />
+        <result column="ATTRIBUTE" property="attribute" />
+        <result column="VALS" property="vals" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        BO, CUSTOM_DATA_BO, ATTRIBUTE, VALS
+    </sql>
+
+    <select id="selectCustomDataAndValByBoAndDataType" resultMap="CustomDataAndValVo">
+        SELECT CD.SITE,CD.SEQUENCE,CD.CUSTOM_DATA_TYPE,CD.CD_FIELD,CD.CD_LABEL,
+        CD.IS_DATA_REQUIRED,CDV.ATTRIBUTE,CDV.VALS FROM M_CUSTOM_DATA CD
+        LEFT JOIN ( SELECT BO,CUSTOM_DATA_BO,ATTRIBUTE,VALS FROM M_CUSTOM_DATA_VAL WHERE BO=#{bo} ) CDV
+        ON CD.BO = CDV.CUSTOM_DATA_BO
+        WHERE CD.CUSTOM_DATA_TYPE=#{dataType}
+        AND CD.SITE=#{site}
+        ORDER BY CD.SEQUENCE ASC
+    </select>
+    <select id="selectCustomDataAndValByBoAndDataTypeFast" resultMap="CustomDataAndValVo">
+                SELECT
+                        CD.CD_FIELD,
+                        CD.CD_LABEL,
+                        CD.SEQUENCE,
+                        CDV.VALS
+                FROM M_CUSTOM_DATA CD
+                LEFT JOIN (SELECT BO, CUSTOM_DATA_BO, ATTRIBUTE, VALS FROM M_CUSTOM_DATA_VAL WHERE  BO=#{bo}) CDV
+                        ON CD.BO = CDV.CUSTOM_DATA_BO
+                WHERE CD.CUSTOM_DATA_TYPE = #{dataType}
+                  AND CD.SITE=#{site}
+                ORDER BY CD.SEQUENCE ASC
+    </select>
+    <select id="selectOnlyCustomData" resultMap="CustomDataAndValVo">
+        SELECT CD.CD_FIELD,CDV.VALS  FROM M_CUSTOM_DATA CD left join M_CUSTOM_DATA_VAL CDV on CDV.CUSTOM_DATA_BO = CD.BO
+		WHERE CD.CUSTOM_DATA_TYPE=#{dataType} AND CDV.BO = #{bo}
+		AND CD.SITE=#{site}
+    </select>
+    <select id="selectOperationInspectionNotRequire" resultMap="CustomDataAndValVo">
+        SELECT CD.SITE,CD.SEQUENCE,CD.CUSTOM_DATA_TYPE,CD.CD_FIELD,CD.CD_LABEL,
+        CD.IS_DATA_REQUIRED,CDV.ATTRIBUTE,CDV.VALS FROM M_CUSTOM_DATA CD
+        LEFT JOIN ( SELECT BO,CUSTOM_DATA_BO,ATTRIBUTE,VALS FROM M_CUSTOM_DATA_VAL WHERE BO=#{bo} ) CDV
+        ON CD.BO = CDV.CUSTOM_DATA_BO
+        WHERE CD.CUSTOM_DATA_TYPE=#{dataType}
+        AND CD.SITE=#{site} AND CD_FIELD='OPERATION_INSPECTION_NOT_REQUIRDE'
+        ORDER BY CD.SEQUENCE ASC
+    </select>
+</mapper>

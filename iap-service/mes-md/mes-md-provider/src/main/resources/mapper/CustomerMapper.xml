@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.itl.mes.core.provider.mapper.CustomerMapper">
+    <resultMap id="CustomerMap" type="com.itl.mes.core.api.entity.Customer">
+        <result column="BO" property="bo" />
+        <result column="CUSTOMER" property="customer" />
+        <result column="CUSTOMER_NAME" property="customerName" />
+        <result column="CUSTOMER_DESC" property="customerDesc" />
+        <result column="STATE_PROV" property="stateProv" />
+        <result column="ADDRESS1" property="address1" />
+        <result column="SITE" property="site" />
+        <result column="COUNTRY" property="country" />
+        <result column="POSTAL_CODE" property="postalCode" />
+        <result column="TEL" property="tel" />
+        <result column="EMAIL" property="email" />
+        <result column="ADDRESS2" property="address2" />
+        <result column="CONTACT" property="contact" />
+        <result column="CITY" property="city" />
+        <result column="CREATE_DATE" property="createDate" />
+        <result column="MODIFY_DATE" property="modifyDate" />
+        <result column="MODIFY_USER" property="modifyUser" />
+        <result column="CREATE_USER" property="createUser" />
+    </resultMap>
+
+    <select id="queryForList" resultMap="CustomerMap">
+        select BO,
+        CUSTOMER,
+        CUSTOMER_NAME,
+        CUSTOMER_DESC,
+        STATE_PROV,
+        ADDRESS1,
+        SITE,
+        COUNTRY,
+        POSTAL_CODE,
+        TEL,
+        EMAIL,
+        ADDRESS2,
+        CONTACT,
+        CITY
+
+        from m_customer
+        <where>
+            <if test="customerDTO.customer != null and customerDTO.customer != ''">
+                and CUSTOMER like CONCAT('%',#{customerDTO.customer},'%')
+            </if>
+            <if test="customerDTO.customerName!= null and customerDTO.customerName != ''">
+                and CUSTOMER_NAME  like CONCAT('%',#{customerDTO.customerName},'%')
+            </if>
+            <if test="customerDTO.customerDesc!= null and customerDTO.customerDesc != ''">
+                and CUSTOMER_DESC  = #{customerDTO.customerDesc}
+            </if>
+            <if test="customerDTO.city!= null and customerDTO.city != ''">
+                and CITY  = #{customerDTO.city}
+            </if>
+        </where>
+        order by CREATE_DATE desc
+    </select>
+
+
+</mapper>

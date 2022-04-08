@@ -1,0 +1,32 @@
+stages:
+  - build
+  - deploy
+
+code_build:
+  stage: build
+  tags:
+    - dev-build
+  script:
+    - set
+    - bash ./ci_script/build-scripts/gobuild.sh
+  artifacts:
+     name: "publish"
+     untracked: false
+     paths:
+       - publish/
+  variables:
+     GIT_STRATEGY: fetch
+#  only:
+#    - web
+pkg_deploy:
+  stage: deploy
+  tags:
+    - dev-deploy
+  script:
+    - bash ./ci_script/deploy-scripts/godeploy.sh
+  dependencies:
+    - code_build
+  variables:
+    GIT_STRATEGY: fetch
+  only:
+    - web

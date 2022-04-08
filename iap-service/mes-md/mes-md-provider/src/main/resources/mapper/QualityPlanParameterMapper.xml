@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.itl.mes.core.provider.mapper.QualityPlanParameterMapper">
+    <select id="selectDistinctInfo" resultType="string" parameterType="string">
+        select distinct parameter_desc from m_quality_plan_parameter
+        <where>
+            operation_bo=#{operationBo}
+            <if test="enable !=null and enable !=''">
+                and ENABLED=#{enable}
+            </if>
+        </where>
+    </select>
+    <select id="selectOriginInfo" resultType="string">
+        select m.parameter_desc from(
+        select distinct(parameter_desc) from m_quality_plan_parameter
+        <where>
+            operation_bo=#{operationBo}
+            <if test="enable !=null and enable !=''">
+                and ENABLED=#{enable}
+            </if>
+        </where>
+        ) m
+        where m.parameter_desc not in (
+        select parameter_desc from m_quality_plan_parameter where  operation_bo=#{operationBo}
+        and  item_bo=#{itemBo} )
+    </select>
+    <select id="selectParams" resultType="com.itl.mes.core.api.vo.QualityPlanExcelInfoVo">
+        select o.item,n.operation,n.operation_Name,m.PARAMETER_DESC,m.INSPECT_TOOL,m.INSPECT_METHOD,m.UPPER_LIMIT,m.AIM_VAL,m.LOWER_LIMIT from m_quality_plan_parameter m
+        left join m_operation n on m.operation_bo=n.bo
+        left join m_item o on m.item_bo=o.bo
+        where m.item_bo=#{itemBo} and m.operation_bo=#{operationBo}
+    </select>
+    <select id="selectQualityPlanPage" resultType="com.itl.mes.core.api.entity.QualityPlanParameter" >
+        select m.*,n.item,n.item_desc from m_quality_plan_parameter m
+        left join m_item n on m.item_bo=n.bo
+        <where>
+            m.site= #{site}
+            <if test="qualityPlanParameterDTO.operationName !=null and qualityPlanParameterDTO.operationName !=''">
+                and m.OPERATION_NAME like concat('%',#{qualityPlanParameterDTO.operationName},'%')
+            </if>
+            <if test="qualityPlanParameterDTO.itemName !=null and qualityPlanParameterDTO.itemName !=''">
+                and m.ITEM_NAME like concat('%',#{qualityPlanParameterDTO.itemName},'%')
+            </if>
+            <if test="qualityPlanParameterDTO.parameterDesc !=null and qualityPlanParameterDTO.parameterDesc !=''">
+                and m.PARAMETER_DESC like concat('%',#{qualityPlanParameterDTO.parameterDesc},'%')
+            </if>
+            <if test="qualityPlanParameterDTO.item !=null and qualityPlanParameterDTO.item !=''">
+                and n.item = #{qualityPlanParameterDTO.item}
+            </if>
+            <if test="qualityPlanBo !=null and qualityPlanBo !=''">
+                and m.QUALITY_PLAN_BO = #{qualityPlanBo}
+            </if>
+        </where>
+    </select>
+</mapper>

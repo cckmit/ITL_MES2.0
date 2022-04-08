@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.itl.mes.core.provider.mapper.QualityCheckListMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.itl.mes.core.api.entity.QualityCheckList">
+        <id column="ID" property="ID"/>
+        <result column="CHECK_CODE" property="checkCode"/>
+        <result column="OPERATION_BO" property="operationBO"/>
+        <result column="ITEM_BO" property="itemBo"/>
+        <result column="CHECK_USER" property="checkUser"/>
+        <result column="CHECK_WAY" property="checkWay"/>
+        <result column="CHECK_TYPE" property="checkType"/>
+        <result column="CHECK_STATE" property="checkState"/>
+        <result column="PARAMETER_BO" property="parameterBO"/>
+        <result column="CREATE_USER" property="createUser"/>
+        <result column="CREATE_DATE" property="createDate"/>
+        <result column="OPERATION_NAME" property="operationName"/>
+        <result column="ITEM_NAME" property="itemName"/>
+        <result column="CREATE_NAME" property="createName"/>
+        <result column="CHECK_USER_NAME" property="checkUserName"/>
+        <result column="CHECK_VALUE" property="checkValue"/>
+        <result column="CHECK_RESULT" property="checkResult"/>
+        <result column="CHECK_REMARK" property="checkRemark"/>
+        <result column="FILE_PATH" property="filePath"/>
+        <result column="PARAMETER_NAME" property="parameterName"/>
+        <result column="SELF_CHECK_USER" property="selfCheckUser"/>
+        <result column="QUALITY_CHECK_USER" property="qualityCheckUser"/>
+        <result column="SELF_CHECK_DATE" property="selfCheckDate"/>
+        <result column="QUALITY_CHECK_DATE" property="qualityCheckDate"/>
+        <result column="SFC" property="sfc"/>
+        <result column="CHECK_DEVICE_NAME" property="checkDeviceName"/>
+        <result column="CHECK_DEVICE" property="checkDevice"/>
+        <result column="WORKSHOP_BO" property="workshopBo"/>
+        <result column="WORKSHOP_NAME" property="workshopName"/>
+        <result column="ITEM" property="item"/>
+        <result column="ITEM_DESC" property="itemDesc"/>
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        ID, CHECK_CODE, OPERATION_BO, ITEM_BO,CHECK_USER, CHECK_WAY,CHECK_TYPE,CHECK_STATE,PARAMETER_BO, CREATE_USER, CREATE_DATE,
+OPERATION_NAME,ITEM_NAME,CREATE_NAME,CHECK_USER_NAME,CHECK_VALUE,CHECK_RESULT,CHECK_REMARK,FILE_PATH,PARAMETER_NAME,SELF_CHECK_USER,
+QUALITY_CHECK_USER,SELF_CHECK_DATE,QUALITY_CHECK_DATE,SFC,CHECK_DEVICE_NAME,CHECK_DEVICE,WORKSHOP_BO,WORKSHOP_NAME,ITEM,ITEM_DESC
+    </sql>
+
+    <select id="userVerify" resultType="String" parameterType="java.util.Map">
+        SELECT real_name FROM iap_sys_user_t
+        WHERE
+        <if test="param.userName != null and param.userName != '' ">
+            user_name = '${param.userName}'
+        </if>
+        <if test="param.pwd != null and param.pwd != ''">
+            AND user_psw = '${param.pwd}'
+        </if>
+    </select>
+
+    <select id="selectMaxCode" resultType="String" >
+        SELECT MAX(CHECK_CODE) FROM m_quality_checklist
+    </select>
+
+    
+    <select id="selectQualityInfo" resultType="com.itl.mes.core.api.entity.QualityCheckList" parameterType="string">
+        select * from m_quality_checklist
+        <where>
+            CHECK_TYPE='0' and  CONVERT(varchar(100),CREATE_DATE, 23)=CONVERT(varchar(100),GETDATE(), 23)
+            <if test="checkDevice !=null and checkDevice !=''">
+                and check_device=#{checkDevice}
+            </if>
+            <if test="operationBo !=null and operationBo !=''">
+                and operation_bo=#{operationBo}
+            </if>
+            <if test="shopOrder !=null and shopOrder !=''">
+                and shop_order=#{shopOrder}
+            </if>
+        </where>
+    </select>
+
+
+</mapper>

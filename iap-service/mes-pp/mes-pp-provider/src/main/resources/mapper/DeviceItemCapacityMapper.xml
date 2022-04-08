@@ -1,0 +1,191 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.itl.mes.pp.provider.mapper.DeviceItemCapacityMapper">
+
+    <resultMap type="com.itl.mes.pp.api.entity.DeviceItemCapacityEntity" id="MachineProductCapacityMap">
+        <result property="bo" column="BO"/>
+        <result property="workShopBo" column="WORK_SHOP_BO"/>
+        <result property="productLineBo" column="PRODUCT_LINE_BO"/>
+        <result property="itemBo" column="ITEM_BO"/>
+        <result property="brand" column="BRAND"/>
+        <result property="color" column="COLOR"/>
+        <result property="formulaGroup" column="FORMULA_GROUP"/>
+        <result property="bom" column="BOM_BO"/>
+        <result property="version" column="VERSION"/>
+        <result property="processNumber" column="PROCESS_NUMBER"/>
+        <result property="screwAssembly" column="SCREW_ASSEMBLY"/>
+        <result property="beforeTime" column="BEFORE_TIME"/>
+        <result property="setTime" column="SET_TIME"/>
+        <result property="ratedCapacity" column="RATED_CAPACITY"/>
+        <result property="afterTime" column="AFTER_TIME"/>
+        <result property="securitySetTime" column="SECURITY_SET_TIME"/>
+        <result property="createdBy" column="CREATED_BY"/>
+        <result property="createdTime" column="CREATED_TIME"/>
+        <result property="updatedBy" column="UPDATED_BY"/>
+        <result property="updatedTime" column="UPDATED_TIME"/>
+        <result property="processCharacteristics" column="PROCESS_CHARACTERISTICS"/>
+        <result property="groupDesc" column="GROUP_DESC"/>
+        <result property="itemDesc" column="ITEM_DESC"/>
+        <result property="deviceBo" column="DEVICE_BO"/>
+        <result property="itemVersion" column="ITEM_VERSION"/>
+    </resultMap>
+
+    <select id="getPage" resultMap="MachineProductCapacityMap">
+        select pmpc.BO,
+               mws.WORK_SHOP as WORK_SHOP_BO,
+               mpl.PRODUCT_LINE as PRODUCT_LINE_BO,
+               mi.ITEM as ITEM_BO,
+               mb.VERSION,
+               mb.FORMULA_GROUP,
+               mb.PROCESS_CHARACTERISTICS,
+               mb.BOM AS BOM_BO,
+               BEFORE_TIME,
+               SET_TIME,
+               RATED_CAPACITY,
+               AFTER_TIME,
+               SECURITY_SET_TIME,
+               GROUP_DESC,
+               ITEM_DESC,
+               mpp.SCREW_COMBINATION as SCREW_ASSEMBLY,
+               mpp.PARAMETERS_CODE as PROCESS_NUMBER,
+                (SELECT VALS
+                FROM m_custom_data_val as mcdv
+                WHERE
+                mcdv.CUSTOM_DATA_BO = 'CD:1040,ITEM,BRAND'
+                AND
+                mcdv.BO = pmpc.ITEM_BO) as BRAND,
+                (SELECT VALS
+                FROM m_custom_data_val as mcdv
+                WHERE
+                mcdv.CUSTOM_DATA_BO = 'CD:1040,ITEM,color'
+                AND
+                mcdv.BO = pmpc.ITEM_BO) as COLOR
+        from p_device_item_capacity pmpc
+                     left join m_product_line mpl on mpl.BO=pmpc.PRODUCT_LINE_BO
+                     left join m_bom mb on pmpc.BOM_BO = mb.BO
+                     left join m_process_parameters mpp on mb.PROCESS_CHARACTERISTICS=mpp.PROCESS_CHARACTERISTICS
+                     left join m_item_group_member migm on pmpc.ITEM_BO = migm.ITEM_BO
+                     left join m_item_group mig on migm.ITEM_GROUP_BO = mig.BO
+                     left join m_item mi on pmpc.ITEM_BO = mi.BO
+                     left join m_device md on pmpc.DEVICE_BO = md.BO
+                     left join m_work_shop mws on mws.BO = pmpc.WORK_SHOP_BO
+
+        <where>
+
+            <if test="machineProductCapacityDto.item != null and machineProductCapacityDto.item != ''">
+                mi.ITEM like  CONCAT('%',#{machineProductCapacityDto.item},'%')
+            </if>
+            <if test="machineProductCapacityDto.workShop != null and machineProductCapacityDto.workShop != ''">
+                and mws.WORK_SHOP like CONCAT('%',#{machineProductCapacityDto.workShop},'%')
+            </if>
+            <if test="machineProductCapacityDto.productLineBo != null and machineProductCapacityDto.productLineBo != ''">
+                and mpl.PRODUCT_LINE like CONCAT('%',#{machineProductCapacityDto.productLineBo},'%')
+            </if>
+            <if test="machineProductCapacityDto.isNull != false ">
+                and RATED_CAPACITY = #{machineProductCapacityDto.isNull}
+            </if>
+        </where>
+        order by pmpc.CREATED_TIME,mws.WORK_SHOP,md.DEVICE,mi.ITEM,mb.FORMULA_GROUP,pmpc.BOM_BO,mb.PROCESS_CHARACTERISTICS,mpp.SCREW_COMBINATION
+
+
+    </select>
+    <select id="getAll" resultMap="MachineProductCapacityMap">
+        select pmpc.BO,
+        mws.WORK_SHOP as WORK_SHOP_BO,
+        mpl.PRODUCT_LINE as PRODUCT_LINE_BO,
+        mi.ITEM as ITEM_BO,
+        mb.VERSION,
+        mb.FORMULA_GROUP,
+        mb.PROCESS_CHARACTERISTICS,
+        mb.BOM AS BOM_BO,
+        BEFORE_TIME,
+        SET_TIME,
+        RATED_CAPACITY,
+        AFTER_TIME,
+        SECURITY_SET_TIME,
+        GROUP_DESC,
+        ITEM_DESC,
+        mpp.SCREW_COMBINATION as SCREW_ASSEMBLY,
+        mpp.PARAMETERS_CODE as PROCESS_NUMBER,
+        (SELECT VALS
+        FROM m_custom_data_val as mcdv
+        WHERE
+        mcdv.CUSTOM_DATA_BO = 'CD:1040,ITEM,BRAND'
+        AND
+        mcdv.BO = pmpc.ITEM_BO) as BRAND,
+        (SELECT VALS
+        FROM m_custom_data_val as mcdv
+        WHERE
+        mcdv.CUSTOM_DATA_BO = 'CD:1040,ITEM,color'
+        AND
+        mcdv.BO = pmpc.ITEM_BO) as COLOR
+        from p_device_item_capacity pmpc
+        left join m_product_line mpl on mpl.BO=pmpc.PRODUCT_LINE_BO
+        left join m_bom mb on pmpc.BOM_BO = mb.BO
+        left join m_process_parameters mpp on mb.PROCESS_CHARACTERISTICS=mpp.PROCESS_CHARACTERISTICS
+        left join m_item_group_member migm on pmpc.ITEM_BO = migm.ITEM_BO
+        left join m_item_group mig on migm.ITEM_GROUP_BO = mig.BO
+        left join m_item mi on pmpc.ITEM_BO = mi.BO
+        left join m_device md on pmpc.DEVICE_BO = md.BO
+        left join m_work_shop mws on mws.BO = pmpc.WORK_SHOP_BO
+
+        <where>
+            pmpc.SITE=#{site}
+            <if test="machineProductCapacityDto.item != null and machineProductCapacityDto.item != ''">
+                and mi.ITEM like  CONCAT('%',#{machineProductCapacityDto.item},'%')
+            </if>
+            <if test="machineProductCapacityDto.workShop != null and machineProductCapacityDto.workShop != ''">
+                and mws.WORK_SHOP like CONCAT('%',#{machineProductCapacityDto.workShop},'%')
+            </if>
+            <if test="machineProductCapacityDto.productLineBo != null and machineProductCapacityDto.productLineBo != ''">
+                and mpl.PRODUCT_LINE like CONCAT('%',#{machineProductCapacityDto.productLineBo},'%')
+            </if>
+            <if test="machineProductCapacityDto.isNull != false ">
+                and RATED_CAPACITY = #{machineProductCapacityDto.isNull}
+            </if>
+        </where>
+        order by pmpc.CREATED_TIME,mws.WORK_SHOP,md.DEVICE,mi.ITEM,mb.FORMULA_GROUP,pmpc.BOM_BO,mb.PROCESS_CHARACTERISTICS,mpp.SCREW_COMBINATION
+
+
+    </select>
+
+    <select id="getOneById" resultMap="MachineProductCapacityMap">
+        select pmpc.BO,
+               mws.WORK_SHOP as WORK_SHOP_BO,
+               mpl.PRODUCT_LINE as PRODUCT_LINE_BO,
+               mi.ITEM as ITEM_BO,
+               mi.VERSION as ITEM_VERSION,
+               mb.VERSION,
+               mb.FORMULA_GROUP,
+               mb.PROCESS_CHARACTERISTICS,
+               mb.BOM AS BOM_BO,
+               BEFORE_TIME,
+               SET_TIME,
+               RATED_CAPACITY,
+               AFTER_TIME,
+               SECURITY_SET_TIME,
+               GROUP_DESC,
+               ITEM_DESC,
+               mpp.SCREW_COMBINATION as SCREW_ASSEMBLY,
+               mpp.PARAMETERS_CODE as PROCESS_NUMBER,
+               md.device,
+               md.device_name as deviceName,
+               mi.item_name as itemName
+        from p_device_item_capacity pmpc
+                     left join m_product_line mpl on mpl.BO=pmpc.PRODUCT_LINE_BO
+                     left join m_bom mb on pmpc.BOM_BO = mb.BO
+                     left join m_process_parameters mpp on mb.PROCESS_CHARACTERISTICS=mpp.PROCESS_CHARACTERISTICS
+                     left join m_item_group_member migm on pmpc.ITEM_BO = migm.ITEM_BO
+                     left join m_item_group mig on migm.ITEM_GROUP_BO = mig.BO
+                     left join m_item mi on pmpc.ITEM_BO = mi.BO
+                     left join m_device md on pmpc.DEVICE_BO = md.BO
+                     left join m_work_shop mws on mws.BO = pmpc.WORK_SHOP_BO
+        where pmpc.bo=#{bo}
+    </select>
+
+
+
+
+
+</mapper>

@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.itl.mes.andon.provider.mapper.TypeMapper">
+
+	<!-- 可根据自己的需求，是否要使用 -->
+    <resultMap type="com.itl.mes.andon.api.entity.Type" id="typeMap">
+        <result property="bo" column="BO"/>
+        <result property="site" column="SITE"/>
+        <result property="andonType" column="ANDON_TYPE"/>
+        <result property="andonTypeName" column="ANDON_TYPE_NAME"/>
+        <result property="andonTypeDesc" column="ANDON_TYPE_DESC"/>
+        <result property="andonPushBo" column="ANDON_PUSH_BO"/>
+        <result property="state" column="STATE"/>
+        <result property="createDate" column="CREATE_DATE"/>
+        <result property="createUser" column="CREATE_USER"/>
+        <result property="modifyDate" column="MODIFY_DATE"/>
+        <result property="modifyUser" column="MODIFY_USER"/>
+        <result property="abnormalType" column="ABNORMAL_TYPE"/>
+    </resultMap>
+
+
+</mapper>

@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.itl.iap.report.provider.mapper.SfcReportMapper">
+    <select id="queryList" resultType="com.itl.iap.report.api.entity.Sfc" parameterType="string">
+        select m.sfc,n.shop_order,
+               m.operation_order,p.operation_name,
+               q.item,q.item_name,
+               m.sfc_qty,m.nc_qty,m.scrap_qty,
+               m.state,m.modify_date,m.CREATE_DATE
+                ,q.ITEM_DESC,m.dispatch_code
+        from me_sfc m
+        left join  m_shop_order n on m.shop_order_bo= n.bo
+        left join  m_operation  p on m.operation_bo=p.bo
+        left join  m_item       q on m.item_bo = q.bo
+        <where>
+            1=1
+            <if test="shopOrder !=null and shopOrder !=''">
+                and n.shop_order like concat('%',#{shopOrder},'%')
+            </if>
+            <if test="operationOrder !=null and operationOrder !=''">
+                and m.operation_order like concat('%',#{operationOrder},'%')
+            </if>
+            <if test="operationNames !=null and operationNames !=''">
+                and p.operation_name in
+                <foreach collection="operationNames" item="item" index="index" open="(" separator="," close=")">
+                    #{item}
+                </foreach>
+            </if>
+            <if test="item !=null and item !=''">
+                and q.item like concat('%',#{item},'%')
+            </if>
+            <if test="sfc !=null and sfc !=''">
+                and m.sfc like concat('%',#{sfc},'%')
+            </if>
+            <if test="state !=null and state !=''">
+                and m.state like concat('%',#{state},'%')
+            </if>
+        </where>
+        order by m.CREATE_DATE desc
+    </select>
+
+</mapper>

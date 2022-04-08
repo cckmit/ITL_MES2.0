@@ -1,0 +1,22 @@
+syntax = "proto3";
+package com.farsunset.cim.sdk.server.model.proto;
+option java_outer_classname = "MessageProto";
+message Model {
+  string id = 1;
+  string action = 2;
+  string content = 3;
+  string sender = 4;
+  string receiver = 5;
+  string extra = 6;
+  string title = 7;
+  string format = 8;
+  string senderRealName = 9;
+  int64 timestamp = 10;
+  int64 messageNumber = 11;
+  string groupName = 12;
+  string sendAvatar = 13;
+  string receiverAvatar = 14;
+  string receiverRealName = 15;
+
+}
+	 

@@ -1,0 +1,17 @@
+syntax = "proto3";
+package com.itl.im.api.proto;
+option java_outer_classname = "MessageListDtoProto";
+message ModelMessageList {
+  repeated NewsMessage message = 1;
+}
+message NewsMessage{
+  map<string, string> strMap = 1;
+  map<string, MessageList> newsMessage = 2;
+}
+
+message MessageList{
+  repeated MessageMap messageMap = 1;
+}
+message MessageMap{
+  map<string, string> message = 1;
+}

@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.itl.mes.andon.provider.mapper.AndonLookPlateMapper">
+
+    <select id="findProductLineAndonLookPlant" resultType="com.itl.mes.andon.api.vo.AndonLookPlateQueryVo">
+
+        SELECT
+            a.BO as bo,
+            a.PRODUCT_LINE_DESC as resourceName,
+            b.PID as pid,
+            c.RESOURCE_TYPE as andonResourceType,
+            CASE
+		    WHEN b.STATE IS NULL THEN
+		    '2' ELSE b.STATE
+	        END AS STATE
+        FROM
+            m_product_line a
+            LEFT JOIN andon_record b ON a.BO = b.PRODUCT_LINE_BO
+            LEFT JOIN andon_andon c ON b.ANDON_BO = c.BO
+            WHERE a.SITE = #{andonLookPlateQueryDTO.site}
+    </select>
+
+    <select id="findStationAndonLookPlate" resultType="com.itl.mes.andon.api.vo.AndonLookPlateQueryVo">
+
+
+			SELECT
+            a.BO as bo,
+            a.STATION_DESC as resourceName,
+            c.PID as pid,
+            d.RESOURCE_TYPE as andonResourceType,
+            CASE
+		    WHEN c.STATE IS NULL THEN
+		    '2' ELSE c.STATE
+	        END AS STATE
+            FROM
+			m_station a
+			LEFT JOIN m_product_line b ON a.PRODUCT_LINE_BO = b.BO
+            LEFT JOIN andon_record c ON b.BO = c.STATION_BO
+            LEFT JOIN andon_andon d ON c.ANDON_BO = d.BO
+            WHERE a.SITE = #{andonLookPlateQueryDTO.site}
+            AND b.WORK_SHOP_BO = #{andonLookPlateQueryDTO.workShopBo}
+
+    </select>
+
+    <select id="getShopOrdersByProductLineBo" resultType="java.lang.String">
+        select d.SHOP_ORDER from p_schedule_production_line a
+        LEFT JOIN p_schedule b ON a.SCHEDULE_BO = b.BO
+        LEFT JOIN p_schedule_shop_order c ON b.BO = c.SCHEDULE_BO
+        LEFT JOIN m_shop_order d ON c.SHOP_ORDER_BO = d.BO
+        WHERE a.PRODUCTION_LINE_BO = #{productLineBo}
+    </select>
+</mapper>

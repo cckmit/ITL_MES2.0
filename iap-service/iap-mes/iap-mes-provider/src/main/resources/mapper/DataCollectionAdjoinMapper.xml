@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.itl.iap.mes.provider.mapper.DataCollectionAdjoinMapper">
+
+    <sql id="FIELD">
+        t.id AS id,t.serialNum AS serialNum,t.materialCode AS materialCode,t.materialName AS materialName,t.deviceCode AS deviceCode,t.deviceName AS deviceName,t.deviceTypeCode AS deviceTypeCode,t.deviceTypeName AS deviceTypeName,t.processCode AS processCode,t.processName AS processName,t.dataCollectionId AS dataCollectionId
+    </sql>
+
+    <select id="findList" parameterType="string" resultType="com.itl.iap.mes.api.entity.DataCollectionAdjoin">
+        SELECT <include refid="FIELD"/>
+        FROM m_data_collection_adjoin t
+        WHERE t.dataCollectionId = #{dataCollectionId}
+    </select>
+</mapper>

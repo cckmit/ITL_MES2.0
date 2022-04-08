@@ -1,0 +1,233 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.itl.iap.system.provider.mapper.IapSysRoleTMapper">
+
+    <resultMap type="com.itl.iap.system.api.dto.IapSysRoleTDto" id="IapSysRoleTMap">
+        <result property="id" column="id" jdbcType="VARCHAR"/>
+        <result property="roleName" column="role_name" jdbcType="VARCHAR"/>
+        <result property="roleCode" column="role_code" jdbcType="VARCHAR"/>
+        <result property="roleType" column="role_type" jdbcType="INTEGER"/>
+        <result property="description" column="description" jdbcType="VARCHAR"/>
+        <result property="sort" column="sort" jdbcType="INTEGER"/>
+        <result property="state" column="state" jdbcType="INTEGER"/>
+        <result property="creater" column="creater" jdbcType="VARCHAR"/>
+        <result property="createDate" column="create_date" jdbcType="TIMESTAMP"/>
+        <result property="createOrg" column="create_org" jdbcType="VARCHAR"/>
+        <result property="lastUpdateBy" column="last_update_by" jdbcType="VARCHAR"/>
+        <result property="lastUpdateDate" column="last_update_date" jdbcType="TIMESTAMP"/>
+        <result property="delFlag" column="del_flag" jdbcType="SMALLINT"/>
+    </resultMap>
+
+    <resultMap type="com.itl.iap.system.api.dto.IapSysUserTDto" id="IapSysUserTMap">
+        <id property="id" column="id" jdbcType="VARCHAR"/>
+        <result property="userName" column="user_name" jdbcType="VARCHAR"/>
+        <result property="userMobile" column="user_mobile" jdbcType="VARCHAR"/>
+        <result property="userCode" column="user_code" jdbcType="VARCHAR"/>
+        <result property="realName" column="real_name" jdbcType="VARCHAR"/>
+        <result property="email" column="email" jdbcType="VARCHAR"/>
+        <result property="state" column="state" jdbcType="VARCHAR"/>
+        <result property="userType" column="user_type" jdbcType="INTEGER"/>
+        <collection property="iapSysOrganizationT" column="{id=id}" select="queryOrganizationById"/>
+        <collection property="positionTDtoList" column="{id=id}" select="queryPositionById"/>
+    </resultMap>
+
+    <resultMap type="com.itl.iap.system.api.dto.IapSysRoleTDto" id="SysRoleMap">
+        <result property="id" column="id" jdbcType="VARCHAR"/>
+        <result property="roleName" column="role_name" jdbcType="VARCHAR"/>
+        <result property="roleCode" column="role_code" jdbcType="VARCHAR"/>
+        <result property="roleType" column="role_type" jdbcType="INTEGER"/>
+        <result property="description" column="description" jdbcType="VARCHAR"/>
+        <result property="sort" column="sort" jdbcType="INTEGER"/>
+        <result property="state" column="state" jdbcType="INTEGER"/>
+        <result property="creater" column="creater" jdbcType="VARCHAR"/>
+        <result property="createDate" column="create_date" jdbcType="TIMESTAMP"/>
+        <result property="createOrg" column="create_org" jdbcType="VARCHAR"/>
+        <result property="lastUpdateBy" column="last_update_by" jdbcType="VARCHAR"/>
+        <result property="lastUpdateDate" column="last_update_date" jdbcType="TIMESTAMP"/>
+        <result property="delFlag" column="del_flag" jdbcType="SMALLINT"/>
+        <collection property="userList" column="{id=id}" select="queryUserListByRoleId"/>
+    </resultMap>
+    <delete id="deleteBatchByRoleIdList">
+        DELETE FROM iap_sys_role_t WHERE iap_sys_role_t.id IN
+        <foreach collection="sysRoleList" item="item" open="(" separator="," close=")">
+            #{item.id}
+        </foreach>
+    </delete>
+
+
+    <!--通过实体作为筛选条件查询-->
+    <select id="pageQuery" resultMap="SysRoleMap">
+        select
+          id,
+          role_name,
+          role_code,
+          role_type,
+          description,
+          sort,
+          state,
+          creater,
+          create_date,
+          create_org,
+          last_update_by,
+          last_update_date,
+          del_flag
+        from iap_sys_role_t
+        <where>
+            <if test="iapSysRoleTDto.id != null and iapSysRoleTDto.id != ''">
+                and id = #{iapSysRoleTDto.id}
+            </if>
+            <if test="iapSysRoleTDto.roleName != null and iapSysRoleTDto.roleName != ''">
+                and role_name like concat('%', #{iapSysRoleTDto.roleName}, '%')
+            </if>
+            <if test="iapSysRoleTDto.roleCode != null and iapSysRoleTDto.roleCode != ''">
+                and role_code = #{iapSysRoleTDto.roleCode}
+            </if>
+            <if test="iapSysRoleTDto.roleType != null">
+                and role_type = #{iapSysRoleTDto.roleType}
+            </if>
+            <if test="iapSysRoleTDto.description != null and iapSysRoleTDto.description != ''">
+                and description = #{iapSysRoleTDto.description}
+            </if>
+            <if test="iapSysRoleTDto.sort != null">
+                and sort = #{iapSysRoleTDto.sort}
+            </if>
+            <if test="iapSysRoleTDto.state != null">
+                and state = #{iapSysRoleTDto.state}
+            </if>
+            <if test="iapSysRoleTDto.creater != null and iapSysRoleTDto.creater != ''">
+                and creater = #{iapSysRoleTDto.creater}
+            </if>
+            <if test="iapSysRoleTDto.createDate != null">
+                and create_date = #{iapSysRoleTDto.createDate}
+            </if>
+            <if test="iapSysRoleTDto.createOrg != null and iapSysRoleTDto.createOrg != ''">
+                and create_org = #{iapSysRoleTDto.createOrg}
+            </if>
+            <if test="iapSysRoleTDto.lastUpdateBy != null and iapSysRoleTDto.lastUpdateBy != ''">
+                and last_update_by = #{iapSysRoleTDto.lastUpdateBy}
+            </if>
+            <if test="iapSysRoleTDto.lastUpdateDate != null">
+                and last_update_date = #{iapSysRoleTDto.lastUpdateDate}
+            </if>
+            <if test="iapSysRoleTDto.delFlag != null">
+                and del_flag = #{iapSysRoleTDto.delFlag}
+            </if>
+        </where>
+        order by create_date desc
+    </select>
+
+    <select id="pageQueryByState" resultMap="SysRoleMap">
+        select
+          id, role_name, role_code, role_type, description, sort, state, creater, create_date, create_org, last_update_by, last_update_date, del_flag
+        from iap_sys_role_t
+        <where>
+            <if test="iapSysRoleTDto.id != null and iapSysRoleTDto.id != ''">
+                and id = #{iapSysRoleTDto.id}
+            </if>
+            <if test="iapSysRoleTDto.roleName != null and iapSysRoleTDto.roleName != ''">
+                and role_name like concat('%', #{iapSysRoleTDto.roleName}, '%')
+            </if>
+            <if test="iapSysRoleTDto.roleCode != null and iapSysRoleTDto.roleCode != ''">
+                and role_code = #{iapSysRoleTDto.roleCode}
+            </if>
+            <if test="iapSysRoleTDto.roleType != null">
+                and role_type = #{iapSysRoleTDto.roleType}
+            </if>
+            <if test="iapSysRoleTDto.description != null and iapSysRoleTDto.description != ''">
+                and description = #{iapSysRoleTDto.description}
+            </if>
+            <if test="iapSysRoleTDto.sort != null">
+                and sort = #{iapSysRoleTDto.sort}
+            </if>
+                and state = '0'
+            <if test="iapSysRoleTDto.creater != null and iapSysRoleTDto.creater != ''">
+                and creater = #{iapSysRoleTDto.creater}
+            </if>
+            <if test="iapSysRoleTDto.createDate != null">
+                and create_date = #{iapSysRoleTDto.createDate}
+            </if>
+            <if test="iapSysRoleTDto.createOrg != null and iapSysRoleTDto.createOrg != ''">
+                and create_org = #{iapSysRoleTDto.createOrg}
+            </if>
+            <if test="iapSysRoleTDto.lastUpdateBy != null and iapSysRoleTDto.lastUpdateBy != ''">
+                and last_update_by = #{iapSysRoleTDto.lastUpdateBy}
+            </if>
+            <if test="iapSysRoleTDto.lastUpdateDate != null">
+                and last_update_date = #{iapSysRoleTDto.lastUpdateDate}
+            </if>
+            <if test="iapSysRoleTDto.delFlag != null">
+                and del_flag = #{iapSysRoleTDto.delFlag}
+            </if>
+        </where>
+        order by create_date desc
+    </select>
+
+    <select id="selectUserListByRoleId" resultMap="IapSysUserTMap">
+        SELECT
+            B.id AS id,
+            B.user_name,
+            B.user_code,
+            B.user_mobile,
+            B.real_name,
+            B.email,
+            B.state,
+            B.user_type
+        FROM iap_sys_user_role_t AS A
+        LEFT JOIN iap_sys_user_t AS B ON A.user_id = B.id
+        LEFT JOIN iap_sys_position_user_t AS C ON B.id = C.user_id
+        LEFT JOIN iap_sys_position_t AS D ON C.position_id = D.id
+        LEFT JOIN iap_sys_organization_position_t AS E ON D.id = E.position_id
+        LEFT JOIN iap_sys_organization_t AS F ON E.organization_id = F.id
+        WHERE 1=1
+        <if test="iapSysRoleTDto.id != null">
+            AND A.role_id = #{iapSysRoleTDto.id}
+        </if>
+    </select>
+
+    <select id="queryPositionById" resultType="com.itl.iap.system.api.dto.IapPositionTDto">
+        SELECT
+            C.*
+        FROM
+            iap_sys_position_t AS C
+        LEFT JOIN iap_sys_position_user_t AS D ON C.id = D.position_id
+        WHERE D.user_id = #{id}
+    </select>
+
+    <select id="queryOrganizationById" resultType="com.itl.iap.system.api.dto.IapSysOrganizationTDto">
+        SELECT
+            E.*
+        FROM iap_sys_organization_t AS E
+        LEFT JOIN iap_sys_organization_position_t AS F ON E.id = F.organization_id
+        LEFT JOIN iap_sys_position_user_t AS G ON F.position_id = G.position_id
+        WHERE G.user_id = #{id}
+    </select>
+
+    <select id="queryAllUserListByRoleId" resultMap="IapSysUserTMap">
+        SELECT
+        A.id AS id,
+        A.user_name,
+        A.user_code,
+        A.user_mobile,
+        A.email,
+        A.state,
+        A.user_type
+        FROM iap_sys_user_t AS A, iap_sys_user_role_t AS B
+		WHERE B.user_id = A.id
+        AND B.role_id = #{roleId}
+    </select>
+
+    <select id="queryUserListByRoleId" resultType="com.itl.iap.system.api.dto.IapSysUserTDto">
+        SELECT
+            B.id,
+            B.user_name AS userName,
+            B.user_mobile AS userMobile,
+            B.user_code AS userCode,
+            B.real_name AS realName,
+            B.email,
+            B.state
+        FROM iap_sys_user_t AS B
+        LEFT JOIN iap_sys_user_role_t AS C ON B.id = C.user_id
+        WHERE C.role_id = #{id}
+    </select>
+
+</mapper>

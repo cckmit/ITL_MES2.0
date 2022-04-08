@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.itl.iap.system.provider.mapper.IapChangeLogTMapper">
+
+    <resultMap type="com.itl.iap.system.api.dto.IapChangeLogTDto" id="IapChangeLogTMap">
+        <result property="id" column="id" jdbcType="VARCHAR"/>
+        <result property="documentId" column="document_id" jdbcType="VARCHAR"/>
+        <result property="operatorType" column="operator_type" jdbcType="INTEGER"/>
+        <result property="tableId" column="table_id" jdbcType="VARCHAR"/>
+        <result property="tableName" column="table_name" jdbcType="VARCHAR"/>
+        <result property="creater" column="creater" jdbcType="VARCHAR"/>
+        <result property="createDate" column="create_date" jdbcType="TIMESTAMP"/>
+        <result property="lastUpdateBy" column="last_update_by" jdbcType="VARCHAR"/>
+        <result property="lastUpdateDate" column="last_update_date" jdbcType="TIMESTAMP"/>
+    </resultMap>
+
+    <!--通过实体作为筛选条件查询-->
+    <select id="pageQuery" resultMap="IapChangeLogTMap">
+        select
+          id, document_id, operator_type, table_id, table_name, creater, create_date, last_update_by, last_update_date
+        from iap_change_log_t
+        <where>
+            <if test="iapChangeLogTDto.id != null and iapChangeLogTDto.id != ''">
+                and id = #{iapChangeLogTDto.id}
+            </if>
+            <if test="iapChangeLogTDto.documentId != null and iapChangeLogTDto.documentId != ''">
+                and document_id = #{iapChangeLogTDto.documentId}
+            </if>
+            <if test="iapChangeLogTDto.operatorType != null">
+                and operator_type = #{iapChangeLogTDto.operatorType}
+            </if>
+            <if test="iapChangeLogTDto.tableId != null and iapChangeLogTDto.tableId != ''">
+                and table_id = #{iapChangeLogTDto.tableId}
+            </if>
+            <if test="iapChangeLogTDto.tableName != null and iapChangeLogTDto.tableName != ''">
+                and table_name = #{iapChangeLogTDto.tableName}
+            </if>
+            <if test="iapChangeLogTDto.creater != null and iapChangeLogTDto.creater != ''">
+                and creater = #{iapChangeLogTDto.creater}
+            </if>
+            <if test="iapChangeLogTDto.createDate != null">
+                and create_date = #{iapChangeLogTDto.createDate}
+            </if>
+            <if test="iapChangeLogTDto.lastUpdateBy != null and iapChangeLogTDto.lastUpdateBy != ''">
+                and last_update_by = #{iapChangeLogTDto.lastUpdateBy}
+            </if>
+            <if test="iapChangeLogTDto.lastUpdateDate != null">
+                and last_update_date = #{iapChangeLogTDto.lastUpdateDate}
+            </if>
+        </where>
+    </select>
+
+</mapper>

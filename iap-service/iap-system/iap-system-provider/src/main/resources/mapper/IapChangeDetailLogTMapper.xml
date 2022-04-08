@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.itl.iap.system.provider.mapper.IapChangeDetailLogTMapper">
+
+    <resultMap type="com.itl.iap.system.api.dto.IapChangeDetailLogTDto" id="IapChangeDetailLogTMap">
+        <result property="id" column="id" jdbcType="VARCHAR"/>
+        <result property="changeLogId" column="change_log_id" jdbcType="VARCHAR"/>
+        <result property="fieldCode" column="field_code" jdbcType="VARCHAR"/>
+        <result property="fieldName" column="field_name" jdbcType="VARCHAR"/>
+        <result property="oldValue" column="old_value" jdbcType="VARCHAR"/>
+        <result property="newValue" column="new_value" jdbcType="VARCHAR"/>
+        <result property="creater" column="creater" jdbcType="VARCHAR"/>
+        <result property="createDate" column="create_date" jdbcType="TIMESTAMP"/>
+        <result property="lastUpdateBy" column="last_update_by" jdbcType="VARCHAR"/>
+        <result property="lastUpdateDate" column="last_update_date" jdbcType="TIMESTAMP"/>
+    </resultMap>
+
+    <!--通过实体作为筛选条件查询-->
+    <select id="pageQuery" resultMap="IapChangeDetailLogTMap">
+        select
+          id, change_log_id, field_code, field_name, old_value, new_value, creater, create_date, last_update_by, last_update_date
+        from iap_change_detail_log_t
+        <where>
+            <if test="iapChangeDetailLogTDto.id != null and iapChangeDetailLogTDto.id != ''">
+                and id = #{iapChangeDetailLogTDto.id}
+            </if>
+            <if test="iapChangeDetailLogTDto.changeLogId != null and iapChangeDetailLogTDto.changeLogId != ''">
+                and change_log_id = #{iapChangeDetailLogTDto.changeLogId}
+            </if>
+            <if test="iapChangeDetailLogTDto.fieldCode != null and iapChangeDetailLogTDto.fieldCode != ''">
+                and field_code = #{iapChangeDetailLogTDto.fieldCode}
+            </if>
+            <if test="iapChangeDetailLogTDto.fieldName != null and iapChangeDetailLogTDto.fieldName != ''">
+                and field_name = #{iapChangeDetailLogTDto.fieldName}
+            </if>
+            <if test="iapChangeDetailLogTDto.oldValue != null and iapChangeDetailLogTDto.oldValue != ''">
+                and old_value = #{iapChangeDetailLogTDto.oldValue}
+            </if>
+            <if test="iapChangeDetailLogTDto.newValue != null and iapChangeDetailLogTDto.newValue != ''">
+                and new_value = #{iapChangeDetailLogTDto.newValue}
+            </if>
+            <if test="iapChangeDetailLogTDto.creater != null and iapChangeDetailLogTDto.creater != ''">
+                and creater = #{iapChangeDetailLogTDto.creater}
+            </if>
+            <if test="iapChangeDetailLogTDto.createDate != null">
+                and create_date = #{iapChangeDetailLogTDto.createDate}
+            </if>
+            <if test="iapChangeDetailLogTDto.lastUpdateBy != null and iapChangeDetailLogTDto.lastUpdateBy != ''">
+                and last_update_by = #{iapChangeDetailLogTDto.lastUpdateBy}
+            </if>
+            <if test="iapChangeDetailLogTDto.lastUpdateDate != null">
+                and last_update_date = #{iapChangeDetailLogTDto.lastUpdateDate}
+            </if>
+        </where>
+    </select>
+
+</mapper>

@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.itl.mes.core.provider.mapper.SnLogMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.itl.mes.core.api.entity.SnLog">
+        <id column="BO" property="bo"/>
+        <result column="SITE" property="site"/>
+        <result column="ITEM" property="item"/>
+        <result column="MATERIAL_TYPE" property="materialType"/>
+        <result column="SHOP_ORDER" property="shopOrder"/>
+        <result column="CREATE_QUANTITY" property="createQuantity"/>
+        <result column="START_NUMBER" property="startNumber"/>
+        <result column="END_NUMBER" property="endNumber"/>
+        <result column="CREATE_USER" property="createUser"/>
+        <result column="CREATE_DATE" property="createDate"/>
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        BO, SITE, ITEM, MATERIAL_TYPE, SHOP_ORDER, CREATE_QUANTITY, START_NUMBER, END_NUMBER, CREATE_USER, CREATE_DATE
+    </sql>
+    <select id="selectPageByDate" resultType="com.itl.mes.core.api.entity.SnLog">
+        SELECT SL.* FROM Z_SN_LOG SL
+        WHERE SL.SITE = #{params.site}
+        <if test="params.item != null and params.item != ''">
+            AND SL.ITEM LIKE '${params.item}%'
+        </if>
+        <if test="params.startNumber != null and params.startNumber != ''">
+            AND SL.START_NUMBER &gt;= #{params.startNumber}
+        </if>
+        <if test="params.endNumber != null and params.endNumber != ''">
+            AND SL.END_NUMBER &lt;= #{params.endNumber}
+        </if>
+        <if test="params.startCreateDate != null and params.startCreateDate != ''">
+            AND SL.CREATE_DATE &gt;= #{params.startCreateDate}
+        </if>
+        <if test="params.endCreateDate != null and params.endCreateDate != ''">
+            AND SL.CREATE_DATE &lt;= #{params.endCreateDate}
+        </if>
+
+    </select>
+
+    <!--判断SN是否已使用-->
+    <select id="getSnByDateJudge" resultType="com.itl.mes.core.api.entity.Sn">
+        SELECT * FROM z_sn  WHERE COMPLEMENT_CODE_STATE = #{complementCodeState} AND ITEM_TYPE = #{itemType}
+        AND MAX_SERIAL_NUMBER &gt;= #{startMaxSerialNumber} AND MAX_SERIAL_NUMBER &lt;= #{endMaxSerialNumber}
+        AND   CONVERT(VARCHAR, MODIFY_DATE , 120 )  !=  CONVERT(VARCHAR, CREATE_DATE , 120 )
+    </select>
+
+
+</mapper>

@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.itl.iap.system.provider.mapper.IapDictItemMapper">
+    <resultMap id="iapDictItemDto" type="com.itl.iap.system.api.dto.IapDictItemTDto">
+        <id property="id" column="id"/>
+        <result property="code" column="code"/>
+        <result property="name" column="name"/>
+        <result property="enabled" column="enabled"/>
+        <result property="remark" column="remark"/>
+        <result property="iapDictId" column="iap_dict_id"/>
+        <result property="sort" column="sort"/>
+        <result property="creater" column="creater"/>
+        <result property="keyValue" column="key_value"/>
+    </resultMap>
+    <resultMap id="iapDictItemDtoRecursive" type="com.itl.iap.system.api.dto.IapDictItemTDto">
+        <id property="id" column="id"/>
+        <result property="code" column="code"/>
+        <result property="name" column="name"/>
+        <result property="enabled" column="enabled"/>
+        <result property="remark" column="remark"/>
+        <result property="iapDictId" column="iap_dict_id"/>
+        <result property="sort" column="sort"/>
+        <result property="creater" column="creater"/>
+        <result property="keyValue" column="key_value"/>
+    </resultMap>
+
+    <select id="queryDictCodeOrName" resultMap="iapDictItemDtoRecursive">
+        SELECT
+        A.id,
+        A.code,
+        A.name,
+        A.enabled,
+        A.remark,
+        A.iap_dict_id,
+        A.sort,
+        A.creater,
+        A.key_value
+        FROM
+        iap_dict_item_t A,iap_dict_t B
+        <where>
+            A.iap_dict_id = B.id
+
+            <if test="iapDictItemTDto.name != null and iapDictItemTDto.name.trim() != ''">
+                and A.name like concat('%', #{iapDictItemTDto.name}, '%')
+            </if>
+            <if test="iapDictItemTDto.code != null and iapDictItemTDto.code.trim() != ''">
+                and A.code like concat('%', #{iapDictItemTDto.code}, '%')
+            </if>
+
+            <if test="iapDictItemTDto.parentCode != null and iapDictItemTDto.parentCode.trim() != ''">
+                and B.code = #{iapDictItemTDto.parentCode}
+            </if>
+
+        </where>
+        ORDER BY A.sort ASC
+    </select>
+    <!--通过iapDictId查询-->
+    <select id="selectByIapDictIdList" resultMap="iapDictItemDto"
+            parameterType="java.util.List">
+        SELECT
+        a.id,
+        a.code,
+        a.name,
+        a.enabled,
+        a.remark,
+        a.iap_dict_id,
+        a.sort,
+        a.creater,
+        a.key_value
+        FROM
+        iap_dict_item_t a
+        LEFT JOIN iap_dict_t b ON a.iap_dict_id = b.id where a.iap_dict_id in
+        <foreach collection="ids" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </select>
+    <select id="queryDictCode" resultMap="iapDictItemDto"
+            parameterType="java.util.List">
+        SELECT
+            B.id,
+            B.code,
+            B.name,
+            B.enabled,
+            B.remark,
+            B.iap_dict_id,
+            B.sort,
+            B.creater,
+            B.key_value
+        FROM
+            iap_dict_t A
+            LEFT JOIN iap_dict_item_t B ON A.id = B.iap_dict_id
+        WHERE
+            A.code = #{dictCode}
+            AND B.id IS NOT NULL
+            AND B.enabled != 1
+         ORDER BY B.sort ASC
+    </select>
+</mapper>

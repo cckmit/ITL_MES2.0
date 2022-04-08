@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.itl.iap.system.provider.mapper.IapPositionEmployeeTMapper">
+
+    <!-- 通过传入的员工列表id删除 -->
+    <delete id="deleteByIapEmployeeTList">
+        DELETE FROM iap_position_employee_t
+        <where>
+            <if test="iapEmployeeTList != null and iapEmployeeTList.size() > 0">
+                iap_position_employee_t.employee_id IN
+                <foreach collection="iapEmployeeTList" item="item" open="(" separator="," close=")">
+                    #{item.id}
+                </foreach>
+            </if>
+        </where>
+    </delete>
+</mapper>

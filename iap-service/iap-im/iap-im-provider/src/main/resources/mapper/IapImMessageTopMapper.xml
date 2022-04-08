@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.itl.im.provider.mapper.IapImMessageTopMapper">
+    <resultMap id="messageTop" type="iap.im.api.dto.IapImMessageTopDto">
+        <result property="id" column="id" jdbcType="VARCHAR"/>
+        <result property="messageListId" column="message_list_id" jdbcType="VARCHAR"/>
+        <result property="topPerson" column="real_name" jdbcType="VARCHAR"/>
+        <result property="topContent" column="top_content" jdbcType="VARCHAR"/>
+        <result property="topTimestamp" column="top_timestamp" jdbcType="BIGINT"/>
+        <result property="creator" column="creator" jdbcType="VARCHAR"/>
+        <result property="createTime" column="create_time" jdbcType="BIGINT"/>
+        <result property="lastUpdateBy" column="last_update_by" jdbcType="VARCHAR"/>
+        <result property="lastUpdateTime" column="last_update_time" jdbcType="BIGINT"/>
+    </resultMap>
+
+    <!-- 查询置顶消息 -->
+    <select id="topMessage" resultMap="messageTop">
+        SELECT
+            A.id,
+            A.message_list_id,
+            B.real_name,
+            A.top_content,
+            A.top_timestamp,
+            A.creator,
+            A.create_time,
+            A.last_update_by,
+            A.last_update_time
+        FROM
+            (
+                SELECT
+                    id,
+                    message_list_id,
+                    top_person,
+                    top_content,
+                    top_timestamp,
+                    creator,
+                    create_time,
+                    last_update_by,
+                    last_update_time
+                FROM
+                    `iap_im_message_top_t`
+                WHERE
+                    message_list_id IN
+                <foreach collection="ids" item="id" open="(" separator="," close=")">
+                    #{id}
+                </foreach>
+                ) A
+                LEFT JOIN iap_sys_user_t B ON A.top_person = B.user_name
+    </select>
+</mapper>

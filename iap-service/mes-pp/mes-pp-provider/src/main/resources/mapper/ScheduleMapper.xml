@@ -1,0 +1,156 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.itl.mes.pp.provider.mapper.ScheduleMapper">
+
+
+    <select id="findList" resultType="com.itl.mes.pp.api.dto.schedule.ScheduleRespDTO">
+
+        SELECT
+        a.BO as bo,
+        a.SCHEDULE_NO as scheduleNo,
+        a.SCHEDULE_TYPE as scheduleType,
+        a.STATE as state,
+        a.CONTROL_STATE as controlState,
+        a.PRIORITY as priority,
+        b.ITEM_NAME as item,
+        b.VERSION as itemVersion,
+        c.BOM_DESC as bom,
+        c.VERSION as bomVersion,
+        d.ROUTER as router,
+        d.VERSION as routerVersion,
+        g.SHOP_ORDER as shopOrder,
+        a.QUANTITY as quantity
+        FROM
+        p_schedule a,
+        m_item b,
+        m_bom c,
+        m_router d,
+        p_schedule_shop_order e,
+        m_shop_order g
+        WHERE
+        a.ITEM_BO= b.BO
+        AND a.BOM_BO = c.BO
+        AND a.ROUTER_BO = d.BO
+        AND a.BO = e.SCHEDULE_BO
+        AND e.SHOP_ORDER_BO = g.BO
+        AND a.SITE = #{schedule.site}
+        <if test="schedule.scheduleNo != null and schedule.scheduleNo != ''">
+            AND a.SCHEDULE_NO LIKE CONCAT(#{schedule.scheduleNo},'%')
+        </if>
+        <if test="schedule.shopOrder != null and schedule.shopOrder != ''">
+            AND g.SHOP_ORDER LIKE CONCAT(#{schedule.shopOrder},'%')
+        </if>
+        <if test="schedule.item != null and schedule.item != ''">
+            AND (
+                b.ITEM LIKE CONCAT(#{schedule.item},'%')
+                OR
+                b.ITEM_NAME LIKE CONCAT('%',#{schedule.item},'%')
+                )
+        </if>
+        <if test="schedule.itemVersion != null and schedule.itemVersion != ''">
+            AND b.VERSION = #{schedule.itemVersion}
+        </if>
+        ORDER BY a.CREATE_DATE DESC
+    </select>
+
+
+    <select id="findProductionLine" resultType="com.itl.mes.pp.api.dto.schedule.ProductionLineResDTO">
+
+        SELECT
+            bo as productionLineBo,
+            PRODUCT_LINE_DESC as productionLineName,
+            PRODUCT_LINE as productionLine
+        FROM
+            m_product_line
+        WHERE
+            WORK_SHOP_BO = #{workShopBo}
+
+    </select>
+
+
+    <select id="findProductionLineStation" resultType="com.itl.mes.pp.api.dto.schedule.StationResDTO">
+
+        SELECT
+            BO as stationBo,
+            STATION as station,
+            STATION_DESC as stationName
+        FROM
+            m_station
+        WHERE
+            PRODUCT_LINE_BO = #{productionLineBo}
+
+    </select>
+
+    <select id="findById" resultType="com.itl.mes.pp.api.dto.schedule.ScheduleDetailRespDTO">
+
+        SELECT
+        a.BO as bo,
+        a.SCHEDULE_NO as scheduleNo,
+        a.SCHEDULE_TYPE as scheduleType,
+        a.STATE as state,
+        a.CONTROL_STATE as controlState,
+        a.PRIORITY as priority,
+        a.ITEM_BO as itemBo,
+        a.BOM_BO as bomBo,
+        a.WORKSHOP_BO as workshopBo,
+        a.ROUTER_BO as routerBo,
+        e.SHOP_ORDER_BO as shopOrderBo,
+        a.QUANTITY as quantity,
+        a.START_DATE as startDate,
+        a.END_DATE as endDate
+        FROM
+        p_schedule a,
+        p_schedule_shop_order e
+        WHERE
+        a.BO = #{bo}
+        AND a.BO = e.SCHEDULE_BO
+    </select>
+
+    <select id="findByIdWithCount" resultType="com.itl.mes.pp.api.dto.schedule.ScheduleDetailRespDTO">
+        SELECT a.BO                         as bo,
+               a.SCHEDULE_NO                as scheduleNo,
+               a.SCHEDULE_TYPE              as scheduleType,
+               a.STATE                      as state,
+               a.CONTROL_STATE              as controlState,
+               a.PRIORITY                   as priority,
+               a.ITEM_BO                    as itemBo,
+               a.BOM_BO                     as bomBo,
+               a.WORKSHOP_BO                as workshopBo,
+               a.ROUTER_BO                  as routerBo,
+               e.SHOP_ORDER_BO              as shopOrderBo,
+               a.QUANTITY                   as quantity,
+               a.START_DATE                 as startDate,
+               a.END_DATE                   as endDate,
+               r.RECEIVE_QTY                as receiveQty
+        FROM p_schedule a,
+             p_schedule_shop_order e,
+             m_shop_order o,
+             p_schedule_receive as r
+        WHERE a.BO = e.SCHEDULE_BO
+          AND a.BO = r.SCHEDULE_BO
+          AND o.BO = e.SHOP_ORDER_BO
+          AND o.BO = r.SHOP_ORDER_BO
+          AND a.BO = #{bo}
+          AND r.STATE = '2'
+          AND r.PRODUCTION_LINE_BO = #{productLineBo}
+    </select>
+
+    <select id="getByProductLine" resultType="java.util.Map">
+        SELECT s.BO AS bo, s.SCHEDULE_NO AS scheduleNo, i.ITEM AS item, i.VERSION AS itemVersion
+        FROM p_schedule AS s,
+             p_schedule_production_line AS spl,
+             m_item AS i,
+             m_product_line AS pl
+        WHERE s.BO = spl.SCHEDULE_BO
+          AND s.ITEM_BO = i.BO
+          AND pl.BO = spl.PRODUCTION_LINE_BO
+          AND pl.PRODUCT_LINE = #{query.productLine}
+          AND s.SITE = #{query.site}
+        <if test="query.scheduleNo!= null and query.scheduleNo != ''">
+            AND s.SCHEDULE_NO LIKE '%${query.scheduleNo}%'
+        </if>
+        <if test="query.item != null and query.item != ''">
+            AND i.ITEM LIKE '%${query.item}%'
+        </if>
+    </select>
+</mapper>

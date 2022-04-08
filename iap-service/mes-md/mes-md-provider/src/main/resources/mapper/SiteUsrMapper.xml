@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.itl.mes.core.provider.mapper.SiteUsrMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.itl.mes.core.api.entity.SiteUsr">
+        <id column="USR" property="usr" />
+        <result column="SITE" property="site" />
+        <result column="IS_DEFAULT_SITE" property="isDefaultSite" />
+        <result column="CREATE_USER" property="createUser" />
+        <result column="CREATE_DATE" property="createDate" />
+        <result column="MODIFY_USER" property="modifyUser" />
+        <result column="MODIFY_DATE" property="modifyDate" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        USR, SITE, IS_DEFAULT_SITE, CREATE_USER, CREATE_DATE, MODIFY_USER, MODIFY_DATE
+    </sql>
+
+    <!-- 查询用户工厂信息 -->
+    <select id="getSiteUsrByUsr" resultType="java.util.Map">
+
+        SELECT MSU.SITE,MSU.USR,MS.SITE_DESC,IS_DEFAULT_SITE,MSU.MODIFY_DATE FROM M_SITE_USR MSU
+        INNER JOIN M_SITE MS ON MSU.SITE=MS.SITE
+        WHERE MSU.USR=#{usr}
+    </select>
+    <!-- 查询用户工厂信息 -->
+    <select id="getSiteUsrByCard" resultType="java.util.Map">
+
+        SELECT MSU.SITE,MSU.USR,MS.SITE_DESC,IS_DEFAULT_SITE,MSU.MODIFY_DATE FROM M_SITE_USR MSU
+        INNER JOIN M_SITE MS ON MSU.SITE=MS.SITE
+        LEFT JOIN IAP_SYS_USER_T SU ON MSU.USR = SU.USER_NAME
+        WHERE SU.USER_CARD_NUMBER=#{userCardNumber}
+    </select>
+
+    <!-- 查询用户信息 -->
+    <select id="getUsrInfoByUsr" resultType="java.util.Map">
+
+        SELECT ID AS USER_ID,USER_NAME FROM iap_sys_user_t
+        WHERE USER_NAME=#{usr}
+    </select>
+
+    <!-- 查询用户信息 -->
+    <select id="getUsrInfoByUsrByCard" resultType="java.util.Map">
+
+        SELECT ID AS USER_ID,USER_NAME FROM iap_sys_user_t
+        WHERE USER_CARD_NUMBER=#{userCardNumber}
+    </select>
+
+</mapper>

@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.itl.mes.core.provider.mapper.NcGroupMemberMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.itl.mes.core.api.entity.NcGroupMember">
+        <result column="NC_GROUP_BO" property="ncGroupBo" />
+        <result column="NC_CODE_BO" property="ncCodeBo" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        NC_GROUP_BO, NC_CODE_BO
+    </sql>
+
+
+    <select id="getAvailableNcCodeList" resultType="com.itl.mes.core.api.vo.CodeGroupVo" parameterType="string">
+        SELECT OG.BO,OG.NC_CODE,OG.NC_NAME,OG.NC_DESC,OG.STATE FROM M_NC_CODE OG WHERE OG.SITE=#{site}
+        AND NOT EXISTS( SELECT NC_CODE_BO AS BO FROM M_NC_GROUP_MEMBER OGM WHERE NC_GROUP_BO=#{ncGroupBO} AND OG.BO=OGM.NC_CODE_BO )
+    </select>
+
+    <select id="getAssignedNcCodeList" resultType="com.itl.mes.core.api.vo.CodeGroupVo" parameterType="string">
+        SELECT NC.BO,NC.NC_CODE,NC.NC_NAME,NC.NC_DESC,NC.STATE FROM M_NC_CODE NC WHERE NC.SITE=#{site}
+        AND  EXISTS( SELECT NC_CODE_BO AS BO FROM M_NC_GROUP_MEMBER OGM WHERE NC_GROUP_BO=#{ncGroupBO} AND NC.BO=OGM.NC_CODE_BO )
+    </select>
+
+</mapper>

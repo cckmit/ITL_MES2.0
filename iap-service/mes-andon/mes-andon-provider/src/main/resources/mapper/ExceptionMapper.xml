@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.itl.mes.andon.provider.mapper.ExceptionMapper">
+
+
+    <resultMap type="com.itl.mes.andon.api.entity.AndonException" id="AndonExceptionMap">
+        <result property="id" column="id"/>
+        <result property="exceptionCode" column="exception_code"/>
+        <result property="workshopBo" column="workshop_bo"/>
+        <result property="workshopName" column="workshop_name"/>
+        <result property="deviceBo" column="device_bo"/>
+        <result property="deviceName" column="device_name"/>
+        <result property="andonTypeBo" column="andon_type_bo"/>
+        <result property="andonTypeName" column="andon_typeName"/>
+        <result property="andonDetail" column="andon_detail"/>
+        <result property="faultCode" column="fault_code"/>
+        <result property="triggerUser" column="trigger_user"/>
+        <result property="triggerUserName" column="trigger_user_name"/>
+        <result property="triggerTime" column="trigger_time"/>
+        <result property="checkUser" column="check_user"/>
+        <result property="checkUserName" column="check_user_name"/>
+        <result property="checkTime" column="check_time"/>
+        <result property="responseTime" column="response_time"/>
+        <result property="relieveUser" column="relieve_user"/>
+        <result property="relieveUserName" column="relieve_user_name"/>
+        <result property="relieveTime" column="relieve_time"/>
+        <result property="continueTime" column="continue_time"/>
+        <result property="exceptionDesc" column="exception_desc"/>
+        <result property="processMethod" column="process_method"/>
+        <result property="state" column="state"/>
+        <result property="fileImage" column="file_image"/>
+        <result property="andonDescBo" column="andon_desc_bo"/>
+        <result property="jobIds" column="job_ids"/>
+        <result property="device" column="device"/>
+    </resultMap>
+
+
+    <select id="query" resultType="Integer">
+        select COUNT (*) from andon_exception
+    </select>
+
+    <select id="userVerify" resultType="String" parameterType="java.util.Map">
+        SELECT user_name FROM iap_sys_user_t
+        WHERE
+        <if test="param.userName != null and param.userName != '' ">
+            user_name = '${param.userName}'
+        </if>
+        <if test="param.pwd != null and param.pwd != ''">
+            AND user_psw = '${param.pwd}'
+        </if>
+    </select>
+
+    <select id="selectMaxCode" resultType="String" >
+        SELECT MAX(exception_code) FROM andon_exception
+    </select>
+
+    <select id="repairList" resultMap="AndonExceptionMap" parameterType="String">
+        SELECT t.* from (
+            SELECT * FROM andon_exception e
+                <where>
+                    1=1
+                        <if test="condition != null and condition != '' ">
+                            and e.device like concat('%',#{condition},'%')
+                            or e.trigger_user_name like concat('%',#{condition},'%')
+                            or e.check_user_name like concat('%',#{condition},'%')
+                            or e.relieve_user_name like concat('%',#{condition},'%')
+                            or e.exception_code like concat('%',#{condition},'%')
+                        </if>
+                </where>) t
+                <where>
+                    1=1
+                        <if test="userName != null and userName != '' ">
+                            AND t.check_user = '${userName}'
+                        </if>
+                </where>
+        order by trigger_time desc
+    </select>
+
+    <select id="selectStationDescByStation" resultType="com.itl.mes.andon.api.entity.Station" parameterType="string">
+        select m.*,n.PRODUCT_LINE_DESC as productLineName from m_station m
+        left join m_product_line n on m.PRODUCT_LINE_BO=n.BO
+        where station=#{station}
+    </select>
+
+    <select id="selectRoleUserList" parameterType="string" resultType="com.itl.iap.system.api.entity.IapSysUserT">
+        select a.user_name as userName,a.id
+        from iap_sys_user_t a,iap_sys_user_role_t b
+        where a.id = b.user_id and b.role_id = #{roleId}
+        order by a.id DESC
+    </select>
+</mapper>

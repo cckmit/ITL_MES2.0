@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.itl.mes.core.provider.mapper.DataMapper">
+
+    <select id="getWorkShopBoByStationBo" parameterType="string" resultType="com.itl.mes.core.api.entity.WorkShop">
+        select o.bo,o.work_shop_desc from m_station m
+        left join m_product_line p on m.product_line_bo=p.bo
+        left join m_work_shop o on p.work_shop_bo=o.bo
+        where m.bo=#{stationBo}
+    </select>
+</mapper>

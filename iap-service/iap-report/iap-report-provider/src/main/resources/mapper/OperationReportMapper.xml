@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.itl.iap.report.provider.mapper.OperationReportMapper">
+    <select id="getPageListOperationTestQualifiedRate" resultType="com.itl.iap.report.api.vo.OperationTestQualifiedRateVo">
+        SELECT
+            qc.sfc as sfc,
+            qc.shop_order as shopOrder,
+            so.bo as shopOrderBo,
+            qc.item_bo as itemBo,
+            qc.item as item,
+            qc.item_name as itemName,
+            qc.item_desc as itemDesc,
+            qc.operation_bo as operationBo,
+            qc.operation_name as operationName,
+            op.operation as operation,
+            su.real_name AS qualityTestingUser,
+            qc.unqualified as unQualified,
+            (100 - qc.unqualified) AS qualified,
+            qc.check_remark as ncReason,
+            qc.create_date AS qualityTestingDate
+        FROM
+            m_quality_checklist qc
+                LEFT JOIN m_shop_order so on qc.shop_order = so.shop_order
+                LEFT JOIN m_operation op on qc.operation_bo = op.bo
+                LEFT JOIN iap_sys_user_t su on qc.check_user = su.user_name
+        WHERE
+            check_type = 3
+        <if test="operationTestQualifiedRateVo.sfc != null and operationTestQualifiedRateVo.sfc != '' ">
+            and qc.sfc like concat('%',#{operationTestQualifiedRateVo.sfc},'%')
+        </if>
+        <if test="operationTestQualifiedRateVo.operationBo != null and operationTestQualifiedRateVo.operationBo != '' ">
+            and qc.operation_bo like concat('%',#{operationTestQualifiedRateVo.operationBo},'%')
+        </if>
+        <if test="operationTestQualifiedRateVo.itemBo != null and operationTestQualifiedRateVo.itemBo != '' ">
+            and qc.item_bo like concat('%',#{operationTestQualifiedRateVo.itemBo},'%')
+        </if>
+        <if test="operationTestQualifiedRateVo.qualityTestingUser != null and operationTestQualifiedRateVo.qualityTestingUser != '' ">
+            and qc.check_user like concat('%',#{operationTestQualifiedRateVo.qualityTestingUser},'%')
+        </if>
+        <if test="operationTestQualifiedRateVo.shopOrderBo != null and operationTestQualifiedRateVo.shopOrderBo != '' ">
+            and so.bo like concat('%',#{operationTestQualifiedRateVo.shopOrderBo},'%')
+        </if>
+    </select>
+    <select id="sumDoneQtyByOperationBoAndSfc" resultType="int">
+        SELECT
+            ISNULL( SUM ( DONE_QTY ), 0 )
+        FROM
+            me_sfc_wip_log
+        WHERE
+            OPERATION_BO = #{operationBo}
+          AND sfc = #{sfc}
+    </select>
+    <select id="getOutStationUserByOperationBoAndSfc" resultType="string">
+        SELECT
+            real_name
+        FROM
+            iap_sys_user_t
+        WHERE
+                user_name IN (
+                SELECT DISTINCT
+                    user_bo
+                FROM
+                    me_sfc_wip_log
+                WHERE
+                    OPERATION_BO = #{ operationBo }
+                  AND sfc = #{ sfc })
+    </select>
+</mapper>

@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.itl.mes.core.provider.mapper.DeviceTypeMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.itl.mes.core.api.entity.DeviceType">
+        <id column="BO" property="bo" />
+        <result column="SITE" property="site" />
+        <result column="DEVICE_TYPE" property="deviceType" />
+        <result column="DEVICE_TYPE_NAME" property="deviceTypeName" />
+        <result column="DEVICE_TYPE_DESC" property="deviceTypeDesc" />
+        <result column="CREATE_USER" property="createUser" />
+        <result column="CREATE_DATE" property="createDate" />
+        <result column="MODIFY_DATE" property="modifyDate" />
+        <result column="MODIFY_USER" property="modifyUser" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        BO, SITE, DEVICE_TYPE, DEVICE_TYPE_NAME, DEVICE_TYPE_DESC, CREATE_USER, CREATE_DATE, MODIFY_DATE, MODIFY_USER
+    </sql>
+
+    <select id="getAvailableDeviceList" parameterType="String" resultType="java.util.Map">
+        SELECT DEVICE,DEVICE_NAME,DEVICE_DESC FROM M_DEVICE MD WHERE SITE = #{site}
+        AND NOT EXISTS( SELECT DEVICE_BO FROM M_DEVICE_TYPE_ITEM WHERE DEVICE_TYPE_BO = #{deviceTypeBo} AND MD.BO = DEVICE_BO )
+    </select>
+
+    <select id="getAssignedDeviceList" parameterType="String" resultType="java.util.Map">
+        SELECT DEVICE,DEVICE_NAME,DEVICE_DESC FROM M_DEVICE MD WHERE SITE = #{site}
+        AND EXISTS( SELECT DEVICE_BO FROM M_DEVICE_TYPE_ITEM WHERE DEVICE_TYPE_BO = #{deviceTypeBo} AND MD.BO = DEVICE_BO )
+    </select>
+
+    <select id="selectTop" resultType="com.itl.mes.core.api.entity.DeviceType">
+        SELECT TOP 500 BO, SITE, DEVICE_TYPE, DEVICE_TYPE_NAME, DEVICE_TYPE_DESC, CREATE_USER, CREATE_DATE, MODIFY_DATE, MODIFY_USER
+        FROM m_device_type WHERE SITE = #{site}
+    </select>
+</mapper>

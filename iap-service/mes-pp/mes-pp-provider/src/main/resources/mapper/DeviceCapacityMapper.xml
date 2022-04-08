@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.itl.mes.pp.provider.mapper.DeviceCapacityMapper">
+
+    <resultMap type="com.itl.mes.pp.api.entity.DeviceCapacityEntity" id="ProductLineMap">
+        <result property="bo" column="BO"/>
+        <result property="site" column="SITE"/>
+        <result property="workShopBo" column="WORK_SHOP_BO"/>
+        <result property="productLineBo" column="PRODUCT_LINE_BO"/>
+        <result property="productLineDesc" column="PRODUCT_LINE_DESC"/>
+        <result property="createDate" column="CREATE_DATE"/>
+        <result property="createUser" column="CREATE_USER"/>
+        <result property="modifyDate" column="MODIFY_DATE"/>
+        <result property="modifyUser" column="MODIFY_USER"/>
+        <result property="maintenanceTime" column="MAINTENANCE_TIME"/>
+        <result property="percentage" column="PERCENTAGE"/>
+        <result property="ratedTime" column="RATED_TIME"/>
+        <result property="deviceBo" column="DEVICE_BO"/>
+        <result property="maxTime" column="MAX_TIME"/>
+        <result property="workShop" column="WORK_SHOP"/>
+    </resultMap>
+
+<select id="getAll" resultMap="ProductLineMap" parameterType="java.lang.String">
+
+            select pdc.BO,
+                   pdc.SITE,
+                   pdc.PRODUCT_LINE_BO,
+                   pdc.WORK_SHOP_BO,
+                   pdc.PERCENTAGE,
+                   pdc.RATED_TIME,
+                   pdc.MAX_TIME,
+                   pdc.MAINTENANCE_TIME,
+                   pdc.CREATE_DATE,
+                   mpl.PRODUCT_LINE_DESC
+
+
+
+            from p_device_capacity pdc
+                         left join m_product_line mpl on pdc.PRODUCT_LINE_BO = mpl.BO
+            where pdc.SITE = #{site}
+            order by pdc.CREATE_DATE
+</select>
+
+</mapper>

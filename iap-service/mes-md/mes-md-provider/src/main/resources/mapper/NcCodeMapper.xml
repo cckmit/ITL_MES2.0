@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.itl.mes.core.provider.mapper.NcCodeMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.itl.mes.core.api.entity.NcCode">
+        <id column="BO" property="bo" />
+        <result column="SITE" property="site" />
+        <result column="NC_CODE" property="ncCode" />
+        <result column="NC_NAME" property="ncName" />
+        <result column="NC_DESC" property="ncDesc" />
+        <result column="STATE" property="state" />
+        <result column="NC_TYPE" property="ncType" />
+        <result column="PRIORITY" property="priority" />
+        <result column="MAX_NC_LIMIT" property="maxNcLimit" />
+        <result column="SEVERITY" property="severity" />
+        <result column="CREATE_DATE" property="createDate" />
+        <result column="CREATE_USER" property="createUser" />
+        <result column="MODIFY_DATE" property="modifyDate" />
+        <result column="MODIFY_USER" property="modifyUser" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        BO, SITE, NC_CODE, NC_NAME, NC_DESC, STATE, NC_TYPE, PRIORITY, MAX_NC_LIMIT, SEVERITY, CREATE_DATE, CREATE_USER, MODIFY_DATE, MODIFY_USER
+    </sql>
+
+    <select id="getAvailableNcGroupList" parameterType="java.lang.String" resultType="java.util.Map" >
+           SELECT NC_GROUP,NC_GROUP_NAME,NC_GROUP_DESC FROM M_NC_GROUP OG WHERE OG.SITE=#{site}
+        AND NOT EXISTS( SELECT NC_GROUP FROM M_NC_GROUP_MEMBER OGM WHERE NC_CODE_BO=#{ncCodeBO} AND OG.BO=OGM.NC_GROUP_BO )
+    </select>
+
+    <select id="getAssignedNcGroupList" parameterType="java.lang.String" resultType="java.util.Map">
+           SELECT NC_GROUP,NC_GROUP_NAME,NC_GROUP_DESC FROM M_NC_GROUP OG WHERE OG.SITE=#{site}
+        AND  EXISTS( SELECT NC_GROUP FROM M_NC_GROUP_MEMBER OGM WHERE NC_CODE_BO=#{ncCodeBO} AND OG.BO=OGM.NC_GROUP_BO )
+    </select>
+
+
+    <select id="getAvailableNcDispRouterVos" parameterType="java.lang.String" resultType="com.itl.mes.core.api.vo.NcDispRouterVo">
+        SELECT ROUTER , ROUTER_NAME , VERSION FROM M_ROUTER R WHERE R.ROUTER_TYPE = 'D' AND  R.SITE =#{site}
+	    AND NOT EXISTS ( SELECT ROUTER_BO FROM M_NC_DISP_ROUTER NR WHERE NR.NC_CODE_BO = #{ncCodeBO} AND R.BO = NR.ROUTER_BO)
+    </select>
+
+    <select id="getAssignedNcDispRouterVos" parameterType="java.lang.String" resultType="com.itl.mes.core.api.vo.NcDispRouterVo">
+          SELECT ROUTER , ROUTER_NAME , VERSION FROM M_ROUTER R WHERE R.ROUTER_TYPE = 'D' AND  R.SITE =#{site}
+	      AND  EXISTS ( SELECT ROUTER_BO FROM M_NC_DISP_ROUTER NR WHERE NR.NC_CODE_BO = #{ncCodeBO} AND R.BO = NR.ROUTER_BO)
+    </select>
+
+    <select id="selectTop" resultType="com.itl.mes.core.api.entity.NcCode">
+        SELECT TOP 500 BO, SITE, NC_CODE, NC_NAME, NC_DESC, STATE, NC_TYPE, PRIORITY, MAX_NC_LIMIT, SEVERITY, CREATE_DATE, CREATE_USER, MODIFY_DATE, MODIFY_USER
+        FROM m_nc_code WHERE SITE = #{site}
+        <if test="ncCode != null and ncCode !='' ">
+            AND NC_CODE LIKE '${ncCode}%'
+        </if>
+        <if test="ncName != null and ncName !='' ">
+            AND NC_NAME LIKE '${ncName}%'
+        </if>
+    </select>
+
+</mapper>

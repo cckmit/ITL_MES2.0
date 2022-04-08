@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.itl.mes.me.provider.mapper.ItemRuleLabelMapper">
+    <resultMap type="com.itl.mes.me.api.dto.itemRuleLabel.ItemRuleLabelShowDto" id="baseMap">
+        <id property="bo" column="bo"/>
+
+        <result property="itemBo" column="itemBo"/>
+        <result property="item" column="item"/>
+        <result property="itemName" column="itemName"/>
+        <result property="shopOrder" column="shopOrder"></result>
+        <result property="orderQTY" column="orderQTY"></result>
+
+        <result property="codeRuleBo" column="codeRuleBo"/>
+        <result property="codeRuleType" column="codeRuleType"/>
+
+        <result property="labelBo" column="labelBo"/>
+        <result property="label" column="label"/>
+        <result property="labelType" column="labelType"/>
+
+        <collection property="details" ofType="com.itl.mes.me.api.entity.ItemRuleLabelDetail">
+            <result property="ruleVar" column="ruleVar"/>
+            <result property="ruleVal" column="ruleVal"/>
+            <result property="templateArg" column="templateArg"/>
+            <result property="type" column="type"/>
+        </collection>
+    </resultMap>
+
+
+
+    <sql id="commonSql">
+            irl.BO            AS bo,
+            irl.ITEM_BO       AS itemBo,
+            i.ITEM            AS item,
+            i.ITEM_NAME       AS itemName,
+            irl.CODE_RULE_BO  AS codeRuleBo,
+            cr.CODE_RULE_TYPE AS codeRuleType,
+            irl.LABEL_BO      AS labelBo,
+            l.LABEL           AS label,
+            irl.LABEL_TYPE    AS labelType
+    </sql>
+
+    <select id="getCustoms" resultType="java.lang.String">
+        SELECT
+            CD_FIELD
+        FROM m_custom_data
+        WHERE CUSTOM_DATA_TYPE = 'item' AND SITE = #{site}
+    </select>
+    <select id="queryList" resultMap="baseMap">
+        SELECT
+            <include refid="commonSql"/>
+        FROM me_item_rule_label AS irl
+        LEFT JOIN m_item AS i ON i.BO = irl.ITEM_BO
+        LEFT JOIN m_code_rule AS cr ON cr.BO = irl.CODE_RULE_BO
+        LEFT JOIN label AS l ON l.ID = irl.LABEL_BO
+        WHERE irl.SITE = #{queryDto.site} AND irl.ITEM_BO like 'ITEM%'
+        <if test="queryDto.item != null and queryDto.item !=''">
+            AND i.ITEM like '%${queryDto.item}%'
+        </if>
+        <if test="queryDto.itemName != null and queryDto.itemName !=''">
+            AND i.ITEM_NAME like '%${queryDto.itemName}%'
+        </if>
+    </select>
+    <select id="queryListBySO" resultMap="baseMap">
+        SELECT
+            irl.BO            AS bo,
+            irl.ITEM_BO       AS itemBo,
+            i.ITEM            AS item,
+            i.ITEM_NAME       AS itemName,
+            so.SHOP_ORDER     AS shopOrder,
+            so.ORDER_QTY      AS orderQTY,
+            irl.CODE_RULE_BO  AS codeRuleBo,
+            cr.CODE_RULE_TYPE AS codeRuleType,
+            irl.LABEL_BO      AS labelBo,
+            l.LABEL           AS label,
+            irl.LABEL_TYPE    AS labelType
+
+        FROM me_item_rule_label AS irl
+        LEFT JOIN m_shop_order AS so ON so.BO = irl.ITEM_BO
+        LEFT JOIN m_item AS i ON  i.BO=so.ITEM_BO
+        LEFT JOIN m_code_rule AS cr ON cr.BO = irl.CODE_RULE_BO
+        LEFT JOIN label AS l ON l.ID = irl.LABEL_BO
+        WHERE irl.SITE = #{queryDto.site} AND irl.ITEM_BO like 'SO%'
+        <if test="queryDto.shopOrder != null and queryDto.shopOrder !=''">
+            AND so.SHOP_ORDER like '%${queryDto.shopOrder}%'
+        </if>
+        <if test="queryDto.itemName != null and queryDto.itemName !=''">
+            AND i.ITEM like '%${queryDto.item}%'
+        </if>
+    </select>
+
+
+    <select id="getItemColumns" resultType="com.itl.mes.me.api.dto.itemRuleLabel.ItemColumns">
+        (SELECT c.name  AS columnName,
+                e.value AS columnLabel
+         FROM sys.tables t
+                  INNER JOIN sys.columns c ON c.object_id = t.object_id
+                  LEFT JOIN sys.extended_properties e ON e.major_id = c.object_id AND e.minor_id = c.column_id
+         WHERE t.name = 'm_item'
+           AND c.name NOT IN ('CREATE_DATE', 'MODIFY_DATE')
+           AND c.name NOT LIKE '%BO%'
+        )
+        UNION
+        (SELECT
+            CD_FIELD AS columnName,
+            CD_LABEL AS columnLabel
+        FROM m_custom_data
+        WHERE CUSTOM_DATA_TYPE = 'ITEM' AND SITE = #{site}
+        )
+    </select>
+    <select id="getShopOrderColumns" resultType="com.itl.mes.me.api.dto.itemRuleLabel.ItemColumns">
+        (SELECT c.name  AS columnName,
+                e.value AS columnLabel
+         FROM sys.tables t
+                  INNER JOIN sys.columns c ON c.object_id = t.object_id
+                  LEFT JOIN sys.extended_properties e ON e.major_id = c.object_id AND e.minor_id = c.column_id
+         WHERE t.name = 'm_shop_order'
+           AND c.name NOT IN ('CREATE_DATE', 'MODIFY_DATE')
+           AND c.name NOT LIKE '%BO%'
+        )
+        UNION
+        (SELECT
+            CD_FIELD AS columnName,
+            CD_LABEL AS columnLabel
+        FROM m_custom_data
+        WHERE CUSTOM_DATA_TYPE = 'SHOP_ORDER' AND SITE = #{site}
+        )
+    </select>
+
+    <select id="getLabelEntityParams" resultType="com.itl.iap.mes.api.entity.label.LabelEntityParams">
+        SELECT a.name,
+               a.code
+        FROM label_params a
+        JOIN label b ON a.labelEntityId =b.id
+        WHERE  b.id=#{id}
+
+
+    </select>
+    <select id="getByBo" resultMap="baseMap">
+        SELECT
+            irl.BO            AS bo,
+            irl.ITEM_BO       AS itemBo,
+            i.ITEM            AS item,
+            i.ITEM_NAME       AS itemName,
+            irl.CODE_RULE_BO  AS codeRuleBo,
+            cr.CODE_RULE_TYPE AS codeRuleType,
+            irl.LABEL_BO      AS labelBo,
+            l.LABEL           AS label,
+            irl.LABEL_TYPE    AS labelType,
+            irld.RULE_VAR     AS ruleVar,
+            irld.RULE_VAL     AS ruleVal,
+            irld.TEMPLATE_ARG AS templateArg,
+            irld.TYPE         AS type
+        FROM me_item_rule_label AS irl
+                 LEFT JOIN m_item AS i ON i.BO = irl.ITEM_BO
+                 LEFT JOIN m_code_rule AS cr ON cr.BO = irl.CODE_RULE_BO
+                 LEFT JOIN label AS l ON l.ID = irl.LABEL_BO
+                 LEFt JOIN me_item_rule_label_detail AS irld ON irld.IRL_BO = irl.BO
+        WHERE irl.BO = #{bo}
+    </select>
+
+
+</mapper>
+

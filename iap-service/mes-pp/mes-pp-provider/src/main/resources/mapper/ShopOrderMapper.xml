@@ -1,0 +1,181 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.itl.mes.pp.provider.mapper.ShopOrderMapper">
+
+    <resultMap id="CustomDataAndValVo" type="com.itl.mes.core.api.vo.CustomDataAndValVo">
+        <result column="SEQUENCE" property="sequence" />
+        <result column="CUSTOM_DATA_TYPE" property="customDataType" />
+        <result column="CD_FIELD" property="cdField" />
+        <result column="CD_LABEL" property="cdLabel" />
+        <result column="IS_DATA_REQUIRED" property="isDataRequired" />
+        <result column="ATTRIBUTE" property="attribute" />
+        <result column="VALS" property="vals" />
+    </resultMap>
+
+    <select id="getList" parameterType="map" resultType="map">
+        select l.PRODUCTION_LINE_BO as productLineBo,t.BO as bo,t.PLAN_START_DATE as planStartDate,t.PLAN_END_DATE as planEndDate,t.SHOP_ORDER as shopOrder,
+        t.STATE_BO as stateBo,t.ITEM_BO as itemBo,t.ORDER_QTY as orderQty,
+        t.COMPLETE_QTY as completeQty,o.isLock as isLock,o.replaceShopOrderBo as replaceShopOrderBo, ml.WORK_SHOP_BO as workShopBo,p.SCHEDULE_BO as scheduleBo,t.EMERGENCY_BZ as emergencyBz,t.EMERGENCY_STATE as emergencyState,
+        t.NEGOTIATION_TIME as negotiationTime,t.FIXED_TIME as fixedTime,
+        s.STATE AS scheduleState,t.ORDER_DELIVERY_TIME AS orderDeliveryTime,mi.ITEM_DESC AS itemDesc,mb.PROCESS_CHARACTERISTICS as processChar,mi.ITEM as item,ps.SWITCH_TIME as changeTime,
+        (SELECT CDV.VALS  FROM M_CUSTOM_DATA CD left join M_CUSTOM_DATA_VAL CDV on CDV.CUSTOM_DATA_BO = CD.BO
+        WHERE CD.CUSTOM_DATA_TYPE='ITEM' AND CDV.BO = mi.BO and cd.CD_FIELD = 'COLOUR_SYS'
+        ) AS colourSys
+
+        from m_shop_order t
+        LEFT JOIN m_item mi on t.ITEM_BO = mi.BO
+
+        LEFT JOIN m_bom mb on  t.BOM_BO = mb.BO
+        <!--         left join (select mrr.PROCESS_CHARACTERISTICS,mrr.SCREW_COMBINATION from m_process_parameters mrr group by mrr.PROCESS_CHARACTERISTICS,mrr.SCREW_COMBINATION) mp on mp.PROCESS_CHARACTERISTICS = mb.PROCESS_CHARACTERISTICS
+-->
+        left join p_product_switch_time ps on ps.PROCESS_CHARACTERISTICS = mb.PROCESS_CHARACTERISTICS
+        right join p_schedule_shop_order p on t.SHOP_ORDER = p.SHOP_ORDER_BO
+        left join p_schedule s on p.SCHEDULE_BO = s.SCHEDULE_NO
+        left join p_schedule_production_line l on s.BO = l.SCHEDULE_BO
+        left join p_shop_order_extension o on t.SHOP_ORDER = o.shopOrderBo
+        left join m_product_line ml on ml.BO = l.PRODUCTION_LINE_BO
+        where s.SCHEDULE_TYPE = 'A' AND t.site= #{params.site}
+        <if test="params.replaceShopOrderBo != null and params.replaceShopOrderBo !=''">
+           AND t.SHOP_ORDER = #{params.replaceShopOrderBo}
+        </if>
+
+        <if test="params.workShopBo != null and params.workShopBo !=''">
+            AND ml.WORK_SHOP_BO = #{params.workShopBo}
+        </if>
+
+        <if test="params.productLineBo != null and params.productLineBo !=''">
+            AND l.PRODUCTION_LINE_BO = #{params.productLineBo}
+        </if>
+
+        <if test="params.bindings != null">
+            AND t.SHOP_ORDER NOT in
+            <foreach item="item" collection="params.bindings" separator="," open="(" close=")" index="index">
+                #{item}
+            </foreach>
+        </if>
+
+        order by l.PRODUCTION_LINE_BO,t.PLAN_START_DATE,t.SHOP_ORDER
+    </select>
+
+    <select id="selectCustomDataAndValByBoAndDataType" parameterType="map" resultMap="CustomDataAndValVo">
+        SELECT CD.CD_FIELD,CDV.VALS  FROM M_CUSTOM_DATA CD left join M_CUSTOM_DATA_VAL CDV on CDV.CUSTOM_DATA_BO = CD.BO
+		WHERE CD.CUSTOM_DATA_TYPE=#{dataType} AND CDV.BO = #{bo}
+		AND CD.SITE=#{site}
+    </select>
+
+    <select id="getBindingBySite" parameterType="string" resultType="map">
+        SELECT t.bo AS bo, t.sort AS sort, t.no AS no FROM m_work_order_binding t WHERE  t.site = #{site}
+    </select>
+
+    <insert id="taskLock" parameterType="map">
+        INSERT INTO p_shop_order_extension (id,shopOrderBo,isLock) VALUES (#{id},#{shopOrder},1)
+    </insert>
+
+    <select id="getByOrder" parameterType="string" resultType="map">
+        select id AS id,shopOrderBo AS shopOrderBo,isLock AS isLock,replaceShopOrderBo AS replaceShopOrderBo
+        from p_shop_order_extension
+        where shopOrderBo = #{shopOrder}
+    </select>
+
+    <update id="updateOtherOrder" parameterType="map">
+        UPDATE p_shop_order_extension
+        SET replaceShopOrderBo = #{replaceShopOrderBo}
+        WHERE id= #{id}
+    </update>
+
+
+
+    <update id="updateOrderById" parameterType="map">
+        UPDATE p_shop_order_extension
+        SET isLock = 1
+        WHERE id= #{id}
+    </update>
+
+    <update id="updateNoLock" parameterType="map">
+        UPDATE p_shop_order_extension
+        SET isLock = 2
+        WHERE id= #{id}
+    </update>
+
+    <insert id="insertOrder" parameterType="map">
+        INSERT INTO p_shop_order_extension (id,shopOrderBo,isLock, replaceShopOrderBo) VALUES (#{id},#{shopOrderBo},2,#{replaceShopOrderBo})
+    </insert>
+
+    <insert id="saveAutoSchedule" parameterType="map">
+        INSERT INTO p_auto_schedule (id,bo,workShopBo,productLineBo,KITTING_STATE,emergencyState,ORDER_REVIEW,actStartTime,actEndTime,shopOrder,stateBo,itemBo,
+        L_VALUE,orderQty,completeQty,SALE_ORDER_CODE,SALE_MARK,SALE_COLOR,negotiationTime,fixedTime,scheduleBo,emergencyBz,orderSort,no,margin,isLock,scheduleState,orderDeliveryTime,exceptionTime,changeTime,processChar,screwCombination,PRODUCTION_TIME
+        ) VALUES (#{id},#{bo},#{workShopBo},#{productLineBo},#{KITTING_STATE},#{emergencyState},#{ORDER_REVIEW},#{actStartTime},#{actEndTime},#{shopOrder},
+        #{stateBo},#{itemBo},#{L_VALUE},#{orderQty},#{completeQty},#{SALE_ORDER_CODE},#{SALE_MARK},#{SALE_COLOR},#{negotiationTime},#{fixedTime},#{scheduleBo},#{emergencyBz},#{orderSort}
+        ,#{no},#{margin},#{isLock},#{scheduleState},#{orderDeliveryTime},#{exceptionTime},#{changeTime},#{processChar},#{screwCombination},#{PRODUCTION_TIME}
+        )
+    </insert>
+
+    <delete id="delAutoSchedule" parameterType="map">
+        DELETE FROM p_auto_schedule
+        WHERE productLineBo= #{productLineBo}
+    </delete>
+
+    <select id="getAutoList" parameterType="map" resultType="map">
+        SELECT t.id,t.workShopBo,t.bo,t.productLineBo,t.KITTING_STATE,ms.EMERGENCY_BZ as emergencyBz,ms.EMERGENCY_STATE as emergencyState,t.ORDER_REVIEW,t.actStartTime,t.actEndTime,t.shopOrder,t.stateBo,t.itemBo,
+        t.L_VALUE,t.orderQty,t.completeQty,t.SALE_ORDER_CODE,t.SALE_MARK,t.SALE_COLOR,t.negotiationTime,t.fixedTime,t.scheduleBo,t.orderSort,t.no,t.margin,o.isLock
+        ,t.orderDeliveryTime AS orderDeliveryTime,s.STATE AS scheduleState,t.exceptionTime,mi.ITEM_DESC AS itemDesc,t.changeTime,t.processChar,t.screwCombination,t.PRODUCTION_TIME AS PRODUCTION_TIME,
+        (SELECT CDV.VALS  FROM M_CUSTOM_DATA CD left join M_CUSTOM_DATA_VAL CDV on CDV.CUSTOM_DATA_BO = CD.BO
+        WHERE CD.CUSTOM_DATA_TYPE='ITEM' AND CDV.BO = mi.BO and cd.CD_FIELD = 'COLOUR_SYS'
+        ) AS colourSys
+        from p_auto_schedule t
+        LEFT JOIN m_shop_order ms ON t.shopOrder = ms.SHOP_ORDER
+        LEFT JOIN m_item mi on t.itemBo = mi.BO
+
+        left join p_shop_order_extension o on t.shopOrder = o.shopOrderBo
+        left join p_schedule_shop_order p on t.shopOrder = p.SHOP_ORDER_BO
+        left join p_schedule s on p.SCHEDULE_BO = s.SCHEDULE_NO
+        <where>
+            <if test="params.workShopBo != null and params.workShopBo != ''">
+                AND t.workShopBo = #{params.workShopBo}
+            </if>
+            <if test="params.productLineBo!=null and params.productLineBo!=''">
+                AND t.productLineBo = #{params.productLineBo}
+            </if>
+            <if test="params.shopOrder != null and params.shopOrder !=''">
+                AND t.shopOrder = #{params.shopOrder}
+            </if>
+
+            <if test="params.orderSort != null">
+                AND t.orderSort = #{params.orderSort}
+            </if>
+
+            <if test="params.no != null">
+                AND t.no = #{params.no}
+            </if>
+        </where>
+
+        order by t.orderSort
+    </select>
+
+    <update id="updateOrderSort" parameterType="map">
+        UPDATE p_auto_schedule
+        SET orderSort = #{orderSort}
+        WHERE id = #{id}
+    </update>
+
+    <select id="getOrderByT3" parameterType="map" resultType="map">
+        SELECT t.SHOP_ORDER as shopOrder,  t.ERP_LOT as erpLot,t.PLAN_START_DATE as planStartDate, o.isLock AS isLock, l.PRODUCTION_LINE_BO as productLineBo
+        FROM m_shop_order t
+         right join p_schedule_shop_order p on t.SHOP_ORDER = p.SHOP_ORDER_BO
+        left join p_schedule s on p.SCHEDULE_BO = s.SCHEDULE_NO
+        left join p_schedule_production_line l on s.BO = l.SCHEDULE_BO
+         left join p_shop_order_extension o on t.SHOP_ORDER = o.shopOrderBo
+         left join m_product_line ml on ml.BO = l.PRODUCTION_LINE_BO
+        where t.PLAN_START_DATE BETWEEN #{params.nowTime} and #{params.afterTime} AND t.SITE = #{params.site}
+    </select>
+
+    <update id="updateErpLot" parameterType="map">
+        UPDATE m_shop_order
+        SET ERP_LOT = #{erpLot}
+        where SHOP_ORDER = #{shopOrder}
+    </update>
+
+    <select id="getErpLot" parameterType="string" resultType="map">
+        SELECT ERP_LOT AS erpLot,SHOP_ORDER AS shopOrder FROM m_shop_order WHERE SITE = #{site} group by ERP_LOT,SHOP_ORDER
+    </select>
+</mapper>   

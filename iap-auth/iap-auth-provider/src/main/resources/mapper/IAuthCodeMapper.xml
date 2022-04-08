@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.itl.iap.auth.mapper.IAuthCodeMapper">
+
+    <resultMap type="com.itl.iap.auth.dto.AuthCodeDto" id="authCodeMap">
+        <result property="code" column="code" jdbcType="VARCHAR"/>
+        <result property="userId" column="user_id" jdbcType="VARCHAR"/>
+        <result property="clientId" column="client_id" jdbcType="VARCHAR"/>
+        <result property="createDate" column="create_date" jdbcType="TIMESTAMP"/>
+        <result property="creater" column="creater" jdbcType="VARCHAR"/>
+        <result property="lastUpdateDate" column="last_update_date" jdbcType="TIMESTAMP"/>
+        <result property="lastUpdateBy" column="last_update_by" jdbcType="VARCHAR"/>
+    </resultMap>
+
+    <!--通过实体作为筛选条件查询-->
+    <select id="pageQuery" resultMap="authCodeMap">
+        select
+        code, user_id, client_id, create_date
+        from iap_auth_code_t
+        <where>
+            <if test="authCodeDto.code != null and authCodeDto.code != ''">
+                and code = #{authCodeDto.code}
+            </if>
+            <if test="authCodeDto.userId != null and authCodeDto.userId != ''">
+                and user_id = #{authCodeDto.userId}
+            </if>
+            <if test="authCodeDto.clientId != null and authCodeDto.clientId != ''">
+                and client_id = #{authCodeDto.clientId}
+            </if>
+            <if test="authCodeDto.createDate != null">
+                and create_date= #{authCodeDto.createDate}
+            </if>
+        </where>
+    </select>
+
+</mapper>

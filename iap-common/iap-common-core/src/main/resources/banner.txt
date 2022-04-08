@@ -1,0 +1,10 @@
+ooooo       .o.       ooooooooo.     .oooo.         .oooo.
+`888'      .888.      `888   `Y88. .dP""Y88b       d8P'`Y8b
+ 888      .8"888.      888   .d88'       ]8P'     888    888
+ 888     .8' `888.     888ooo88P'      <88b.      888    888
+ 888    .88ooo8888.    888              `88b.     888    888
+ 888   .8'     `888.   888         o.   .88P  .o. `88b  d88'
+o888o o88o     o8888o o888o        `8bd88P'   Y8P  `Y8bd8P'
+:: IAP 3.0:: http://iap.htah.com.cn
+Application Version: ${application.version}${application.formatted-version}
+Spring Boot Version: ${spring-boot.version}${spring-boot.formatted-version}

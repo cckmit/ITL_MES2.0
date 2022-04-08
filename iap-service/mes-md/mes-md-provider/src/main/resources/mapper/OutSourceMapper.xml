@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.itl.mes.core.provider.mapper.OutSourceMapper">
+    <select id="selectByCondition" resultType="com.itl.mes.core.api.entity.OutSource">
+        select m.bo,m.outsource_no,m.exception_code,m.device,m.device_name,m.work_shop_bo,m.outsource_user,m.outsource_desc,m.repair_price,m.repair_user_name,m.outsource_result,m.outsource_remark,m.create_time,m.outsource_state,n.WORK_SHOP_DESC as workShopName,o.real_name
+        from m_outsource m
+        left join m_work_shop n on m.work_shop_bo = n.bo
+        left join iap_sys_user_t o on m.outsource_user = o.user_name
+        <where>
+            1=1
+            <if test="outSourceDto.workShopName !=null and outSourceDto.workShopName != ''">
+                 and n.WORK_SHOP_DESC like concat('%',#{outSourceDto.workShopName},'%')
+            </if>
+            <if test="outSourceDto.device !=null and outSourceDto.device !=''">
+                and m.device like concat('%',#{outSourceDto.device},'%')
+            </if>
+            <!--开始日期不为空，结束日期为空-->
+            <if test="outSourceDto.startDate !=null and outSourceDto.startDate !='' and outSourceDto.endDate ==null ">
+                and substring(Convert(varchar(10),m.create_time,23),1,10) = #{outSourceDto.startDate}
+            </if>
+            <!--结束日期不为空，开始日期为空-->
+            <if test="outSourceDto.endDate !=null and outSourceDto.endDate !='' and outSourceDto.startDate ==null ">
+                and substring(Convert(varchar(10),m.create_time,23),1,10) = #{outSourceDto.endDate}
+            </if>
+            <!--开始日期和结束日期都不为空-->
+            <if test="outSourceDto.startDate !=null and outSourceDto.startDate !='' and outSourceDto.endDate !=null and outSourceDto.endDate !=''">
+                and  substring(Convert(varchar(10),m.create_time,23),1,10) between  #{outSourceDto.startDate} and #{outSourceDto.endDate}
+            </if>
+        </where>
+    </select>
+    <select id="selectMaxCode" resultType="string">
+        select outsource_no from m_outsource where create_time=(select max(create_time) as mtime from m_outsource)
+    </select>
+    <select id="selectByBo" resultType="com.itl.mes.core.api.entity.OutSource" parameterType="string">
+        select m.bo,m.outsource_no,m.exception_code,m.device,m.device_name,m.work_shop_bo,m.outsource_user,m.outsource_desc,m.repair_price,m.repair_user_name,m.outsource_result,m.outsource_remark,m.create_time,m.outsource_state,n.WORK_SHOP_DESC as workShopName,o.real_name
+        from m_outsource m
+        left join m_work_shop n on m.work_shop_bo = n.bo
+        left join iap_sys_user_t o on m.outsource_user = o.user_name
+        where m.bo=#{bo}
+    </select>
+    <select id="selectExeceptionCode" resultType="string" parameterType="string">
+        select exception_code from andon_exception where exception_code like concat('%',#{execeptionCode},'%')
+    </select>
+    <select id="selectInfoByCode" resultType="java.util.Map" parameterType="string">
+        select exception_code,device,device_name,workshop_bo,workshop_name,exception_desc
+        from andon_exception where exception_code=#{exceptionCode}
+    </select>
+    <select id="selectInfoByDevice" resultType="java.util.Map" parameterType="string">
+        select m.device,m.device_name,n.bo as workShopBo,n.WORK_SHOP_DESC as workShopName from m_device m
+         left join m_work_shop n on m.work_shop=n.work_shop where m.device=#{device}
+    </select>
+</mapper>

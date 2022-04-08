@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.itl.iap.system.provider.mapper.AdvanceMapper">
+
+
+    <select id="advanceQuery" resultType="java.util.Map">
+        select
+            ${columns}
+        from
+            ${tables}
+        where
+            ${queryConditions}
+    </select>
+
+    <select id="getColumnsDefault" resultType="map">
+        select advance_query_sql.COLUMNS_DEFAULT,advance_query_sql.[FROM]
+        from advance_query_sql
+        where advance_query_sql.ID=#{id};
+    </select>
+    <select id="getTables" resultType="string">
+        select advance_query_sql.TABLES
+        from advance_query_sql
+        where advance_query_sql.ID=#{id};
+    </select>
+    <select id="getColumn" resultType="java.util.Map">
+        SELECT concat(t.name, '.', c.name)                                                  AS columnName,
+               concat(convert(nvarchar(50), e2.value), '.', convert(nvarchar(50), e.value)) AS columnLabel
+        FROM sys.tables t
+                     INNER JOIN sys.columns c ON c.object_id = t.object_id
+                     LEFT JOIN sys.extended_properties e ON e.major_id = c.object_id AND e.minor_id = c.column_id
+                     LEFT JOIN sys.extended_properties e2 ON e2.minor_id = '0' AND e2.major_id = e.major_id
+        WHERE t.name in
+              <foreach collection="list" separator="," open="(" close=")" item="l">
+                  #{l}
+              </foreach>
+          AND c.name NOT IN ('CREATE_DATE', 'MODIFY_DATE', 'last_update_by',
+                             'last_update_date', 'creater', 'salt', 'user_psw')
+          AND c.name NOT LIKE '%BO%'
+          AND c.name NOT LIKE '%id%'
+    </select>
+
+
+</mapper>

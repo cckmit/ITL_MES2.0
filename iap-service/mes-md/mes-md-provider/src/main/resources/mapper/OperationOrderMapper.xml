@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.itl.mes.core.provider.mapper.OperationOrderMapper">
+    <select id="selectOperationOrder" resultType="com.itl.mes.core.api.entity.OperationOrder">
+        SELECT
+        oo.*,
+        mi.version as iterVersion,
+        mi.item_desc as itemDesc,
+        md.operation_bo as operationBo,
+        mp.operation_name as operationName
+        FROM
+        m_dispatch md
+        LEFT JOIN m_item mi ON md.item_bo = mi.bo
+        LEFT JOIN m_operation_order oo ON md.OPERATION_ORDER = oo.OPERATION_ORDER
+        LEFT JOIN m_work_shop n on oo.workshop=n.WORK_SHOP
+        LEFT JOIN m_operation mp on md.operation_bo = mp.BO
+        where md.IS_NEED_DISPATCH = '0'
+            and oo.OPERATION_ORDER_STATE &lt;&gt; '2'
+            and md.NOT_DONE_QTY != '0'
+            and n.WORK_SHOP_DESC like CONCAT('%',#{operationOrderDTO.workShopName},'%')
+        <if test="operationOrderDTO.operationOrder != null and operationOrderDTO.operationOrder != ''">
+            and oo.OPERATION_ORDER like CONCAT('%',#{operationOrderDTO.operationOrder},'%')
+        </if>
+        <if test="operationOrderDTO.flag != null and operationOrderDTO.flag != '' and operationOrderDTO.flag == 1">
+            and md.IS_FIRST_OPERATION='1'
+        </if>
+        <if test="operationOrderDTO.startDate != null and operationOrderDTO.startDate != ''
+                    and operationOrderDTO.endDate != null and operationOrderDTO.endDate != ''">
+            and oo.create_date &gt;= #{operationOrderDTO.startDate} and oo.create_date &lt;= #{operationOrderDTO.endDate}
+        </if>
+        <if test="operationOrderDTO.operationBos !=null and operationOrderDTO.operationBos.size()>0">
+            and md.OPERATION_BO in
+            <foreach collection="operationOrderDTO.operationBos" item="operationBo" separator="," open="(" close=")">
+                #{operationBo}
+            </foreach>
+        </if>
+        ORDER BY oo.IS_URGENT DESC,oo.CREATE_DATE DESC
+    </select>
+</mapper>

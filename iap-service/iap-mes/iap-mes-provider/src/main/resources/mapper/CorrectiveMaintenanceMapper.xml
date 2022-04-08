@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.itl.iap.mes.provider.mapper.CorrectiveMaintenanceMapper">
+
+    <sql id="FIELD">
+        t.id AS id,t.type AS type,t.code AS code,t.faultCode AS faultCode,t.state AS state,t.remark AS remark,t.productionLine AS productionLine,t.station AS station,t.happenTime AS happenTime,t.repairUserId AS repairUserId,t.repairUserName AS repairUserName,t.repairStartTime AS repairStartTime,t.repairEndTime AS repairEndTime,t.siteId AS siteId,t.repairProcessDesc AS repairProcessDesc
+    </sql>
+    <sql id="WHERE_FIELD">
+        <where>
+            AND t.siteId = #{correctiveMaintenance.siteId}
+            <if test="correctiveMaintenance.type != null">
+                AND t.type = #{correctiveMaintenance.type}
+            </if>
+            <if test="correctiveMaintenance.code != null and correctiveMaintenance.code !=''">
+                AND t.code LIKE CONCAT('%',#{correctiveMaintenance.code},'%')
+            </if>
+            <if test="correctiveMaintenance.state != null">
+                AND t.state = #{correctiveMaintenance.state}
+            </if>
+            <if test="correctiveMaintenance.faultCode != null and correctiveMaintenance.faultCode !=''">
+                AND t.faultCode LIKE CONCAT('%',#{correctiveMaintenance.faultCode},'%')
+            </if>
+            <if test="correctiveMaintenance.repairUserName != null and correctiveMaintenance.repairUserName!=''">
+                AND t.repairUserName LIKE CONCAT('%',#{correctiveMaintenance.repairUserName},'%')
+            </if>
+            <if test="correctiveMaintenance.startTime != null and correctiveMaintenance.endTime!=null ">
+                AND t.happenTime between #{correctiveMaintenance.startTime} and #{correctiveMaintenance.endTime}
+            </if>
+        </where>
+    </sql>
+    <select id="findList" parameterType="com.itl.iap.mes.api.entity.CorrectiveMaintenance" resultType="com.itl.iap.mes.api.entity.CorrectiveMaintenance">
+        SELECT <include refid="FIELD"/>
+        FROM m_repair_corrective_maintenance t
+        <include refid="WHERE_FIELD"/>
+        order by t.createTime DESC
+    </select>
+
+    <select id="getDevice" parameterType="string" resultType="map">
+        SELECT DEVICE_NAME AS deviceName,DEVICE_MODEL AS deviceModel,PRODUCT_LINE_BO AS productLineBo,STATION_BO AS stationBo
+        FROM M_DEVICE
+        WHERE DEVICE = #{code}
+    </select>
+</mapper>

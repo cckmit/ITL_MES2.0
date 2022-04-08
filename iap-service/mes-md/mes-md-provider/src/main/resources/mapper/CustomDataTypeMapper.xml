@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.itl.mes.core.provider.mapper.CustomDataTypeMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.itl.mes.core.api.entity.CustomDataType">
+        <id column="BO" property="bo" />
+        <result column="SITE" property="site" />
+        <result column="CUSTOM_DATA_TYPE" property="customDataType" />
+        <result column="CUSTOM_DATA_TYPE_DESC" property="customDataTypeDesc" />
+        <result column="CREATE_DATE" property="createDate" />
+        <result column="MODIFY_DATE" property="modifyDate" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        BO, SITE, CUSTOM_DATA_TYPE, CUSTOM_DATA_TYPE_DESC, CREATE_DATE, MODIFY_DATE
+    </sql>
+
+</mapper>

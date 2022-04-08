@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.itl.iap.auth.mapper.IAuthClientMapper">
+
+    <resultMap type="com.itl.iap.auth.dto.AuthClientDto" id="authClientMap">
+        <result property="id" column="id" jdbcType="VARCHAR"/>
+        <result property="clientName" column="client_name" jdbcType="VARCHAR"/>
+        <result property="clientId" column="client_id" jdbcType="VARCHAR"/>
+        <result property="clientSecret" column="client_secret" jdbcType="VARCHAR"/>
+        <result property="clientUri" column="client_uri" jdbcType="VARCHAR"/>
+        <result property="clientIconUri" column="client_icon_uri" jdbcType="VARCHAR"/>
+        <result property="resourceIds" column="resource_ids" jdbcType="VARCHAR"/>
+        <result property="scope" column="scope" jdbcType="VARCHAR"/>
+        <result property="grantTypes" column="grant_types" jdbcType="VARCHAR"/>
+        <result property="redirectUri" column="redirect_uri" jdbcType="VARCHAR"/>
+        <result property="state" column="state" jdbcType="SMALLINT"/>
+        <result property="description" column="description" jdbcType="VARCHAR"/>
+        <result property="creater" column="creater" jdbcType="VARCHAR"/>
+        <result property="createDate" column="create_date" jdbcType="TIMESTAMP"/>
+        <result property="createOrg" column="create_org" jdbcType="VARCHAR"/>
+        <result property="lastUpdateBy" column="last_update_by" jdbcType="VARCHAR"/>
+        <result property="lastUpdateDate" column="last_update_date" jdbcType="TIMESTAMP"/>
+    </resultMap>
+
+    <!--通过实体作为筛选条件查询-->
+    <select id="pageQuery" resultMap="authClientMap">
+        select
+        id, client_name, client_id, client_secret, client_uri, client_icon_uri, resource_ids, scope, grant_types,
+        redirect_uri, state, description, creater, create_date, create_org, last_update_by, last_update_date
+        from iap_auth_client_t
+        <where>
+            <if test="authClientDto.id != null and authClientDto.id != ''">
+                and id = #{authClientDto.id}
+            </if>
+            <if test="authClientDto.clientName != null and authClientDto.clientName != ''">
+                and client_name = #{authClientDto.clientName}
+            </if>
+            <if test="authClientDto.clientId != null and authClientDto.clientId != ''">
+                and client_id = #{authClientDto.clientId}
+            </if>
+            <if test="authClientDto.clientSecret != null and authClientDto.clientSecret != ''">
+                and client_secret = #{authClientDto.clientSecret}
+            </if>
+            <if test="authClientDto.clientUri != null and authClientDto.clientUri != ''">
+                and client_uri = #{authClientDto.clientUri}
+            </if>
+            <if test="authClientDto.clientIconUri != null and authClientDto.clientIconUri != ''">
+                and client_icon_uri = #{authClientDto.clientIconUri}
+            </if>
+            <if test="authClientDto.resourceIds != null and authClientDto.resourceIds != ''">
+                and resource_ids = #{authClientDto.resourceIds}
+            </if>
+            <if test="authClientDto.scope != null and authClientDto.scope != ''">
+                and scope = #{authClientDto.scope}
+            </if>
+            <if test="authClientDto.grantTypes != null and authClientDto.grantTypes != ''">
+                and grant_types = #{authClientDto.grantTypes}
+            </if>
+            <if test="authClientDto.redirectUri != null and authClientDto.redirectUri != ''">
+                and redirect_uri = #{authClientDto.redirectUri}
+            </if>
+            <if test="authClientDto.state != null">
+                and state = #{authClientDto.state}
+            </if>
+            <if test="authClientDto.description != null and authClientDto.description != ''">
+                and description = #{authClientDto.description}
+            </if>
+            <if test="authClientDto.creater != null and authClientDto.creater != ''">
+                and creater = #{authClientDto.creater}
+            </if>
+            <if test="authClientDto.createDate != null">
+                and create_date = #{authClientDto.createDate}
+            </if>
+            <if test="authClientDto.createOrg != null and authClientDto.createOrg != ''">
+                and create_org = #{authClientDto.createOrg}
+            </if>
+            <if test="authClientDto.lastUpdateBy != null and authClientDto.lastUpdateBy != ''">
+                and last_update_by = #{authClientDto.lastUpdateBy}
+            </if>
+            <if test="authClientDto.lastUpdateDate != null">
+                and last_update_date = #{authClientDto.lastUpdateDate}
+            </if>
+        </where>
+    </select>
+    <select id="pageQueryByState" resultMap="authClientMap">
+        select
+        id, client_name, client_id, client_secret, client_uri, client_icon_uri, resource_ids, scope, grant_types,
+        redirect_uri, state, description, creater, create_date, create_org, last_update_by, last_update_date
+        from iap_auth_client_t
+        <where>
+            <if test="authClientDto.id != null and authClientDto.id != ''">
+                and id = #{authClientDto.id}
+            </if>
+            <if test="authClientDto.clientName != null and authClientDto.clientName != ''">
+                and client_name = #{authClientDto.clientName}
+            </if>
+            <if test="authClientDto.clientId != null and authClientDto.clientId != ''">
+                and client_id = #{authClientDto.clientId}
+            </if>
+            <if test="authClientDto.clientSecret != null and authClientDto.clientSecret != ''">
+                and client_secret = #{authClientDto.clientSecret}
+            </if>
+            <if test="authClientDto.clientUri != null and authClientDto.clientUri != ''">
+                and client_uri = #{authClientDto.clientUri}
+            </if>
+            <if test="authClientDto.clientIconUri != null and authClientDto.clientIconUri != ''">
+                and client_icon_uri = #{authClientDto.clientIconUri}
+            </if>
+            <if test="authClientDto.resourceIds != null and authClientDto.resourceIds != ''">
+                and resource_ids = #{authClientDto.resourceIds}
+            </if>
+            <if test="authClientDto.scope != null and authClientDto.scope != ''">
+                and scope = #{authClientDto.scope}
+            </if>
+            <if test="authClientDto.grantTypes != null and authClientDto.grantTypes != ''">
+                and grant_types = #{authClientDto.grantTypes}
+            </if>
+            <if test="authClientDto.redirectUri != null and authClientDto.redirectUri != ''">
+                and redirect_uri = #{authClientDto.redirectUri}
+            </if>
+
+                and state ='0'
+
+            <if test="authClientDto.description != null and authClientDto.description != ''">
+                and description = #{authClientDto.description}
+            </if>
+            <if test="authClientDto.creater != null and authClientDto.creater != ''">
+                and creater = #{authClientDto.creater}
+            </if>
+            <if test="authClientDto.createDate != null">
+                and create_date = #{authClientDto.createDate}
+            </if>
+            <if test="authClientDto.createOrg != null and authClientDto.createOrg != ''">
+                and create_org = #{authClientDto.createOrg}
+            </if>
+            <if test="authClientDto.lastUpdateBy != null and authClientDto.lastUpdateBy != ''">
+                and last_update_by = #{authClientDto.lastUpdateBy}
+            </if>
+            <if test="authClientDto.lastUpdateDate != null">
+                and last_update_date = #{authClientDto.lastUpdateDate}
+            </if>
+        </where>
+    </select>
+
+</mapper>

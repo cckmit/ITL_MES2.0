@@ -1,0 +1,3 @@
+org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
+com.itl.iap.data.source.service.impl.DBChangeServiceImpl,\
+com.itl.iap.data.source.config.DruidDBConfig

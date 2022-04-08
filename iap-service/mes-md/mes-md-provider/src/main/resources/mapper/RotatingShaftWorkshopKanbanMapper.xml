@@ -1,0 +1,1598 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.itl.mes.core.provider.mapper.RotatingShaftWorkshopKanbanMapper">
+
+    <select id="selectCollDeviceRun" resultType="com.itl.mes.core.api.vo.CollectDeviceRunningStatusVO">
+        SELECT SUM
+                   ( CASE WHEN a.FMachState = 0 OR a.FMachState = 4 THEN 1 ELSE 0 END ) AS shut,
+               SUM ( CASE WHEN a.FMachState = 1 THEN 1 ELSE 0 END ) AS ACTION,
+	SUM ( CASE WHEN a.FMachState = 2 THEN 1 ELSE 0 END ) AS halt,
+	SUM (
+	CASE
+
+			WHEN a.FMachState = 3
+			OR a.FMachState = 5
+			OR a.FMachState = 6
+			OR a.FMachState = 7
+			OR a.FMachState = 8 THEN
+				1 ELSE 0
+			END
+			) AS anomaly
+        FROM
+            TScadaDataState a
+            JOIN ( SELECT a.* FROM ( SELECT MAX ( CreateDate ) AS cjri, FMachNo FROM TScadaDataState GROUP BY FMachNo ) AS a ) AC ON a.FMachNo= AC.FMachNo
+            AND a.CreateDate= cjri
+        WHERE
+            a.FMachNo IN ( SELECT device FROM m_device WHERE WORK_SHOP_NAME = '转轴车间' )
+    </select>
+
+    <select id="selectProjectExecute" resultType="java.util.HashMap">
+        select
+            round(cast(production as FLOAT)/count,2) as production_rate
+        from(
+                select
+                    sum(case when state_bo='STATE:dongyin,501' or state_bo='STATE:dongyin,502' or
+                                  state_bo='STATE:dongyin,503' THEN 1 ELSE 0 END) AS production,
+                    count(1) as count
+                from m_shop_order
+                where (CONVERT(varchar(100), PLAN_START_DATE, 23)=CONVERT(varchar(100), GETDATE(), 23)
+                   or CONVERT(varchar(100), PLAN_START_DATE, 23)=CONVERT(varchar(100), dateadd(day, -1, getdate()), 23)
+                   or CONVERT(varchar(100), PLAN_START_DATE, 23)=CONVERT(varchar(100), dateadd(day, -2, getdate()), 23))
+                  and WORK_SHOP='5422'
+            ) a
+    </select>
+
+    <select id="selectProjectComplete" resultType="java.util.HashMap">
+        select
+            round(cast(production as FLOAT)/count,2) as production_rate
+        from(
+                select
+                    sum(case when state_bo='STATE:dongyin,502' or
+                                  state_bo='STATE:dongyin,503' THEN 1 ELSE 0 END) AS production,
+                    count(1) as count
+                from m_shop_order
+                where (CONVERT(varchar(100), PLAN_END_DATE, 23)=CONVERT(varchar(100), GETDATE(), 23)
+                   or CONVERT(varchar(100), PLAN_END_DATE, 23)=CONVERT(varchar(100), dateadd(day, -1, getdate()), 23)
+                   or CONVERT(varchar(100), PLAN_END_DATE, 23)=CONVERT(varchar(100), dateadd(day, -2, getdate()), 23))
+                  and WORK_SHOP='5422'
+            ) a
+    </select>
+
+    <select id="selectShaft" resultType="java.util.HashMap">
+        SELECT ISNULL(SUM( OK_QTY ),0) AS dayYield,
+
+               (
+                   SELECT isnull(SUM( OK_QTY ),0) AS monthYield
+                   FROM
+                       m_dy_stock a
+                           LEFT JOIN m_item b ON a.item_bo= b.BO
+                   WHERE
+                       (RIGHT ( item_name, 2 ) = '泵轴'
+                           OR RIGHT ( item_name, 3 ) = '六角棒'
+                           OR RIGHT ( item_name, 3 ) = '梅花轴'
+                           OR RIGHT ( item_name, 3 ) = '梅花棒')
+                     AND LEFT ( CONVERT ( VARCHAR ( 20 ), a.CREATE_DATE, 120 ), 7 ) = LEFT ( CONVERT ( VARCHAR ( 100 ), GETDATE( ), 23 ), 7 )
+            ) AS monthYield,
+            isnull((
+        SELECT SUM
+            ( ORDER_QTY ) AS orderQuantity
+        FROM
+            m_shop_order a
+            LEFT JOIN m_item b ON a.item_bo= b.BO
+        WHERE
+            (RIGHT ( item_name, 2 ) = '泵轴'
+           OR RIGHT ( item_name, 3 ) = '六角棒'
+           OR RIGHT ( item_name, 3 ) = '梅花轴'
+           OR RIGHT ( item_name, 3 ) = '梅花棒')
+          and (CONVERT ( VARCHAR ( 100 ), PLAN_END_DATE, 23 ) = CONVERT ( VARCHAR ( 100 ), GETDATE( ), 23 )
+           OR CONVERT ( VARCHAR ( 100 ), PLAN_END_DATE, 23 ) = CONVERT ( VARCHAR ( 100 ), dateadd( DAY, - 1, getdate( ) ), 23 )
+           OR CONVERT ( VARCHAR ( 100 ), PLAN_END_DATE, 23 ) = CONVERT ( VARCHAR ( 100 ), dateadd( DAY, - 2, getdate( ) ), 23 )
+            )),0) AS orderQuantity,
+            isnull((
+        SELECT
+            CASE
+
+            WHEN SUM
+            ( OK_QTY ) IS NULL THEN
+            0 ELSE SUM ( OK_QTY ) / SUM ( ORDER_QTY )
+            END AS orderQuantityRate
+        FROM
+            m_shop_order a
+            LEFT JOIN m_item b ON a.item_bo= b.BO
+            left join m_dy_stock c on a.bo=c.shop_order_bo
+        WHERE
+            (RIGHT ( item_name, 2 ) = '泵轴'
+           OR RIGHT ( item_name, 3 ) = '六角棒'
+           OR RIGHT ( item_name, 3 ) = '梅花轴'
+           OR RIGHT ( item_name, 3 ) = '梅花棒')
+          and (CONVERT ( VARCHAR ( 100 ), PLAN_END_DATE, 23 ) = CONVERT ( VARCHAR ( 100 ), GETDATE( ), 23 )
+           OR CONVERT ( VARCHAR ( 100 ), PLAN_END_DATE, 23 ) = CONVERT ( VARCHAR ( 100 ), dateadd( DAY, - 1, getdate( ) ), 23 )
+           OR CONVERT ( VARCHAR ( 100 ), PLAN_END_DATE, 23 ) = CONVERT ( VARCHAR ( 100 ), dateadd( DAY, - 2, getdate( ) ), 23 )
+            )),0) AS orderQuantityRate
+        FROM
+            m_dy_stock a
+            LEFT JOIN m_item b ON a.item_bo= b.BO
+        WHERE
+            (RIGHT ( item_name, 2 ) = '泵轴'
+           OR RIGHT ( item_name, 3 ) = '六角棒'
+           OR RIGHT ( item_name, 3 ) = '梅花轴'
+           OR RIGHT ( item_name, 3 ) = '梅花棒')
+          AND CONVERT ( VARCHAR ( 100 ), a.CREATE_DATE, 23 ) = CONVERT ( VARCHAR ( 100 ), GETDATE( ), 23 )
+    </select>
+
+    <select id="selectSpiale" resultType="java.util.HashMap">
+        SELECT isnull(SUM( OK_QTY ),0) AS dayYield,
+               isnull((
+                   SELECT SUM
+                              ( OK_QTY ) AS monthYield
+                   FROM
+                       m_dy_stock a
+                           LEFT JOIN m_item b ON a.item_bo= b.BO
+                   WHERE
+                       ( item_name = '转子半成品轴' OR item_name = '转子成品轴' )
+                     AND LEFT ( CONVERT ( VARCHAR ( 20 ), a.CREATE_DATE, 120 ), 7 ) = LEFT ( CONVERT ( VARCHAR ( 100 ), GETDATE( ), 23 ), 7 )
+            ),0) AS monthYield,
+            isnull((
+        SELECT SUM
+            ( ORDER_QTY ) AS orderQuantity
+        FROM
+            m_shop_order a
+            LEFT JOIN m_item b ON a.item_bo= b.BO
+        WHERE
+            ( item_name = '转子半成品轴' OR item_name = '转子成品轴' )
+          AND (
+            CONVERT ( VARCHAR ( 100 ), PLAN_END_DATE, 23 ) = CONVERT ( VARCHAR ( 100 ), GETDATE( ), 23 )
+           OR CONVERT ( VARCHAR ( 100 ), PLAN_END_DATE, 23 ) = CONVERT ( VARCHAR ( 100 ), dateadd( DAY, - 1, getdate( ) ), 23 )
+           OR CONVERT ( VARCHAR ( 100 ), PLAN_END_DATE, 23 ) = CONVERT ( VARCHAR ( 100 ), dateadd( DAY, - 2, getdate( ) ), 23 )
+            )
+            ),0) AS orderQuantity,
+            isnull((
+        SELECT
+            CASE
+
+            WHEN SUM
+            ( OK_QTY ) IS NULL THEN
+            0 ELSE SUM ( OK_QTY ) / SUM ( ORDER_QTY )
+            END AS orderQuantityRate
+        FROM
+            m_shop_order a
+            LEFT JOIN m_item b ON a.item_bo= b.BO
+            left join m_dy_stock c on a.bo=c.shop_order_bo
+        WHERE
+            ( item_name = '转子半成品轴' OR item_name = '转子成品轴' )
+          AND (
+            CONVERT ( VARCHAR ( 100 ), PLAN_END_DATE, 23 ) = CONVERT ( VARCHAR ( 100 ), GETDATE( ), 23 )
+           OR CONVERT ( VARCHAR ( 100 ), PLAN_END_DATE, 23 ) = CONVERT ( VARCHAR ( 100 ), dateadd( DAY, - 1, getdate( ) ), 23 )
+           OR CONVERT ( VARCHAR ( 100 ), PLAN_END_DATE, 23 ) = CONVERT ( VARCHAR ( 100 ), dateadd( DAY, - 2, getdate( ) ), 23 )
+            )
+            ),0) AS orderQuantityRate
+        FROM
+            m_dy_stock a
+            LEFT JOIN m_item b ON a.item_bo= b.BO
+        WHERE
+            ( item_name = '转子半成品轴' OR item_name = '转子成品轴' )
+          AND CONVERT ( VARCHAR ( 100 ), a.CREATE_DATE, 23 ) = CONVERT ( VARCHAR ( 100 ), GETDATE( ), 23 )
+    </select>
+
+    <select id="selectRotor" resultType="java.util.HashMap">
+        SELECT isnull(SUM( OK_QTY ),0) AS dayYield,
+
+               isnull((
+                   SELECT SUM
+                              ( OK_QTY ) AS monthYield
+                   FROM
+                       m_dy_stock a
+                           LEFT JOIN m_item b ON a.item_bo= b.BO
+                   WHERE
+            RIGHT ( item_name, 2 ) = '转子'
+
+            AND LEFT ( CONVERT ( VARCHAR ( 20 ), a.CREATE_DATE, 120 ), 7 ) = LEFT ( CONVERT ( VARCHAR ( 100 ), GETDATE( ), 23 ), 7 )
+            ),0) AS monthYield,
+            isnull((
+        SELECT SUM
+            ( ORDER_QTY ) AS orderQuantity
+        FROM
+            m_shop_order a
+            LEFT JOIN m_item b ON a.item_bo= b.BO
+        WHERE
+            RIGHT ( item_name, 2 ) = '转子'
+
+          and (CONVERT ( VARCHAR ( 100 ), PLAN_END_DATE, 23 ) = CONVERT ( VARCHAR ( 100 ), GETDATE( ), 23 )
+           OR CONVERT ( VARCHAR ( 100 ), PLAN_END_DATE, 23 ) = CONVERT ( VARCHAR ( 100 ), dateadd( DAY, - 1, getdate( ) ), 23 )
+           OR CONVERT ( VARCHAR ( 100 ), PLAN_END_DATE, 23 ) = CONVERT ( VARCHAR ( 100 ), dateadd( DAY, - 2, getdate( ) ), 23 )
+            )),0) AS orderQuantity,
+            isnull((
+        SELECT
+            CASE
+
+            WHEN SUM
+            ( OK_QTY ) IS NULL THEN
+            0 ELSE SUM ( OK_QTY ) / SUM ( ORDER_QTY )
+            END AS orderQuantityRate
+        FROM
+            m_shop_order a
+            LEFT JOIN m_item b ON a.item_bo= b.BO
+            left join m_dy_stock c on a.bo=c.shop_order_bo
+        WHERE
+            RIGHT ( item_name, 2 ) = '转子'
+
+          and (CONVERT ( VARCHAR ( 100 ), PLAN_END_DATE, 23 ) = CONVERT ( VARCHAR ( 100 ), GETDATE( ), 23 )
+           OR CONVERT ( VARCHAR ( 100 ), PLAN_END_DATE, 23 ) = CONVERT ( VARCHAR ( 100 ), dateadd( DAY, - 1, getdate( ) ), 23 )
+           OR CONVERT ( VARCHAR ( 100 ), PLAN_END_DATE, 23 ) = CONVERT ( VARCHAR ( 100 ), dateadd( DAY, - 2, getdate( ) ), 23 )
+            )),0) AS orderQuantityRate
+        FROM
+            m_dy_stock a
+            LEFT JOIN m_item b ON a.item_bo= b.BO
+        WHERE
+            RIGHT ( item_name, 2 ) = '转子'
+
+          AND CONVERT ( VARCHAR ( 100 ), a.CREATE_DATE, 23 ) = CONVERT ( VARCHAR ( 100 ), GETDATE( ), 23 )
+    </select>
+
+    <select id="selectShaftFPY" resultType="java.util.HashMap">
+        select  CONVERT ( VARCHAR ( 100 ), dateadd( DAY, - 6, getdate( ) ), 23 ) as day,a.FPY*100 as fpy
+        FROM(
+            select
+            case when (SUM(DONE_QTY)+SUM(SCRAP_QTY)+SUM(NC_QTY)) is null then 0 else sum(DONE_QTY)/(SUM(DONE_QTY)+SUM(SCRAP_QTY)+SUM(NC_QTY)) end as FPY
+            from me_sfc_wip_log a
+            LEFT JOIN m_item b ON a.item_bo= b.BO
+            where
+            (RIGHT ( item_name, 2 ) = '泵轴'
+            OR RIGHT ( item_name, 3 ) = '六角棒'
+            OR RIGHT ( item_name, 3 ) = '梅花轴'
+            OR RIGHT ( item_name, 3 ) = '梅花棒')
+            and
+            CONVERT ( VARCHAR ( 100 ), OUT_TIME, 23 ) = CONVERT ( VARCHAR ( 100 ), dateadd( DAY, - 6, getdate( ) ), 23 )
+            ) a
+        UNION all
+        select  CONVERT ( VARCHAR ( 100 ), dateadd( DAY, - 5, getdate( ) ), 23 ) as day,a.FPY*100 as fpy
+        FROM(
+            select
+            case when (SUM(DONE_QTY)+SUM(SCRAP_QTY)+SUM(NC_QTY)) is null then 0 else sum(DONE_QTY)/(SUM(DONE_QTY)+SUM(SCRAP_QTY)+SUM(NC_QTY)) end as FPY
+            from me_sfc_wip_log a
+            LEFT JOIN m_item b ON a.item_bo= b.BO
+            where
+            (RIGHT ( item_name, 2 ) = '泵轴'
+            OR RIGHT ( item_name, 3 ) = '六角棒'
+            OR RIGHT ( item_name, 3 ) = '梅花轴'
+            OR RIGHT ( item_name, 3 ) = '梅花棒')
+            and
+            CONVERT ( VARCHAR ( 100 ), OUT_TIME, 23 ) = CONVERT ( VARCHAR ( 100 ), dateadd( DAY, - 5, getdate( ) ), 23 )
+            ) a
+        UNION all
+        select  CONVERT ( VARCHAR ( 100 ), dateadd( DAY, - 4, getdate( ) ), 23 ) as day,a.FPY*100 as fpy
+        FROM(
+            select
+            case when (SUM(DONE_QTY)+SUM(SCRAP_QTY)+SUM(NC_QTY)) is null then 0 else sum(DONE_QTY)/(SUM(DONE_QTY)+SUM(SCRAP_QTY)+SUM(NC_QTY)) end as FPY
+            from me_sfc_wip_log a
+            LEFT JOIN m_item b ON a.item_bo= b.BO
+            where
+            (RIGHT ( item_name, 2 ) = '泵轴'
+            OR RIGHT ( item_name, 3 ) = '六角棒'
+            OR RIGHT ( item_name, 3 ) = '梅花轴'
+            OR RIGHT ( item_name, 3 ) = '梅花棒')
+            and
+            CONVERT ( VARCHAR ( 100 ), OUT_TIME, 23 ) = CONVERT ( VARCHAR ( 100 ), dateadd( DAY, - 4, getdate( ) ), 23 )
+            ) a
+        UNION all
+        select  CONVERT ( VARCHAR ( 100 ), dateadd( DAY, - 3, getdate( ) ), 23 ) as day,a.FPY*100 as fpy
+        FROM(
+            select
+            case when (SUM(DONE_QTY)+SUM(SCRAP_QTY)+SUM(NC_QTY)) is null then 0 else sum(DONE_QTY)/(SUM(DONE_QTY)+SUM(SCRAP_QTY)+SUM(NC_QTY)) end as FPY
+            from me_sfc_wip_log a
+            LEFT JOIN m_item b ON a.item_bo= b.BO
+            where
+            (RIGHT ( item_name, 2 ) = '泵轴'
+            OR RIGHT ( item_name, 3 ) = '六角棒'
+            OR RIGHT ( item_name, 3 ) = '梅花轴'
+            OR RIGHT ( item_name, 3 ) = '梅花棒')
+            and
+            CONVERT ( VARCHAR ( 100 ), OUT_TIME, 23 ) = CONVERT ( VARCHAR ( 100 ), dateadd( DAY, - 3, getdate( ) ), 23 )
+            ) a
+        UNION all
+        select  CONVERT ( VARCHAR ( 100 ), dateadd( DAY, - 2, getdate( ) ), 23 ) as day,a.FPY*100 as fpy
+        FROM(
+            select
+            case when (SUM(DONE_QTY)+SUM(SCRAP_QTY)+SUM(NC_QTY)) is null then 0 else sum(DONE_QTY)/(SUM(DONE_QTY)+SUM(SCRAP_QTY)+SUM(NC_QTY)) end as FPY
+            from me_sfc_wip_log a
+            LEFT JOIN m_item b ON a.item_bo= b.BO
+            where
+            (RIGHT ( item_name, 2 ) = '泵轴'
+            OR RIGHT ( item_name, 3 ) = '六角棒'
+            OR RIGHT ( item_name, 3 ) = '梅花轴'
+            OR RIGHT ( item_name, 3 ) = '梅花棒')
+            and
+            CONVERT ( VARCHAR ( 100 ), OUT_TIME, 23 ) = CONVERT ( VARCHAR ( 100 ), dateadd( DAY, - 2, getdate( ) ), 23 )
+            ) a
+        UNION all
+        select  CONVERT ( VARCHAR ( 100 ), dateadd( DAY, - 1, getdate( ) ), 23 ) as day,a.FPY*100 as fpy
+        FROM(
+            select
+            case when (SUM(DONE_QTY)+SUM(SCRAP_QTY)+SUM(NC_QTY)) is null then 0 else sum(DONE_QTY)/(SUM(DONE_QTY)+SUM(SCRAP_QTY)+SUM(NC_QTY)) end as FPY
+            from me_sfc_wip_log a
+            LEFT JOIN m_item b ON a.item_bo= b.BO
+            where
+            (RIGHT ( item_name, 2 ) = '泵轴'
+            OR RIGHT ( item_name, 3 ) = '六角棒'
+            OR RIGHT ( item_name, 3 ) = '梅花轴'
+            OR RIGHT ( item_name, 3 ) = '梅花棒')
+            and
+            CONVERT ( VARCHAR ( 100 ), OUT_TIME, 23 ) = CONVERT ( VARCHAR ( 100 ), dateadd( DAY, - 1, getdate( ) ), 23 )
+            ) a
+        UNION all
+        select CONVERT ( VARCHAR ( 100 ), GETDATE( ), 23 ) as day,a.FPY*100 as fpy
+        FROM(
+            select
+            case when (SUM(DONE_QTY)+SUM(SCRAP_QTY)+SUM(NC_QTY)) is null then 0 else sum(DONE_QTY)/(SUM(DONE_QTY)+SUM(SCRAP_QTY)+SUM(NC_QTY)) end as FPY
+            from me_sfc_wip_log a
+            LEFT JOIN m_item b ON a.item_bo= b.BO
+            where
+            (RIGHT ( item_name, 2 ) = '泵轴'
+            OR RIGHT ( item_name, 3 ) = '六角棒'
+            OR RIGHT ( item_name, 3 ) = '梅花轴'
+            OR RIGHT ( item_name, 3 ) = '梅花棒')
+            and
+            CONVERT ( VARCHAR ( 100 ), OUT_TIME, 23 ) = CONVERT ( VARCHAR ( 100 ), GETDATE( ), 23 )
+            ) a
+    </select>
+
+    <select id="selectSpialeFPY" resultType="java.util.HashMap">
+        select  CONVERT ( VARCHAR ( 100 ), dateadd( DAY, - 6, getdate( ) ), 23 ) as day,a.FPY*100 as fpy
+        FROM(
+            select
+            case when (SUM(DONE_QTY)+SUM(SCRAP_QTY)+SUM(NC_QTY)) is null or (SUM(DONE_QTY)+SUM(SCRAP_QTY)+SUM(NC_QTY))=0 then 0 else sum(DONE_QTY)/(SUM(DONE_QTY)+SUM(SCRAP_QTY)+SUM(NC_QTY)) end as FPY
+            from me_sfc_wip_log a
+            LEFT JOIN m_item b ON a.item_bo= b.BO
+            where
+            ( item_name = '转子半成品轴' OR item_name = '转子成品轴' )
+            and
+            CONVERT ( VARCHAR ( 100 ), OUT_TIME, 23 ) = CONVERT ( VARCHAR ( 100 ), dateadd( DAY, - 6, getdate( ) ), 23 )
+            ) a
+        UNION all
+        select  CONVERT ( VARCHAR ( 100 ), dateadd( DAY, - 5, getdate( ) ), 23 ) as day,a.FPY*100 as fpy
+        FROM(
+            select
+            case when (SUM(DONE_QTY)+SUM(SCRAP_QTY)+SUM(NC_QTY)) is null or (SUM(DONE_QTY)+SUM(SCRAP_QTY)+SUM(NC_QTY))=0 then 0 else sum(DONE_QTY)/(SUM(DONE_QTY)+SUM(SCRAP_QTY)+SUM(NC_QTY)) end as FPY
+            from me_sfc_wip_log a
+            LEFT JOIN m_item b ON a.item_bo= b.BO
+            where
+            ( item_name = '转子半成品轴' OR item_name = '转子成品轴' )
+            and
+            CONVERT ( VARCHAR ( 100 ), OUT_TIME, 23 ) = CONVERT ( VARCHAR ( 100 ), dateadd( DAY, - 5, getdate( ) ), 23 )
+            ) a
+        UNION all
+        select  CONVERT ( VARCHAR ( 100 ), dateadd( DAY, - 4, getdate( ) ), 23 ) as day,a.FPY*100 as fpy
+        FROM(
+            select
+            case when (SUM(DONE_QTY)+SUM(SCRAP_QTY)+SUM(NC_QTY)) is null or (SUM(DONE_QTY)+SUM(SCRAP_QTY)+SUM(NC_QTY))=0 then 0 else sum(DONE_QTY)/(SUM(DONE_QTY)+SUM(SCRAP_QTY)+SUM(NC_QTY)) end as FPY
+            from me_sfc_wip_log a
+            LEFT JOIN m_item b ON a.item_bo= b.BO
+            where
+            ( item_name = '转子半成品轴' OR item_name = '转子成品轴' )
+            and
+            CONVERT ( VARCHAR ( 100 ), OUT_TIME, 23 ) = CONVERT ( VARCHAR ( 100 ), dateadd( DAY, - 4, getdate( ) ), 23 )
+            ) a
+        UNION all
+        select  CONVERT ( VARCHAR ( 100 ), dateadd( DAY, - 3, getdate( ) ), 23 ) as day,a.FPY*100 as fpy
+        FROM(
+            select
+            case when (SUM(DONE_QTY)+SUM(SCRAP_QTY)+SUM(NC_QTY)) is null or (SUM(DONE_QTY)+SUM(SCRAP_QTY)+SUM(NC_QTY))=0 then 0 else sum(DONE_QTY)/(SUM(DONE_QTY)+SUM(SCRAP_QTY)+SUM(NC_QTY)) end as FPY
+            from me_sfc_wip_log a
+            LEFT JOIN m_item b ON a.item_bo= b.BO
+            where
+            ( item_name = '转子半成品轴' OR item_name = '转子成品轴' )
+            and
+            CONVERT ( VARCHAR ( 100 ), OUT_TIME, 23 ) = CONVERT ( VARCHAR ( 100 ), dateadd( DAY, - 3, getdate( ) ), 23 )
+            ) a
+        UNION all
+        select  CONVERT ( VARCHAR ( 100 ), dateadd( DAY, - 2, getdate( ) ), 23 ) as day,a.FPY*100 as fpy
+        FROM(
+            select
+            case when (SUM(DONE_QTY)+SUM(SCRAP_QTY)+SUM(NC_QTY)) is null or (SUM(DONE_QTY)+SUM(SCRAP_QTY)+SUM(NC_QTY))=0 then 0 else sum(DONE_QTY)/(SUM(DONE_QTY)+SUM(SCRAP_QTY)+SUM(NC_QTY)) end as FPY
+            from me_sfc_wip_log a
+            LEFT JOIN m_item b ON a.item_bo= b.BO
+            where
+            ( item_name = '转子半成品轴' OR item_name = '转子成品轴' )
+            and
+            CONVERT ( VARCHAR ( 100 ), OUT_TIME, 23 ) = CONVERT ( VARCHAR ( 100 ), dateadd( DAY, - 2, getdate( ) ), 23 )
+            ) a
+        UNION all
+        select  CONVERT ( VARCHAR ( 100 ), dateadd( DAY, - 1, getdate( ) ), 23 ) as day,a.FPY*100 as fpy
+        FROM(
+            select
+            case when (SUM(DONE_QTY)+SUM(SCRAP_QTY)+SUM(NC_QTY)) is null or (SUM(DONE_QTY)+SUM(SCRAP_QTY)+SUM(NC_QTY))=0 then 0 else sum(DONE_QTY)/(SUM(DONE_QTY)+SUM(SCRAP_QTY)+SUM(NC_QTY)) end as FPY
+            from me_sfc_wip_log a
+            LEFT JOIN m_item b ON a.item_bo= b.BO
+            where
+            ( item_name = '转子半成品轴' OR item_name = '转子成品轴' )
+            and
+            CONVERT ( VARCHAR ( 100 ), OUT_TIME, 23 ) = CONVERT ( VARCHAR ( 100 ), dateadd( DAY, - 1, getdate( ) ), 23 )
+            ) a
+        UNION all
+        select CONVERT ( VARCHAR ( 100 ), GETDATE( ), 23 ) as day,a.FPY*100 as fpy
+        FROM(
+            select
+            case when (SUM(DONE_QTY)+SUM(SCRAP_QTY)+SUM(NC_QTY)) is null or (SUM(DONE_QTY)+SUM(SCRAP_QTY)+SUM(NC_QTY))=0 then 0 else sum(DONE_QTY)/(SUM(DONE_QTY)+SUM(SCRAP_QTY)+SUM(NC_QTY)) end as FPY
+            from me_sfc_wip_log a
+            LEFT JOIN m_item b ON a.item_bo= b.BO
+            where
+            ( item_name = '转子半成品轴' OR item_name = '转子成品轴' )
+            and
+            CONVERT ( VARCHAR ( 100 ), OUT_TIME, 23 ) = CONVERT ( VARCHAR ( 100 ), GETDATE( ), 23 )
+            ) a
+    </select>
+
+    <select id="selectRotorFPY" resultType="java.util.HashMap">
+        select  CONVERT ( VARCHAR ( 100 ), dateadd( DAY, - 6, getdate( ) ), 23 ) as day,a.FPY*100 as fpy
+        FROM(
+            select
+            case when (SUM(DONE_QTY)+SUM(SCRAP_QTY)+SUM(NC_QTY)) is null then 0 else sum(DONE_QTY)/(SUM(DONE_QTY)+SUM(SCRAP_QTY)+SUM(NC_QTY)) end as FPY
+            from me_sfc_wip_log a
+            LEFT JOIN m_item b ON a.item_bo= b.BO
+            where
+            RIGHT ( item_name, 2 ) = '转子'
+            and
+            CONVERT ( VARCHAR ( 100 ), OUT_TIME, 23 ) = CONVERT ( VARCHAR ( 100 ), dateadd( DAY, - 6, getdate( ) ), 23 )
+            ) a
+        UNION all
+        select  CONVERT ( VARCHAR ( 100 ), dateadd( DAY, - 5, getdate( ) ), 23 ) as day,a.FPY*100 as fpy
+        FROM(
+            select
+            case when (SUM(DONE_QTY)+SUM(SCRAP_QTY)+SUM(NC_QTY)) is null then 0 else sum(DONE_QTY)/(SUM(DONE_QTY)+SUM(SCRAP_QTY)+SUM(NC_QTY)) end as FPY
+            from me_sfc_wip_log a
+            LEFT JOIN m_item b ON a.item_bo= b.BO
+            where
+            RIGHT ( item_name, 2 ) = '转子'
+            and
+            CONVERT ( VARCHAR ( 100 ), OUT_TIME, 23 ) = CONVERT ( VARCHAR ( 100 ), dateadd( DAY, - 5, getdate( ) ), 23 )
+            ) a
+        UNION all
+        select  CONVERT ( VARCHAR ( 100 ), dateadd( DAY, - 4, getdate( ) ), 23 ) as day,a.FPY*100 as fpy
+        FROM(
+            select
+            case when (SUM(DONE_QTY)+SUM(SCRAP_QTY)+SUM(NC_QTY)) is null then 0 else sum(DONE_QTY)/(SUM(DONE_QTY)+SUM(SCRAP_QTY)+SUM(NC_QTY)) end as FPY
+            from me_sfc_wip_log a
+            LEFT JOIN m_item b ON a.item_bo= b.BO
+            where
+            RIGHT ( item_name, 2 ) = '转子'
+            and
+            CONVERT ( VARCHAR ( 100 ), OUT_TIME, 23 ) = CONVERT ( VARCHAR ( 100 ), dateadd( DAY, - 4, getdate( ) ), 23 )
+            ) a
+        UNION all
+        select  CONVERT ( VARCHAR ( 100 ), dateadd( DAY, - 3, getdate( ) ), 23 ) as day,a.FPY*100 as fpy
+        FROM(
+            select
+            case when (SUM(DONE_QTY)+SUM(SCRAP_QTY)+SUM(NC_QTY)) is null then 0 else sum(DONE_QTY)/(SUM(DONE_QTY)+SUM(SCRAP_QTY)+SUM(NC_QTY)) end as FPY
+            from me_sfc_wip_log a
+            LEFT JOIN m_item b ON a.item_bo= b.BO
+            where
+            RIGHT ( item_name, 2 ) = '转子'
+            and
+            CONVERT ( VARCHAR ( 100 ), OUT_TIME, 23 ) = CONVERT ( VARCHAR ( 100 ), dateadd( DAY, - 3, getdate( ) ), 23 )
+            ) a
+        UNION all
+        select  CONVERT ( VARCHAR ( 100 ), dateadd( DAY, - 2, getdate( ) ), 23 ) as day,a.FPY*100 as fpy
+        FROM(
+            select
+            case when (SUM(DONE_QTY)+SUM(SCRAP_QTY)+SUM(NC_QTY)) is null then 0 else sum(DONE_QTY)/(SUM(DONE_QTY)+SUM(SCRAP_QTY)+SUM(NC_QTY)) end as FPY
+            from me_sfc_wip_log a
+            LEFT JOIN m_item b ON a.item_bo= b.BO
+            where
+            RIGHT ( item_name, 2 ) = '转子'
+            and
+            CONVERT ( VARCHAR ( 100 ), OUT_TIME, 23 ) = CONVERT ( VARCHAR ( 100 ), dateadd( DAY, - 2, getdate( ) ), 23 )
+            ) a
+        UNION all
+        select  CONVERT ( VARCHAR ( 100 ), dateadd( DAY, - 1, getdate( ) ), 23 ) as day,a.FPY*100 as fpy
+        FROM(
+            select
+            case when (SUM(DONE_QTY)+SUM(SCRAP_QTY)+SUM(NC_QTY)) is null then 0 else sum(DONE_QTY)/(SUM(DONE_QTY)+SUM(SCRAP_QTY)+SUM(NC_QTY)) end as FPY
+            from me_sfc_wip_log a
+            LEFT JOIN m_item b ON a.item_bo= b.BO
+            where
+            RIGHT ( item_name, 2 ) = '转子'
+            and
+            CONVERT ( VARCHAR ( 100 ), OUT_TIME, 23 ) = CONVERT ( VARCHAR ( 100 ), dateadd( DAY, - 1, getdate( ) ), 23 )
+            ) a
+        UNION all
+        select CONVERT ( VARCHAR ( 100 ), GETDATE( ), 23 ) as day,a.FPY*100 as fpy
+        FROM(
+            select
+            case when (SUM(DONE_QTY)+SUM(SCRAP_QTY)+SUM(NC_QTY)) is null then 0 else sum(DONE_QTY)/(SUM(DONE_QTY)+SUM(SCRAP_QTY)+SUM(NC_QTY)) end as FPY
+            from me_sfc_wip_log a
+            LEFT JOIN m_item b ON a.item_bo= b.BO
+            where
+            RIGHT ( item_name, 2 ) = '转子'
+            and
+            CONVERT ( VARCHAR ( 100 ), OUT_TIME, 23 ) = CONVERT ( VARCHAR ( 100 ), GETDATE( ), 23 )
+            ) a
+    </select>
+    <select id="selectShaftQuantity" resultType="java.util.HashMap">
+        SELECT
+            isnull( SUM ( OK_QTY ), 0 ) as production_quantity
+             ,(CONVERT ( VARCHAR ( 100 ), dateadd( DAY, - 6, getdate( ) ), 23 )) as day
+        FROM
+            m_dy_stock a
+            LEFT JOIN m_item b ON a.item_bo= b.BO
+        WHERE
+            (
+            RIGHT ( item_name, 2 ) = '泵轴'
+           OR RIGHT ( item_name, 3 ) = '六角棒'
+           OR RIGHT ( item_name, 3 ) = '梅花轴'
+           OR RIGHT ( item_name, 3 ) = '梅花棒'
+            )
+          AND CONVERT ( VARCHAR ( 100 ), a.CREATE_DATE, 23 ) = CONVERT ( VARCHAR ( 100 ), dateadd( DAY, - 6, getdate( ) ), 23 )
+        union all
+        SELECT
+            isnull( SUM ( OK_QTY ), 0 ) as production_quantity
+             ,(CONVERT ( VARCHAR ( 100 ), dateadd( DAY, - 5, getdate( ) ), 23 )) as day
+        FROM
+            m_dy_stock a
+            LEFT JOIN m_item b ON a.item_bo= b.BO
+        WHERE
+            (
+            RIGHT ( item_name, 2 ) = '泵轴'
+           OR RIGHT ( item_name, 3 ) = '六角棒'
+           OR RIGHT ( item_name, 3 ) = '梅花轴'
+           OR RIGHT ( item_name, 3 ) = '梅花棒'
+            )
+          AND CONVERT ( VARCHAR ( 100 ), a.CREATE_DATE, 23 ) = CONVERT ( VARCHAR ( 100 ), dateadd( DAY, - 5, getdate( ) ), 23 )
+        union all
+        SELECT
+            isnull( SUM ( OK_QTY ), 0 ) as production_quantity
+             ,(CONVERT ( VARCHAR ( 100 ), dateadd( DAY, - 4, getdate( ) ), 23 )) as day
+        FROM
+            m_dy_stock a
+            LEFT JOIN m_item b ON a.item_bo= b.BO
+        WHERE
+            (
+            RIGHT ( item_name, 2 ) = '泵轴'
+           OR RIGHT ( item_name, 3 ) = '六角棒'
+           OR RIGHT ( item_name, 3 ) = '梅花轴'
+           OR RIGHT ( item_name, 3 ) = '梅花棒'
+            )
+          AND CONVERT ( VARCHAR ( 100 ), a.CREATE_DATE, 23 ) = CONVERT ( VARCHAR ( 100 ), dateadd( DAY, - 4, getdate( ) ), 23 )
+        union all
+        SELECT
+            isnull( SUM ( OK_QTY ), 0 ) as production_quantity
+             ,(CONVERT ( VARCHAR ( 100 ), dateadd( DAY, - 3, getdate( ) ), 23 )) as day
+        FROM
+            m_dy_stock a
+            LEFT JOIN m_item b ON a.item_bo= b.BO
+        WHERE
+            (
+            RIGHT ( item_name, 2 ) = '泵轴'
+           OR RIGHT ( item_name, 3 ) = '六角棒'
+           OR RIGHT ( item_name, 3 ) = '梅花轴'
+           OR RIGHT ( item_name, 3 ) = '梅花棒'
+            )
+          AND CONVERT ( VARCHAR ( 100 ), a.CREATE_DATE, 23 ) = CONVERT ( VARCHAR ( 100 ), dateadd( DAY, - 3, getdate( ) ), 23 )
+        union all
+        SELECT
+            isnull( SUM ( OK_QTY ), 0 ) as production_quantity
+             ,(CONVERT ( VARCHAR ( 100 ), dateadd( DAY, - 2, getdate( ) ), 23 )) as day
+        FROM
+            m_dy_stock a
+            LEFT JOIN m_item b ON a.item_bo= b.BO
+        WHERE
+            (
+            RIGHT ( item_name, 2 ) = '泵轴'
+           OR RIGHT ( item_name, 3 ) = '六角棒'
+           OR RIGHT ( item_name, 3 ) = '梅花轴'
+           OR RIGHT ( item_name, 3 ) = '梅花棒'
+            )
+          AND CONVERT ( VARCHAR ( 100 ), a.CREATE_DATE, 23 ) = CONVERT ( VARCHAR ( 100 ), dateadd( DAY, - 2, getdate( ) ), 23 )
+        union all
+        SELECT
+            isnull( SUM ( OK_QTY ), 0 ) as production_quantity
+             ,(CONVERT ( VARCHAR ( 100 ), dateadd( DAY, - 1, getdate( ) ), 23 )) as day
+        FROM
+            m_dy_stock a
+            LEFT JOIN m_item b ON a.item_bo= b.BO
+        WHERE
+            (
+            RIGHT ( item_name, 2 ) = '泵轴'
+           OR RIGHT ( item_name, 3 ) = '六角棒'
+           OR RIGHT ( item_name, 3 ) = '梅花轴'
+           OR RIGHT ( item_name, 3 ) = '梅花棒'
+            )
+          AND CONVERT ( VARCHAR ( 100 ), a.CREATE_DATE, 23 ) = CONVERT ( VARCHAR ( 100 ), dateadd( DAY, - 1, getdate( ) ), 23 )
+        union all
+        SELECT
+            isnull( SUM ( OK_QTY ), 0 ) as production_quantity
+             ,CONVERT ( VARCHAR ( 100 ), GETDATE( ), 23 ) as day
+        FROM
+            m_dy_stock a
+            LEFT JOIN m_item b ON a.item_bo= b.BO
+        WHERE
+            (
+            RIGHT ( item_name, 2 ) = '泵轴'
+           OR RIGHT ( item_name, 3 ) = '六角棒'
+           OR RIGHT ( item_name, 3 ) = '梅花轴'
+           OR RIGHT ( item_name, 3 ) = '梅花棒'
+            )
+          AND CONVERT ( VARCHAR ( 100 ), a.CREATE_DATE, 23 ) = CONVERT ( VARCHAR ( 100 ), GETDATE(), 23 )
+    </select>
+    <select id="selectSpialeQuantity" resultType="java.util.HashMap">
+        SELECT
+            isnull( SUM ( OK_QTY ), 0 ) as production_quantity
+             ,(CONVERT ( VARCHAR ( 100 ), dateadd( DAY, - 6, getdate( ) ), 23 )) as day
+        FROM
+            m_dy_stock a
+            LEFT JOIN m_item b ON a.item_bo= b.BO
+        WHERE
+            ( item_name = '转子半成品轴' OR item_name = '转子成品轴' )
+          AND CONVERT ( VARCHAR ( 100 ), a.CREATE_DATE, 23 ) = CONVERT ( VARCHAR ( 100 ), dateadd( DAY, - 6, getdate( ) ), 23 )
+        union all
+        SELECT
+            isnull( SUM ( OK_QTY ), 0 ) as production_quantity
+             ,(CONVERT ( VARCHAR ( 100 ), dateadd( DAY, - 5, getdate( ) ), 23 )) as day
+        FROM
+            m_dy_stock a
+            LEFT JOIN m_item b ON a.item_bo= b.BO
+        WHERE
+            ( item_name = '转子半成品轴' OR item_name = '转子成品轴' )
+          AND CONVERT ( VARCHAR ( 100 ), a.CREATE_DATE, 23 ) = CONVERT ( VARCHAR ( 100 ), dateadd( DAY, - 5, getdate( ) ), 23 )
+        union all
+        SELECT
+            isnull( SUM ( OK_QTY ), 0 ) as production_quantity
+             ,(CONVERT ( VARCHAR ( 100 ), dateadd( DAY, - 4, getdate( ) ), 23 )) as day
+        FROM
+            m_dy_stock a
+            LEFT JOIN m_item b ON a.item_bo= b.BO
+        WHERE
+            ( item_name = '转子半成品轴' OR item_name = '转子成品轴' )
+          AND CONVERT ( VARCHAR ( 100 ), a.CREATE_DATE, 23 ) = CONVERT ( VARCHAR ( 100 ), dateadd( DAY, - 4, getdate( ) ), 23 )
+        union all
+        SELECT
+            isnull( SUM ( OK_QTY ), 0 ) as production_quantity
+             ,(CONVERT ( VARCHAR ( 100 ), dateadd( DAY, - 3, getdate( ) ), 23 )) as day
+        FROM
+            m_dy_stock a
+            LEFT JOIN m_item b ON a.item_bo= b.BO
+        WHERE
+            ( item_name = '转子半成品轴' OR item_name = '转子成品轴' )
+          AND CONVERT ( VARCHAR ( 100 ), a.CREATE_DATE, 23 ) = CONVERT ( VARCHAR ( 100 ), dateadd( DAY, - 3, getdate( ) ), 23 )
+        union all
+        SELECT
+            isnull( SUM ( OK_QTY ), 0 ) as production_quantity
+             ,(CONVERT ( VARCHAR ( 100 ), dateadd( DAY, - 2, getdate( ) ), 23 )) as day
+        FROM
+            m_dy_stock a
+            LEFT JOIN m_item b ON a.item_bo= b.BO
+        WHERE
+            ( item_name = '转子半成品轴' OR item_name = '转子成品轴' )
+          AND CONVERT ( VARCHAR ( 100 ), a.CREATE_DATE, 23 ) = CONVERT ( VARCHAR ( 100 ), dateadd( DAY, - 2, getdate( ) ), 23 )
+        union all
+        SELECT
+            isnull( SUM ( OK_QTY ), 0 ) as production_quantity
+             ,(CONVERT ( VARCHAR ( 100 ), dateadd( DAY, - 1, getdate( ) ), 23 )) as day
+        FROM
+            m_dy_stock a
+            LEFT JOIN m_item b ON a.item_bo= b.BO
+        WHERE
+            ( item_name = '转子半成品轴' OR item_name = '转子成品轴' )
+          AND CONVERT ( VARCHAR ( 100 ), a.CREATE_DATE, 23 ) = CONVERT ( VARCHAR ( 100 ), dateadd( DAY, - 1, getdate( ) ), 23 )
+        union all
+        SELECT
+            isnull( SUM ( OK_QTY ), 0 ) as production_quantity
+             ,CONVERT ( VARCHAR ( 100 ), GETDATE( ), 23 ) as day
+        FROM
+            m_dy_stock a
+            LEFT JOIN m_item b ON a.item_bo= b.BO
+        WHERE
+            ( item_name = '转子半成品轴' OR item_name = '转子成品轴' )
+          AND CONVERT ( VARCHAR ( 100 ), a.CREATE_DATE, 23 ) = CONVERT ( VARCHAR ( 100 ), GETDATE(), 23 )
+    </select>
+    <select id="selectRotorQuantity" resultType="java.util.HashMap">
+        SELECT
+            isnull( SUM ( OK_QTY ), 0 ) as production_quantity
+             ,(CONVERT ( VARCHAR ( 100 ), dateadd( DAY, - 6, getdate( ) ), 23 )) as day
+        FROM
+            m_dy_stock a
+            LEFT JOIN m_item b ON a.item_bo= b.BO
+        WHERE
+            RIGHT ( item_name, 2 ) = '转子'
+          AND CONVERT ( VARCHAR ( 100 ), a.CREATE_DATE, 23 ) = CONVERT ( VARCHAR ( 100 ), dateadd( DAY, - 6, getdate( ) ), 23 )
+        union all
+        SELECT
+            isnull( SUM ( OK_QTY ), 0 ) as production_quantity
+             ,(CONVERT ( VARCHAR ( 100 ), dateadd( DAY, - 5, getdate( ) ), 23 )) as day
+        FROM
+            m_dy_stock a
+            LEFT JOIN m_item b ON a.item_bo= b.BO
+        WHERE
+            RIGHT ( item_name, 2 ) = '转子'
+          AND CONVERT ( VARCHAR ( 100 ), a.CREATE_DATE, 23 ) = CONVERT ( VARCHAR ( 100 ), dateadd( DAY, - 5, getdate( ) ), 23 )
+        union all
+        SELECT
+            isnull( SUM ( OK_QTY ), 0 ) as production_quantity
+             ,(CONVERT ( VARCHAR ( 100 ), dateadd( DAY, - 4, getdate( ) ), 23 )) as day
+        FROM
+            m_dy_stock a
+            LEFT JOIN m_item b ON a.item_bo= b.BO
+        WHERE
+            RIGHT ( item_name, 2 ) = '转子'
+          AND CONVERT ( VARCHAR ( 100 ), a.CREATE_DATE, 23 ) = CONVERT ( VARCHAR ( 100 ), dateadd( DAY, - 4, getdate( ) ), 23 )
+        union all
+        SELECT
+            isnull( SUM ( OK_QTY ), 0 ) as production_quantity
+             ,(CONVERT ( VARCHAR ( 100 ), dateadd( DAY, - 3, getdate( ) ), 23 )) as day
+        FROM
+            m_dy_stock a
+            LEFT JOIN m_item b ON a.item_bo= b.BO
+        WHERE
+            RIGHT ( item_name, 2 ) = '转子'
+          AND CONVERT ( VARCHAR ( 100 ), a.CREATE_DATE, 23 ) = CONVERT ( VARCHAR ( 100 ), dateadd( DAY, - 3, getdate( ) ), 23 )
+        union all
+        SELECT
+            isnull( SUM ( OK_QTY ), 0 ) as production_quantity
+             ,(CONVERT ( VARCHAR ( 100 ), dateadd( DAY, - 2, getdate( ) ), 23 )) as day
+        FROM
+            m_dy_stock a
+            LEFT JOIN m_item b ON a.item_bo= b.BO
+        WHERE
+            RIGHT ( item_name, 2 ) = '转子'
+          AND CONVERT ( VARCHAR ( 100 ), a.CREATE_DATE, 23 ) = CONVERT ( VARCHAR ( 100 ), dateadd( DAY, - 2, getdate( ) ), 23 )
+        union all
+        SELECT
+            isnull( SUM ( OK_QTY ), 0 ) as production_quantity
+             ,(CONVERT ( VARCHAR ( 100 ), dateadd( DAY, - 1, getdate( ) ), 23 )) as day
+        FROM
+            m_dy_stock a
+            LEFT JOIN m_item b ON a.item_bo= b.BO
+        WHERE
+            RIGHT ( item_name, 2 ) = '转子'
+          AND CONVERT ( VARCHAR ( 100 ), a.CREATE_DATE, 23 ) = CONVERT ( VARCHAR ( 100 ), dateadd( DAY, - 1, getdate( ) ), 23 )
+        union all
+        SELECT
+            isnull( SUM ( OK_QTY ), 0 ) as production_quantity
+             ,CONVERT ( VARCHAR ( 100 ), GETDATE( ), 23 ) as day
+        FROM
+            m_dy_stock a
+            LEFT JOIN m_item b ON a.item_bo= b.BO
+        WHERE
+            RIGHT ( item_name, 2 ) = '转子'
+          AND CONVERT ( VARCHAR ( 100 ), a.CREATE_DATE, 23 ) = CONVERT ( VARCHAR ( 100 ), GETDATE(), 23 )
+    </select>
+    <select id="selectAbnormalInformation" resultType="java.util.HashMap">
+        SELECT
+            b.device,
+            andon_type_name,
+            SUBSTRING ( CONVERT ( VARCHAR, trigger_time, 120 ), 6, 11 ) AS DAY,
+	a.state
+        FROM
+            andon_exception a
+            LEFT JOIN m_device b ON a.device_bo= b.bo
+        WHERE
+            a.state IN ( 0, 1 )
+            and a.workshop_bo='WS:dongyin,5422'
+           OR (
+            a.state = 2
+          AND CONVERT ( VARCHAR ( 100 ), trigger_time, 23 ) = CONVERT ( VARCHAR ( 100 ), GETDATE( ), 23 )
+            )
+    </select>
+
+    <select id="selectAbnormalInformationCollect" resultType="java.util.HashMap">
+        SELECT
+            isnull(sum(case when state = 0 or state = 1 then 1 end),0) as untreated,
+            isnull(sum(case when state = 2 then 1 end),0) as processed
+        FROM
+            andon_exception a
+        WHERE
+            a.state IN ( 0, 1 )
+            and a.workshop_bo='WS:dongyin,5422'
+           OR (
+                a.state = 2
+                AND CONVERT ( VARCHAR ( 100 ), trigger_time, 23 ) = CONVERT ( VARCHAR ( 100 ), GETDATE( ), 23 )
+            )
+    </select>
+    <select id="selectShaftQuantityMoon" resultType="java.util.HashMap">
+        SELECT
+            isnull(SUM ( CASE WHEN state_bo = 'STATE:dongyin,500' THEN 1 ELSE 0 END ),0) AS newNumber,
+            isnull(SUM ( CASE WHEN state_bo = 'STATE:dongyin,501' THEN 1 ELSE 0 END ),0) AS productionNumber,
+            isnull(SUM ( CASE WHEN state_bo = 'STATE:dongyin,502' or state_bo = 'STATE:dongyin,503' THEN 1 ELSE 0 END ),0) AS completeNumber
+        FROM
+            m_shop_order a
+                LEFT JOIN m_item b ON a.item_bo= b.BO
+        WHERE
+            (
+                RIGHT ( item_name, 2 ) = '泵轴'
+                OR RIGHT ( item_name, 3 ) = '六角棒'
+                OR RIGHT ( item_name, 3 ) = '梅花轴'
+                OR RIGHT ( item_name, 3 ) = '梅花棒'
+                ) AND
+                CONVERT ( CHAR ( 7 ), PLAN_END_DATE, 120 ) = CONVERT ( CHAR ( 7 ), GETDATE( ), 120 )
+
+    </select>
+    <select id="selectSpialeQuantityMoon" resultType="java.util.HashMap">
+        SELECT
+            isnull(SUM ( CASE WHEN state_bo = 'STATE:dongyin,500' THEN 1 ELSE 0 END ),0) AS newNumber,
+            isnull(SUM ( CASE WHEN state_bo = 'STATE:dongyin,501' THEN 1 ELSE 0 END ),0) AS productionNumber,
+            isnull(SUM ( CASE WHEN state_bo = 'STATE:dongyin,502' or state_bo = 'STATE:dongyin,503' THEN 1 ELSE 0 END ),0) AS completeNumber
+        FROM
+            m_shop_order a
+                LEFT JOIN m_item b ON a.item_bo= b.BO
+        WHERE
+            ( item_name = '转子半成品轴' OR item_name = '转子成品轴' ) AND
+                CONVERT ( CHAR ( 7 ), PLAN_END_DATE, 120 ) = CONVERT ( CHAR ( 7 ), GETDATE( ), 120 )
+
+    </select>
+    <select id="selectRotorQuantityMoon" resultType="java.util.HashMap">
+        SELECT
+            isnull(SUM ( CASE WHEN state_bo = 'STATE:dongyin,500' THEN 1 ELSE 0 END ),0) AS newNumber,
+            isnull(SUM ( CASE WHEN state_bo = 'STATE:dongyin,501' THEN 1 ELSE 0 END ),0) AS productionNumber,
+            isnull(SUM ( CASE WHEN state_bo = 'STATE:dongyin,502' or state_bo = 'STATE:dongyin,503' THEN 1 ELSE 0 END ),0) AS completeNumber
+        FROM
+            m_shop_order a
+                LEFT JOIN m_item b ON a.item_bo= b.BO
+        WHERE
+            RIGHT ( item_name, 2 ) = '转子' AND
+            CONVERT ( CHAR ( 7 ), PLAN_END_DATE, 120 ) = CONVERT ( CHAR ( 7 ), GETDATE(), 120 )
+
+    </select>
+    <select id="selectProductNumber" resultType="java.util.HashMap">
+        select
+            isnull(sum(case when CHECK_TYPE='0' then 1 end),0)  as '首检',
+            isnull(sum(case when CHECK_TYPE='1' then 1 end),0)  as '巡检',
+            isnull(sum(case when CHECK_TYPE='2' then 1 end),0)  as '终检',
+            SUBSTRING ( CONVERT ( VARCHAR, dateadd(day, -6, getdate()), 23 ), 6, 11 ) as day
+        from m_quality_checklist
+        where
+            (CONVERT(varchar(100), SELF_CHECK_DATE, 23)=CONVERT(varchar(100), dateadd(day, -6, getdate()), 23)
+           or
+            (
+            SELF_CHECK_DATE is null
+          and CONVERT(varchar(100), QUALITY_CHECK_DATE, 23)=CONVERT(varchar(100), dateadd(day, -6, getdate()), 23)
+            )) and WORKSHOP_BO='WS:dongyin,5422'
+        union all
+        select
+            isnull(sum(case when CHECK_TYPE='0' then 1 end),0)  as a,
+            isnull(sum(case when CHECK_TYPE='1' then 1 end),0)  as b,
+            isnull(sum(case when CHECK_TYPE='2' then 1 end),0)  as c,
+            SUBSTRING ( CONVERT ( VARCHAR, dateadd(day, -5, getdate()), 23 ), 6, 11 ) as day
+        from m_quality_checklist
+        where
+            (CONVERT(varchar(100), SELF_CHECK_DATE, 23)=CONVERT(varchar(100), dateadd(day, -5, getdate()), 23)
+           or
+            (
+            SELF_CHECK_DATE is null
+          and CONVERT(varchar(100), QUALITY_CHECK_DATE, 23)=CONVERT(varchar(100), dateadd(day, -5, getdate()), 23)
+            )) and WORKSHOP_BO='WS:dongyin,5422'
+        union all
+        select
+            isnull(sum(case when CHECK_TYPE='0' then 1 end),0)  as a,
+            isnull(sum(case when CHECK_TYPE='1' then 1 end),0)  as b,
+            isnull(sum(case when CHECK_TYPE='2' then 1 end),0)  as c,
+            SUBSTRING ( CONVERT ( VARCHAR, dateadd(day, -4, getdate()), 23 ), 6, 11 ) as day
+        from m_quality_checklist
+        where
+            (CONVERT(varchar(100), SELF_CHECK_DATE, 23)=CONVERT(varchar(100), dateadd(day, -4, getdate()), 23)
+           or
+            (
+            SELF_CHECK_DATE is null
+          and CONVERT(varchar(100), QUALITY_CHECK_DATE, 23)=CONVERT(varchar(100), dateadd(day, -4, getdate()), 23)
+            )) and WORKSHOP_BO='WS:dongyin,5422'
+        union all
+        select
+            isnull(sum(case when CHECK_TYPE='0' then 1 end),0)  as a,
+            isnull(sum(case when CHECK_TYPE='1' then 1 end),0)  as b,
+            isnull(sum(case when CHECK_TYPE='2' then 1 end),0)  as c,
+            SUBSTRING ( CONVERT ( VARCHAR, dateadd(day, -3, getdate()), 23 ), 6, 11 ) as day
+        from m_quality_checklist
+        where
+            (CONVERT(varchar(100), SELF_CHECK_DATE, 23)=CONVERT(varchar(100), dateadd(day, -3, getdate()), 23)
+           or
+            (
+            SELF_CHECK_DATE is null
+          and CONVERT(varchar(100), QUALITY_CHECK_DATE, 23)=CONVERT(varchar(100), dateadd(day, -3, getdate()), 23)
+            )) and WORKSHOP_BO='WS:dongyin,5422'
+        union all
+        select
+            isnull(sum(case when CHECK_TYPE='0' then 1 end),0)  as a,
+            isnull(sum(case when CHECK_TYPE='1' then 1 end),0)  as b,
+            isnull(sum(case when CHECK_TYPE='2' then 1 end),0)  as c,
+            SUBSTRING ( CONVERT ( VARCHAR, dateadd(day, -2, getdate()), 23 ), 6, 11 ) as day
+        from m_quality_checklist
+        where
+            (CONVERT(varchar(100), SELF_CHECK_DATE, 23)=CONVERT(varchar(100), dateadd(day, -2, getdate()), 23)
+           or
+            (
+            SELF_CHECK_DATE is null
+          and CONVERT(varchar(100), QUALITY_CHECK_DATE, 23)=CONVERT(varchar(100), dateadd(day, -2, getdate()), 23)
+            )) and WORKSHOP_BO='WS:dongyin,5422'
+        union all
+        select
+            isnull(sum(case when CHECK_TYPE='0' then 1 end),0)  as a,
+            isnull(sum(case when CHECK_TYPE='1' then 1 end),0)  as b,
+            isnull(sum(case when CHECK_TYPE='2' then 1 end),0)  as c,
+            SUBSTRING ( CONVERT ( VARCHAR, dateadd(day, -1, getdate()), 23 ), 6, 11 ) as day
+        from m_quality_checklist
+        where
+            (CONVERT(varchar(100), SELF_CHECK_DATE, 23)=CONVERT(varchar(100), dateadd(day, -1, getdate()), 23)
+           or
+            (
+            SELF_CHECK_DATE is null
+          and CONVERT(varchar(100), QUALITY_CHECK_DATE, 23)=CONVERT(varchar(100), dateadd(day, -1, getdate()), 23)
+            ))and WORKSHOP_BO='WS:dongyin,5422'
+        union all
+        select
+            isnull(sum(case when CHECK_TYPE='0' then 1 end),0)  as a,
+            isnull(sum(case when CHECK_TYPE='1' then 1 end),0)  as b,
+            isnull(sum(case when CHECK_TYPE='2' then 1 end),0)  as c,
+            SUBSTRING ( CONVERT ( VARCHAR, GETDATE( ), 23 ), 6, 11 ) as day
+        from m_quality_checklist
+        where
+            ((CONVERT ( VARCHAR ( 100 ), SELF_CHECK_DATE, 23 ) = CONVERT ( VARCHAR ( 100 ), GETDATE( ), 23 )
+            )
+           or
+            (
+            SELF_CHECK_DATE is null
+          and (CONVERT ( VARCHAR ( 100 ), QUALITY_CHECK_DATE, 23 ) = CONVERT ( VARCHAR ( 100 ), GETDATE( ), 23 )
+            )
+            )) and WORKSHOP_BO='WS:dongyin,5422'
+    </select>
+    <select id="selectRatePassToday" resultType="java.util.HashMap">
+/*        select a as '首检',b as '巡检',c as '终检',
+               case when aaa=0 then 0 else aaa/aa*100 end '首检合格率',
+               case when bbb=0 then 0 else bbb/bb*100 end '巡检合格率',
+               case when ccc=0 then 0 else ccc/cc*100 end '终检合格率',
+               SUBSTRING ( CONVERT ( VARCHAR, dateadd(day, -6, getdate()), 23 ), 6, 11 ) as day
+        from(
+            select
+            isnull(sum(case when CHECK_TYPE='0' then 1 end),0)  as a,
+            isnull(sum(case when CHECK_TYPE='1' then 1 end),0)  as b,
+            isnull(sum(case when CHECK_TYPE='2' then 1 end),0)  as c,
+            isnull(sum(case when CHECK_TYPE='0' and CHECK_STATE= '3' then 1 end),0)  as aa,
+            isnull(sum(case when CHECK_TYPE='1' and CHECK_STATE= '3' then 1 end),0)  as bb,
+            isnull(sum(case when CHECK_TYPE='2' and CHECK_STATE= '3' then 1 end),0)  as cc,
+            isnull(sum(case when CHECK_TYPE='0' and CHECK_RESULT= '合格' then 1 end),0)  as aaa,
+            isnull(sum(case when CHECK_TYPE='1' and CHECK_RESULT= '合格' then 1 end),0)  as bbb,
+            isnull(sum(case when CHECK_TYPE='2' and CHECK_RESULT= '合格' then 1 end),0)  as ccc
+            from m_quality_checklist
+            where
+            (CONVERT(varchar(100), SELF_CHECK_DATE, 23)=CONVERT(varchar(100), dateadd(day, -6, getdate()), 23)
+            )
+            or
+            (
+            SELF_CHECK_DATE is null
+            and (CONVERT(varchar(100), QUALITY_CHECK_DATE, 23)=CONVERT(varchar(100), dateadd(day, -6, getdate()), 23)
+            )
+            )
+            ) a
+        union all
+        select a as '首检',b as '巡检',c as '终检',
+               case when aaa=0 then 0 else aaa/aa*100 end '首检合格率',
+               case when bbb=0 then 0 else bbb/bb*100 end '巡检合格率',
+               case when ccc=0 then 0 else ccc/cc*100 end '终检合格率',
+               SUBSTRING ( CONVERT ( VARCHAR, dateadd(day, -5, getdate()), 23 ), 6, 11 ) as day
+        from(
+            select
+            isnull(sum(case when CHECK_TYPE='0' then 1 end),0)  as a,
+            isnull(sum(case when CHECK_TYPE='1' then 1 end),0)  as b,
+            isnull(sum(case when CHECK_TYPE='2' then 1 end),0)  as c,
+            isnull(sum(case when CHECK_TYPE='0' and CHECK_STATE= '3' then 1 end),0)  as aa,
+            isnull(sum(case when CHECK_TYPE='1' and CHECK_STATE= '3' then 1 end),0)  as bb,
+            isnull(sum(case when CHECK_TYPE='2' and CHECK_STATE= '3' then 1 end),0)  as cc,
+            isnull(sum(case when CHECK_TYPE='0' and CHECK_RESULT= '合格' then 1 end),0)  as aaa,
+            isnull(sum(case when CHECK_TYPE='1' and CHECK_RESULT= '合格' then 1 end),0)  as bbb,
+            isnull(sum(case when CHECK_TYPE='2' and CHECK_RESULT= '合格' then 1 end),0)  as ccc
+            from m_quality_checklist
+            where
+            (CONVERT(varchar(100), SELF_CHECK_DATE, 23)=CONVERT(varchar(100), dateadd(day, -5, getdate()), 23)
+            )
+            or
+            (
+            SELF_CHECK_DATE is null
+            and (CONVERT(varchar(100), QUALITY_CHECK_DATE, 23)=CONVERT(varchar(100), dateadd(day, -5, getdate()), 23)
+            )
+            )
+            ) a
+        union all
+        select a as '首检',b as '巡检',c as '终检',
+               case when aaa=0 then 0 else aaa/aa*100 end '首检合格率',
+               case when bbb=0 then 0 else bbb/bb*100 end '巡检合格率',
+               case when ccc=0 then 0 else ccc/cc*100 end '终检合格率',
+               SUBSTRING ( CONVERT ( VARCHAR, dateadd(day, -4, getdate()), 23 ), 6, 11 ) as day
+        from(
+            select
+            isnull(sum(case when CHECK_TYPE='0' then 1 end),0)  as a,
+            isnull(sum(case when CHECK_TYPE='1' then 1 end),0)  as b,
+            isnull(sum(case when CHECK_TYPE='2' then 1 end),0)  as c,
+            isnull(sum(case when CHECK_TYPE='0' and CHECK_STATE= '3' then 1 end),0)  as aa,
+            isnull(sum(case when CHECK_TYPE='1' and CHECK_STATE= '3' then 1 end),0)  as bb,
+            isnull(sum(case when CHECK_TYPE='2' and CHECK_STATE= '3' then 1 end),0)  as cc,
+            isnull(sum(case when CHECK_TYPE='0' and CHECK_RESULT= '合格' then 1 end),0)  as aaa,
+            isnull(sum(case when CHECK_TYPE='1' and CHECK_RESULT= '合格' then 1 end),0)  as bbb,
+            isnull(sum(case when CHECK_TYPE='2' and CHECK_RESULT= '合格' then 1 end),0)  as ccc
+            from m_quality_checklist
+            where
+            (CONVERT(varchar(100), SELF_CHECK_DATE, 23)=CONVERT(varchar(100), dateadd(day, -4, getdate()), 23)
+            )
+            or
+            (
+            SELF_CHECK_DATE is null
+            and (CONVERT(varchar(100), QUALITY_CHECK_DATE, 23)=CONVERT(varchar(100), dateadd(day, -4, getdate()), 23)
+            )
+            )
+            ) a
+        union all
+        select a as '首检',b as '巡检',c as '终检',
+               case when aaa=0 then 0 else aaa/aa*100 end '首检合格率',
+               case when bbb=0 then 0 else bbb/bb*100 end '巡检合格率',
+               case when ccc=0 then 0 else ccc/cc*100 end '终检合格率',
+               SUBSTRING ( CONVERT ( VARCHAR, dateadd(day, -3, getdate()), 23 ), 6, 11 ) as day
+        from(
+            select
+            isnull(sum(case when CHECK_TYPE='0' then 1 end),0)  as a,
+            isnull(sum(case when CHECK_TYPE='1' then 1 end),0)  as b,
+            isnull(sum(case when CHECK_TYPE='2' then 1 end),0)  as c,
+            isnull(sum(case when CHECK_TYPE='0' and CHECK_STATE= '3' then 1 end),0)  as aa,
+            isnull(sum(case when CHECK_TYPE='1' and CHECK_STATE= '3' then 1 end),0)  as bb,
+            isnull(sum(case when CHECK_TYPE='2' and CHECK_STATE= '3' then 1 end),0)  as cc,
+            isnull(sum(case when CHECK_TYPE='0' and CHECK_RESULT= '合格' then 1 end),0)  as aaa,
+            isnull(sum(case when CHECK_TYPE='1' and CHECK_RESULT= '合格' then 1 end),0)  as bbb,
+            isnull(sum(case when CHECK_TYPE='2' and CHECK_RESULT= '合格' then 1 end),0)  as ccc
+            from m_quality_checklist
+            where
+            (CONVERT(varchar(100), SELF_CHECK_DATE, 23)=CONVERT(varchar(100), dateadd(day, -3, getdate()), 23)
+            )
+            or
+            (
+            SELF_CHECK_DATE is null
+            and (CONVERT(varchar(100), QUALITY_CHECK_DATE, 23)=CONVERT(varchar(100), dateadd(day, -3, getdate()), 23)
+            )
+            )
+            ) a
+        union all
+        select a as '首检',b as '巡检',c as '终检',
+               case when aaa=0 then 0 else aaa/aa*100 end '首检合格率',
+               case when bbb=0 then 0 else bbb/bb*100 end '巡检合格率',
+               case when ccc=0 then 0 else ccc/cc*100 end '终检合格率',
+               SUBSTRING ( CONVERT ( VARCHAR, dateadd(day, -2, getdate()), 23 ), 6, 11 ) as day
+        from(
+            select
+            isnull(sum(case when CHECK_TYPE='0' then 1 end),0)  as a,
+            isnull(sum(case when CHECK_TYPE='1' then 1 end),0)  as b,
+            isnull(sum(case when CHECK_TYPE='2' then 1 end),0)  as c,
+            isnull(sum(case when CHECK_TYPE='0' and CHECK_STATE= '3' then 1 end),0)  as aa,
+            isnull(sum(case when CHECK_TYPE='1' and CHECK_STATE= '3' then 1 end),0)  as bb,
+            isnull(sum(case when CHECK_TYPE='2' and CHECK_STATE= '3' then 1 end),0)  as cc,
+            isnull(sum(case when CHECK_TYPE='0' and CHECK_RESULT= '合格' then 1 end),0)  as aaa,
+            isnull(sum(case when CHECK_TYPE='1' and CHECK_RESULT= '合格' then 1 end),0)  as bbb,
+            isnull(sum(case when CHECK_TYPE='2' and CHECK_RESULT= '合格' then 1 end),0)  as ccc
+            from m_quality_checklist
+            where
+            (CONVERT(varchar(100), SELF_CHECK_DATE, 23)=CONVERT(varchar(100), dateadd(day, -2, getdate()), 23))
+            or
+            (
+            SELF_CHECK_DATE is null
+            and (CONVERT(varchar(100), QUALITY_CHECK_DATE, 23)=CONVERT(varchar(100), dateadd(day, -2, getdate()), 23)
+            )
+            )
+            ) a
+        union all
+        select a as '首检',b as '巡检',c as '终检',
+               case when aaa=0 then 0 else aaa/aa*100 end '首检合格率',
+               case when bbb=0 then 0 else bbb/bb*100 end '巡检合格率',
+               case when ccc=0 then 0 else ccc/cc*100 end '终检合格率',
+               SUBSTRING ( CONVERT ( VARCHAR, dateadd(day, -1, getdate()), 23 ), 6, 11 ) as day
+        from(
+            select
+            isnull(sum(case when CHECK_TYPE='0' then 1 end),0)  as a,
+            isnull(sum(case when CHECK_TYPE='1' then 1 end),0)  as b,
+            isnull(sum(case when CHECK_TYPE='2' then 1 end),0)  as c,
+            isnull(sum(case when CHECK_TYPE='0' and CHECK_STATE= '3' then 1 end),0)  as aa,
+            isnull(sum(case when CHECK_TYPE='1' and CHECK_STATE= '3' then 1 end),0)  as bb,
+            isnull(sum(case when CHECK_TYPE='2' and CHECK_STATE= '3' then 1 end),0)  as cc,
+            isnull(sum(case when CHECK_TYPE='0' and CHECK_RESULT= '合格' then 1 end),0)  as aaa,
+            isnull(sum(case when CHECK_TYPE='1' and CHECK_RESULT= '合格' then 1 end),0)  as bbb,
+            isnull(sum(case when CHECK_TYPE='2' and CHECK_RESULT= '合格' then 1 end),0)  as ccc
+            from m_quality_checklist
+            where
+            (CONVERT(varchar(100), SELF_CHECK_DATE, 23)=CONVERT(varchar(100), dateadd(day, -1, getdate()), 23)
+
+            )
+            or
+            (
+            SELF_CHECK_DATE is null
+            and (CONVERT(varchar(100), QUALITY_CHECK_DATE, 23)=CONVERT(varchar(100), dateadd(day, -1, getdate()), 23)
+            )
+            )
+            ) a
+        union all*/
+        select a as '首检',b as '巡检',c as '终检',
+               case when aaa=0 then 0 else aaa/aa*100 end '首检合格率',
+               case when bbb=0 then 0 else bbb/bb*100 end '巡检合格率',
+               case when ccc=0 then 0 else ccc/cc*100 end '终检合格率',
+               SUBSTRING ( CONVERT ( VARCHAR, GETDATE( ), 23 ), 6, 11 ) as day
+        from(
+            select
+            isnull(sum(case when CHECK_TYPE='0' then 1 end),0)  as a,
+            isnull(sum(case when CHECK_TYPE='1' then 1 end),0)  as b,
+            isnull(sum(case when CHECK_TYPE='2' then 1 end),0)  as c,
+            isnull(sum(case when CHECK_TYPE='0' and CHECK_STATE= '3' then 1 end),0)  as aa,
+            isnull(sum(case when CHECK_TYPE='1' and CHECK_STATE= '3' then 1 end),0)  as bb,
+            isnull(sum(case when CHECK_TYPE='2' and CHECK_STATE= '3' then 1 end),0)  as cc,
+            isnull(sum(case when CHECK_TYPE='0' and CHECK_RESULT= '合格' then 1 end),0)  as aaa,
+            isnull(sum(case when CHECK_TYPE='1' and CHECK_RESULT= '合格' then 1 end),0)  as bbb,
+            isnull(sum(case when CHECK_TYPE='2' and CHECK_RESULT= '合格' then 1 end),0)  as ccc
+            from m_quality_checklist
+            where
+            ((CONVERT ( VARCHAR ( 100 ), SELF_CHECK_DATE, 23 ) = CONVERT ( VARCHAR ( 100 ), GETDATE( ), 23 )
+
+            )
+            or
+            (
+            SELF_CHECK_DATE is null
+            and (CONVERT ( VARCHAR ( 100 ), QUALITY_CHECK_DATE, 23 ) = CONVERT ( VARCHAR ( 100 ), GETDATE( ), 23 )
+            )
+            )) and WORKSHOP_BO='WS:dongyin,5422'
+            ) a
+    </select>
+    <select id="selectWaitingDocuments" resultType="com.itl.mes.core.api.vo.WaitingDocumentsVO">
+        select
+            CHECK_TYPE,CHECK_CODE,sfc,SELF_CHECK_DATE,QUALITY_CHECK_DATE
+        from m_quality_checklist
+        where CHECK_STATE in ('0','1','2') and WORKSHOP_BO='WS:dongyin,5422'
+    </select>
+    <select id="selectAverageTimeCheckOne" resultType="com.itl.mes.core.api.vo.WaitingDocumentsVO">
+        select
+            SELF_CHECK_DATE,QUALITY_CHECK_DATE
+        from m_quality_checklist
+        where CHECK_STATE = '3' and CHECK_TYPE='0'  and WORKSHOP_BO='WS:dongyin,5422'
+          and SELF_CHECK_DATE is not null and QUALITY_CHECK_DATE is not null
+          and CONVERT ( VARCHAR ( 100 ), QUALITY_CHECK_DATE, 23 ) = CONVERT ( VARCHAR ( 100 ), GETDATE( ), 23 )
+    </select>
+    <select id="selectAverageTimeCheckTwo" resultType="com.itl.mes.core.api.vo.WaitingDocumentsVO">
+        select
+            SELF_CHECK_DATE,QUALITY_CHECK_DATE
+        from m_quality_checklist
+        where CHECK_STATE = '3' and CHECK_TYPE='0' and WORKSHOP_BO='WS:dongyin,5422'
+          and SELF_CHECK_DATE is not null and QUALITY_CHECK_DATE is not null
+          and CONVERT(varchar(100), QUALITY_CHECK_DATE, 23)=CONVERT(varchar(100), dateadd(day, -1, getdate()), 23)
+    </select>
+    <select id="selectAverageTimeCheckThree" resultType="com.itl.mes.core.api.vo.WaitingDocumentsVO">
+        select
+            SELF_CHECK_DATE,QUALITY_CHECK_DATE
+        from m_quality_checklist
+        where CHECK_STATE = '3' and CHECK_TYPE='0' and WORKSHOP_BO='WS:dongyin,5422'
+          and SELF_CHECK_DATE is not null and QUALITY_CHECK_DATE is not null
+          and CONVERT(varchar(100), QUALITY_CHECK_DATE, 23)=CONVERT(varchar(100), dateadd(day, -2, getdate()), 23)
+    </select>
+    <select id="selectAverageTimeCheckFour" resultType="com.itl.mes.core.api.vo.WaitingDocumentsVO">
+        select
+            SELF_CHECK_DATE,QUALITY_CHECK_DATE
+        from m_quality_checklist
+        where CHECK_STATE = '3' and CHECK_TYPE='0' and WORKSHOP_BO='WS:dongyin,5422'
+          and SELF_CHECK_DATE is not null and QUALITY_CHECK_DATE is not null
+          and CONVERT(varchar(100), QUALITY_CHECK_DATE, 23)=CONVERT(varchar(100), dateadd(day, -3, getdate()), 23)
+    </select>
+    <select id="selectAverageTimeCheckFive" resultType="com.itl.mes.core.api.vo.WaitingDocumentsVO">
+
+        select
+            SELF_CHECK_DATE,QUALITY_CHECK_DATE
+        from m_quality_checklist
+        where CHECK_STATE = '3' and CHECK_TYPE='0' and WORKSHOP_BO='WS:dongyin,5422'
+          and SELF_CHECK_DATE is not null and QUALITY_CHECK_DATE is not null
+          and CONVERT(varchar(100), QUALITY_CHECK_DATE, 23)=CONVERT(varchar(100), dateadd(day, -4, getdate()), 23)
+    </select>
+    <select id="selectAverageTimeCheckSix" resultType="com.itl.mes.core.api.vo.WaitingDocumentsVO">
+        select
+            SELF_CHECK_DATE,QUALITY_CHECK_DATE
+        from m_quality_checklist
+        where CHECK_STATE = '3' and CHECK_TYPE='0' and WORKSHOP_BO='WS:dongyin,5422'
+          and SELF_CHECK_DATE is not null and QUALITY_CHECK_DATE is not null
+          and CONVERT(varchar(100), QUALITY_CHECK_DATE, 23)=CONVERT(varchar(100), dateadd(day, -5, getdate()), 23)
+    </select>
+    <select id="selectAverageTimeCheckSeven" resultType="com.itl.mes.core.api.vo.WaitingDocumentsVO">
+        select
+            SELF_CHECK_DATE,QUALITY_CHECK_DATE
+        from m_quality_checklist
+        where CHECK_STATE = '3' and CHECK_TYPE='0' and WORKSHOP_BO='WS:dongyin,5422'
+          and SELF_CHECK_DATE is not null and QUALITY_CHECK_DATE is not null
+          and CONVERT(varchar(100), QUALITY_CHECK_DATE, 23)=CONVERT(varchar(100), dateadd(day, -6, getdate()), 23)
+    </select>
+    <select id="selectMonthlyItems" resultType="java.util.HashMap">
+        SELECT TOP
+            5 *
+        FROM
+            (
+                SELECT COUNT
+                           ( 1 ) AS NUM,
+                       PARAMETER_DESC
+                FROM
+                    m_quality_checklist a
+                        LEFT JOIN m_quality_plan_parameter_result b ON a.CHECK_CODE = b.CHECK_CODE
+                WHERE
+                    CHECK_STATE = '3'
+                  AND QUA_RESULT = 'NG'
+                  AND WORKSHOP_BO='WS:dongyin,5422'
+                  AND (
+                            CONVERT ( CHAR ( 7 ), QUALITY_CHECK_DATE, 120 ) = CONVERT ( CHAR ( 7 ), GETDATE( ), 120 )
+                        OR (
+                                    QUALITY_CHECK_DATE IS NULL
+                                    AND CONVERT ( CHAR ( 7 ), SELF_CHECK_DATE, 120 ) = CONVERT ( CHAR ( 7 ), GETDATE( ), 120 )
+                                )
+                    )
+                GROUP BY
+                    PARAMETER_DESC
+            ) a
+        ORDER BY
+            a.num DESC
+    </select>
+    <select id="selectMonthlyModel" resultType="java.util.HashMap">
+        SELECT TOP
+            5 *
+        FROM
+            (
+                SELECT COUNT
+                           ( 1 ) AS NUM,
+                       a.ITEM_NAME
+                FROM
+                    m_quality_checklist a
+                        LEFT JOIN m_quality_plan_parameter_result b ON a.CHECK_CODE = b.CHECK_CODE
+                WHERE
+                    CHECK_STATE = '3' and QUA_RESULT = 'NG' and WORKSHOP_BO='WS:dongyin,5422'
+                  AND (
+                            CONVERT ( CHAR ( 7 ), QUALITY_CHECK_DATE, 120 ) = CONVERT ( CHAR ( 7 ), GETDATE( ), 120 )
+                        OR (
+                                    QUALITY_CHECK_DATE IS NULL
+                                    AND CONVERT ( CHAR ( 7 ), SELF_CHECK_DATE, 120 ) = CONVERT ( CHAR ( 7 ), GETDATE( ), 120 )
+                                )
+                    )
+                GROUP BY
+                    a.ITEM_NAME
+            ) a
+        ORDER BY
+            a.num DESC
+    </select>
+    <select id="selectShaftDisqualified" resultType="java.util.HashMap">
+        SELECT TOP
+            3 *
+        FROM
+            (
+                SELECT COUNT
+                           ( 1 ) AS NUM,
+                       a.OPERATION_NAME
+                FROM
+                    m_quality_checklist a
+                        LEFT JOIN m_quality_plan_parameter_result b ON a.CHECK_CODE = b.CHECK_CODE
+                WHERE
+                    (
+                        RIGHT ( a.item_name, 2 ) = '泵轴'
+                        OR RIGHT ( a.item_name, 3 ) = '六角棒'
+                        OR RIGHT ( a.item_name, 3 ) = '梅花轴'
+                        OR RIGHT ( a.item_name, 3 ) = '梅花棒'
+                        )
+                  AND CHECK_STATE = '3'
+                  AND QUA_RESULT = 'NG'
+                  AND WORKSHOP_BO='WS:dongyin,5422'
+                  AND (
+                            CONVERT ( CHAR ( 7 ), QUALITY_CHECK_DATE, 120 ) = CONVERT ( CHAR ( 7 ), GETDATE( ), 120 )
+                        OR (
+                                    QUALITY_CHECK_DATE IS NULL
+                                    AND CONVERT ( CHAR ( 7 ), SELF_CHECK_DATE, 120 ) = CONVERT ( CHAR ( 7 ), GETDATE( ), 120 )
+                                )
+                    )
+                GROUP BY
+                    a.OPERATION_NAME
+            ) a
+        ORDER BY
+            a.num DESC
+    </select>
+    <select id="selectSpialeDisqualified" resultType="java.util.HashMap">
+        SELECT TOP
+            3 *
+        FROM
+            (
+                SELECT COUNT
+                           ( 1 ) AS NUM,
+                       a.OPERATION_NAME
+                FROM
+                    m_quality_checklist a
+                        LEFT JOIN m_quality_plan_parameter_result b ON a.CHECK_CODE = b.CHECK_CODE
+                WHERE
+                    ( a.item_name = '转子半成品轴' OR a.item_name = '转子成品轴' )
+                  AND CHECK_STATE = '3'
+                  AND QUA_RESULT = 'NG'
+                  AND WORKSHOP_BO='WS:dongyin,5422'
+                  AND (
+                            CONVERT ( CHAR ( 7 ), QUALITY_CHECK_DATE, 120 ) = CONVERT ( CHAR ( 7 ), GETDATE( ), 120 )
+                        OR (
+                                    QUALITY_CHECK_DATE IS NULL
+                                    AND CONVERT ( CHAR ( 7 ), SELF_CHECK_DATE, 120 ) = CONVERT ( CHAR ( 7 ), GETDATE( ), 120 )
+                                )
+                    )
+                GROUP BY
+                    a.OPERATION_NAME
+            ) a
+        ORDER BY
+            a.num DESC
+    </select>
+    <select id="selectRotorDisqualified" resultType="java.util.HashMap">
+        SELECT TOP
+            3 *
+        FROM
+            (
+                SELECT COUNT
+                           ( 1 ) AS NUM,
+                       a.OPERATION_NAME
+                FROM
+                    m_quality_checklist a
+                        LEFT JOIN m_quality_plan_parameter_result b ON a.CHECK_CODE = b.CHECK_CODE
+                WHERE
+                    RIGHT ( a.item_name, 2 ) = '转子'
+                  AND CHECK_STATE = '3'
+                  AND QUA_RESULT = 'NG'
+                  AND WORKSHOP_BO='WS:dongyin,5422'
+                  AND (
+                    CONVERT ( CHAR ( 7 ), QUALITY_CHECK_DATE, 120 ) = CONVERT ( CHAR ( 7 ), GETDATE( ), 120 )
+                   OR (
+                    QUALITY_CHECK_DATE IS NULL
+                  AND CONVERT ( CHAR ( 7 ), SELF_CHECK_DATE, 120 ) = CONVERT ( CHAR ( 7 ), GETDATE( ), 120 )
+                    )
+                    )
+                GROUP BY
+                    a.OPERATION_NAME
+            ) a
+        ORDER BY
+            a.num DESC
+    </select>
+    <select id="selectWorkOrder" resultType="java.util.HashMap">
+        select count(*) as WorkOrder from m_shop_order where WORK_SHOP='5422' and STATE_BO = 'STATE:dongyin,501'
+    </select>
+    <select id="selectBeyondWorkOrder" resultType="java.util.HashMap">
+        select count(*) as beyondWorkOrder from m_shop_order where WORK_SHOP='5422' and STATE_BO in ('STATE:dongyin,501','STATE:dongyin,500')
+        and PLAN_END_DATE &lt; GETDATE()
+    </select>
+    <select id="selectRateOperation" resultType="java.util.HashMap">
+        SELECT
+            round( CAST ( startsNumber AS FLOAT ) / COUNT * 100, 2 ) as rateOperation
+        FROM
+            (
+                SELECT COUNT
+                           ( * ) AS COUNT,
+	isnull( SUM ( CASE WHEN state_bo = 'STATE:dongyin,502' OR state_bo = 'STATE:dongyin,503' OR state_bo = 'STATE:dongyin,501' THEN 1 ELSE 0 END ), 0 ) AS startsNumber
+                FROM
+                    m_shop_order
+                WHERE
+                    WORK_SHOP = '5422'
+            ) a
+    </select>
+    <select id="selectOutageRate" resultType="java.util.HashMap">
+        select top 5 * from(
+                               select count(1) as num,device_name from andon_exception
+                               where ANDON_TYPE_NAME like '设备%'
+                               GROUP BY device_name
+                           ) a ORDER BY num desc
+    </select>
+    <select id="selectFaultCause" resultType="java.util.HashMap">
+        select top 3 * from(
+                               select count(1) as num,andon_detail from andon_exception
+                               where ANDON_TYPE_NAME like '设备%'
+                               GROUP BY andon_detail
+                           ) a ORDER BY num desc
+    </select>
+    <select id="selectTotalNumberDevices" resultType="java.math.BigDecimal">
+        select count(1) as countNum from m_device where WORK_SHOP_NAME='转轴车间'
+    </select>
+    <select id="selectDailyCheckRate" resultType="java.math.BigDecimal">
+        select count(1) as num from m_device_check b
+                                        left join m_device a on a.device=b.device_code
+        where CONVERT ( CHAR ( 100 ), checkTime, 23 ) = CONVERT ( CHAR ( 100 ), GETDATE( ), 23 )
+          and b.state=1 and a.WORK_SHOP_NAME='转轴车间'
+    </select>
+    <select id="selectDailyMaintenanceRate" resultType="java.math.BigDecimal">
+        select count(1) as num from m_repair_upkeep_execute b
+                                        left join m_device a on a.device=b.code
+        where CONVERT ( CHAR ( 100 ), executeTime, 23 ) = CONVERT ( CHAR ( 100 ), GETDATE( ), 23 )
+          and b.state=1 and a.WORK_SHOP_NAME='转轴车间'
+    </select>
+    <select id="selectNumberMonthlyTenance" resultType="java.lang.Integer">
+        select count(1) as num from andon_exception
+        where CONVERT ( CHAR ( 7 ), trigger_time, 23 ) = CONVERT ( CHAR ( 7 ), GETDATE( ), 23 )
+          and andon_type_name like '设备%'
+    </select>
+    <select id="selectNetworkingDevice" resultType="java.lang.Integer">
+        select count(1) as num from(
+                                select DISTINCT FMachNo from TScadaDataState
+                                where CONVERT ( CHAR ( 7 ), CreateDate, 23 ) = CONVERT ( CHAR ( 7 ), GETDATE( ), 23 )
+                            ) a where FMachNo IN ( SELECT device FROM m_device WHERE WORK_SHOP_NAME = '转轴车间' )
+    </select>
+    <select id="selectEquipmentStatus" resultType="java.util.HashMap">
+        select
+            isnull(sum(case when FMachState='1' then 1 end),0) as '运行',
+            isnull(sum(case when FMachState='2' then 1 end),0) as '待机',
+            isnull(sum(case when FMachState='4' or FMachState='7' then 1 end),0) as '离线',
+            isnull(sum(case when FMachState='3' or FMachState='5' or FMachState='6' or FMachState='8' then 1 end),0) as '报警'
+        from TScadaDataState a
+                 JOIN ( SELECT a.* FROM ( SELECT MAX ( CreateDate ) AS cjri, FMachNo FROM TScadaDataState GROUP BY FMachNo ) AS a ) AC ON a.FMachNo= AC.FMachNo
+            AND a.CreateDate= cjri
+        where
+            a.FMachNo IN ( SELECT device FROM m_device WHERE WORK_SHOP_NAME = '转轴车间' )
+    </select>
+    <select id="selectMaintenanceFrequency" resultType="java.util.HashMap">
+        select count(1) as num,CONVERT(varchar(100), dateadd(day, -6, getdate()), 23) as day from andon_exception
+        where CONVERT ( CHAR ( 100 ), trigger_time, 23 ) = CONVERT(varchar(100), dateadd(day, -6, getdate()), 23)
+          and andon_type_name like '设备%'
+        union all
+        select count(1) as num,CONVERT(varchar(100), dateadd(day, -5, getdate()), 23) as day from andon_exception
+        where CONVERT ( CHAR ( 100 ), trigger_time, 23 ) = CONVERT(varchar(100), dateadd(day, -5, getdate()), 23)
+          and andon_type_name like '设备%'
+        union all
+        select count(1) as num,CONVERT(varchar(100), dateadd(day, -4, getdate()), 23) as day from andon_exception
+        where CONVERT ( CHAR ( 100 ), trigger_time, 23 ) = CONVERT(varchar(100), dateadd(day, -4, getdate()), 23)
+          and andon_type_name like '设备%'
+        union all
+        select count(1) as num,CONVERT(varchar(100), dateadd(day, -3, getdate()), 23) as day from andon_exception
+        where CONVERT ( CHAR ( 100 ), trigger_time, 23 ) = CONVERT(varchar(100), dateadd(day, -3, getdate()), 23)
+          and andon_type_name like '设备%'
+        union all
+        select count(1) as num,CONVERT(varchar(100), dateadd(day, -2, getdate()), 23) as day from andon_exception
+        where CONVERT ( CHAR ( 100 ), trigger_time, 23 ) = CONVERT(varchar(100), dateadd(day, -2, getdate()), 23)
+          and andon_type_name like '设备%'
+        union all
+        select count(1) as num,CONVERT(varchar(100), dateadd(day, -1, getdate()), 23) as day from andon_exception
+        where CONVERT ( CHAR ( 100 ), trigger_time, 23 ) = CONVERT(varchar(100), dateadd(day, -1, getdate()), 23)
+          and andon_type_name like '设备%'
+        union all
+        select count(1) as num,CONVERT ( varchar ( 100 ), GETDATE( ), 23 ) as day from andon_exception
+        where CONVERT ( CHAR ( 100 ), trigger_time, 23 ) = CONVERT ( varchar ( 100 ), GETDATE( ), 23 )
+          and andon_type_name like '设备%'
+    </select>
+    <select id="selectOperatingRatio" resultType="java.util.HashMap">
+        select count(ContinuedTime) as totalTime,CONVERT(varchar(100), dateadd(day, -6, getdate()), 23) as day from TScadaDataState
+            join m_device on FMachNo=device
+        where CONVERT ( CHAR ( 100 ), CreateDate, 23 ) = CONVERT(varchar(100), dateadd(day, -6, getdate()), 23)
+          and WORK_SHOP_NAME = '转轴车间'
+          and FMachState=#{num}
+        union all
+        select count(ContinuedTime) as totalTime,CONVERT(varchar(100), dateadd(day, -5, getdate()), 23) as day from TScadaDataState
+            join m_device on FMachNo=device
+        where CONVERT ( CHAR ( 100 ), CreateDate, 23 ) = CONVERT(varchar(100), dateadd(day, -5, getdate()), 23)
+          and WORK_SHOP_NAME = '转轴车间'
+          and FMachState=#{num}
+        union all
+        select count(ContinuedTime) as totalTime,CONVERT(varchar(100), dateadd(day, -4, getdate()), 23) as day from TScadaDataState
+            join m_device on FMachNo=device
+        where CONVERT ( CHAR ( 100 ), CreateDate, 23 ) = CONVERT(varchar(100), dateadd(day, -4, getdate()), 23)
+          and WORK_SHOP_NAME = '转轴车间'
+          and FMachState=#{num}
+        union all
+        select count(ContinuedTime) as totalTime,CONVERT(varchar(100), dateadd(day, -3, getdate()), 23) as day from TScadaDataState
+            join m_device on FMachNo=device
+        where CONVERT ( CHAR ( 100 ), CreateDate, 23 ) = CONVERT(varchar(100), dateadd(day, -3, getdate()), 23)
+          and WORK_SHOP_NAME = '转轴车间'
+          and FMachState=#{num}
+        union all
+        select count(ContinuedTime) as totalTime,CONVERT(varchar(100), dateadd(day, -2, getdate()), 23) as day from TScadaDataState
+            join m_device on FMachNo=device
+        where CONVERT ( CHAR ( 100 ), CreateDate, 23 ) = CONVERT(varchar(100), dateadd(day, -2, getdate()), 23)
+          and WORK_SHOP_NAME = '转轴车间'
+          and FMachState=#{num}
+        union all
+        select count(ContinuedTime) as totalTime,CONVERT(varchar(100), dateadd(day, -1, getdate()), 23) as day from TScadaDataState
+            join m_device on FMachNo=device
+        where CONVERT ( CHAR ( 100 ), CreateDate, 23 ) = CONVERT(varchar(100), dateadd(day, -1, getdate()), 23)
+          and WORK_SHOP_NAME = '转轴车间'
+          and FMachState=#{num}
+        union all
+        select count(ContinuedTime) as totalTime,CONVERT ( varchar ( 100 ), GETDATE( ), 23 ) as day from TScadaDataState
+            join m_device on FMachNo=device
+        where CONVERT ( CHAR ( 100 ), CreateDate, 23 ) = CONVERT ( varchar ( 100 ), GETDATE( ), 23 )
+          and WORK_SHOP_NAME = '转轴车间'
+          and FMachState=#{num}
+    </select>
+    <select id="selectLowEfficiencyBatch" resultType="com.itl.mes.core.api.vo.LowEfficiencyBatchVO">
+        select b.operation_name,c.device_name,a.sfc,out_time,in_time,DONE_QTY from me_sfc_wip_log a
+        left join m_operation b on a.operation_bo=b.bo
+        left join m_device c on a.device_bo=c.bo
+        left join m_work_shop d on a.WORK_SHOP_BO=d.BO
+        where CONVERT ( CHAR ( 100 ), OUT_TIME, 23 ) = CONVERT ( CHAR ( 100 ), GETDATE( ), 23 )
+        and in_time is not null
+        and d.WORK_SHOP_DESC='转轴车间'
+    </select>
+    <select id="selectTallEfficiencyBatch" resultType="com.itl.mes.core.api.vo.LowEfficiencyBatchVO">
+        select b.operation_name,out_time,in_time,DONE_QTY from me_sfc_wip_log a
+         left join m_operation b on a.operation_bo=b.bo
+         left join m_work_shop d on a.WORK_SHOP_BO=d.BO
+         where CONVERT ( CHAR ( 7 ), OUT_TIME, 23 ) = CONVERT ( CHAR ( 7 ), GETDATE( ), 23 )
+          and in_time is not null
+          and d.WORK_SHOP_DESC='转轴车间'
+    </select>
+    <select id="selectTheEffectiveness" resultType="com.itl.mes.core.api.vo.LowEfficiencyBatchVO">
+        SELECT
+            out_time,
+            in_time,
+            DONE_QTY
+        FROM
+            me_sfc_wip_log a
+                LEFT JOIN m_work_shop d ON a.WORK_SHOP_BO= d.BO
+        WHERE
+              <if test="vo.scope=='1'.toString()">
+                  CONVERT ( CHAR ( 100 ), OUT_TIME, 23 ) = CONVERT ( CHAR ( 100 ), GETDATE( ), 23 )
+              </if>
+              <if test="vo.scope=='2'.toString()">
+                  CONVERT ( CHAR ( 7 ), OUT_TIME, 23 ) = CONVERT ( CHAR ( 7 ), GETDATE( ), 23 )
+              </if>
+          AND in_time IS NOT NULL
+          AND d.WORK_SHOP_DESC= '转轴车间'
+    </select>
+    <select id="selectWorkshopProduction" resultType="java.lang.Integer">
+        select isnull(sum(ok_qty),0) from m_dy_stock a
+        left join m_shop_order b on a.SHOP_ORDER_BO=b.BO
+        where b.work_shop='5422'
+        <if test="vo.scope=='1'.toString()">
+           and CONVERT ( CHAR ( 100 ), a.CREATE_DATE, 23 ) = CONVERT ( CHAR ( 100 ), GETDATE( ), 23 )
+        </if>
+        <if test="vo.scope=='2'.toString()">
+           and CONVERT ( CHAR ( 7 ), a.CREATE_DATE, 23 ) = CONVERT ( CHAR ( 7 ), GETDATE( ), 23 )
+        </if>
+    </select>
+    <select id="selectIncomingQtyAndScrapped" resultType="java.util.HashMap">
+        SELECT
+            isnull(sum(nc_qty),0) as ncNum,isnull(sum(SCRAP_QTY),0) as scrapNum
+        FROM
+            me_sfc_wip_log a
+                JOIN m_work_shop d ON a.WORK_SHOP_BO= d.BO
+        WHERE
+            CONVERT ( CHAR ( 7 ), OUT_TIME, 23 ) = CONVERT ( CHAR ( 7 ), GETDATE( ), 23 )
+          AND in_time IS NOT NULL
+          AND d.WORK_SHOP_DESC= '转轴车间'
+    </select>
+
+    <select id="selectAnomalousTime" resultType="com.itl.mes.core.api.dto.AnomalousTimeDto">
+        select relieve_time,trigger_time from andon_exception
+        where workshop_name='转轴车间'
+          and CONVERT ( CHAR ( 7 ), trigger_time, 23 ) = CONVERT ( CHAR ( 7 ), GETDATE( ), 23 )
+    </select>
+
+    <select id="selectProductionEfficiencySeven" resultType="com.itl.mes.core.api.vo.LowEfficiencyBatchVO">
+        select out_time,in_time,DONE_QTY,b.PRODUCT_LINE_DESC, CONVERT(varchar(100), dateadd(day, -#{day}, getdate()), 23) as day
+        from me_sfc_wip_log a
+            join m_station c on a.STATION_BO=c.bo
+            join m_product_line b on c.PRODUCT_LINE_BO=b.bo
+            JOIN m_work_shop d ON a.WORK_SHOP_BO= d.BO
+        where d.WORK_SHOP_DESC= '转轴车间'
+          and CONVERT ( CHAR ( 100 ), out_time, 23 ) = CONVERT(varchar(100), dateadd(day, -#{day}, getdate()), 23)
+    </select>
+
+    <select id="selectProductionEfficiencyToday" resultType="com.itl.mes.core.api.vo.LowEfficiencyBatchVO">
+        select out_time,in_time,DONE_QTY,b.PRODUCT_LINE_DESC, ( varchar ( 100 ), GETDATE(), 23 ) as day
+        from me_sfc_wip_log a
+            join m_station c on a.STATION_BO=c.bo
+            join m_product_line b on c.PRODUCT_LINE_BO=b.bo
+            JOIN m_work_shop d ON a.WORK_SHOP_BO= d.BO
+        where d.WORK_SHOP_DESC= '转轴车间'
+          and CONVERT ( CHAR ( 100 ), out_time, 23 ) = ( varchar ( 100 ), GETDATE(), 23 )
+    </select>
+
+    <select id="selectAveragePerformanceTrend" resultType="com.itl.mes.core.api.vo.LowEfficiencyBatchVO">
+        SELECT
+        out_time,
+        in_time,
+        DONE_QTY,
+        b.PRODUCT_LINE_DESC
+        FROM
+        me_sfc_wip_log a
+        JOIN m_station c ON a.STATION_BO= c.bo
+        JOIN m_product_line b ON c.PRODUCT_LINE_BO= b.bo
+        JOIN m_work_shop d ON a.WORK_SHOP_BO= d.BO
+        WHERE
+        d.WORK_SHOP_DESC= '转轴车间'
+        AND in_time IS NOT NULL
+          and product_line_desc in('轴料组','机轴组','泵轴组','磨床组','转子组')
+        AND DateDiff( dd, out_time, getdate( ) ) &lt; 7
+    </select>
+    <select id="selectMonthScrappedTopFive" resultType="java.util.HashMap">
+        select top 5 * from(
+                               select sum(nc_qty+scrap_qty) as num,OPERATION_NAME from me_sfc_wip_log a
+                                left join m_operation b on a.OPERATION_BO=b.BO
+                               where b.work_shop='5422'
+                                 and CONVERT ( CHAR ( 7 ), out_time, 23 ) = CONVERT ( CHAR ( 7 ), GETDATE( ), 23 )
+                               GROUP BY OPERATION_NAME
+                           )a ORDER BY num desc
+    </select>
+
+</mapper>

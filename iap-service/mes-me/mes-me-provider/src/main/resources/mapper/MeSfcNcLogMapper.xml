@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.itl.mes.me.provider.mapper.MeSfcNcLogMapper">
+
+	<!-- 可根据自己的需求，是否要使用 -->
+    <resultMap type="com.itl.mes.me.api.entity.MeSfcNcLog" id="meSfcNcLogMap">
+        <result property="bo" column="BO"/>
+        <result property="site" column="SITE"/>
+        <result property="sfc" column="SFC"/>
+        <result property="wipLogBo" column="WIP_LOG_BO"/>
+        <result property="isRawCheck" column="IS_RAW_CHECK"/>
+        <result property="componentBo" column="COMPONENT_BO"/>
+        <result property="ncCodeBo" column="NC_CODE_BO"/>
+        <result property="recordTime" column="RECORD_TIME"/>
+        <result property="productLineBo" column="PRODUCT_LINE_BO"/>
+        <result property="operationBo" column="OPERATION_BO"/>
+        <result property="stationBo" column="STATION_BO"/>
+        <result property="deviceBo" column="DEVICE_BO"/>
+        <result property="userBo" column="USER_BO"/>
+        <result property="remark" column="REMARK"/>
+    </resultMap>
+
+
+</mapper>

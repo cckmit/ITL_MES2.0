@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.itl.mes.core.provider.mapper.SfcWiplogMapper">
+    <select id="getOperationThroughRateReport" resultType="com.itl.mes.core.api.vo.OpThroughRateVo">
+        SELECT
+            wip_log.operationBo,
+            op.operation,
+            op.operation_name,
+            wip_log.inputQty,
+            wip_log.doneQty,
+            wip_log.ncTotalQty,
+            wip_log.scrapQty
+        FROM
+            (
+                SELECT
+                    wip.OPERATION_BO AS operationBo,
+                    SUM ( wip.INPUT_QTY ) AS inputQty,
+                    SUM ( wip.DONE_QTY ) AS doneQty,
+                    SUM ( wip.NC_QTY ) AS ncTotalQty,
+                    SUM ( wip.SCRAP_QTY ) AS scrapQty
+                FROM
+                    me_sfc_wip_log wip
+                <where>
+                    <if test="opThroughRateDTO.shopOrderBo != null and opThroughRateDTO.shopOrderBo != ''">
+                        and wip.SHOP_ORDER_BO = #{opThroughRateDTO.shopOrderBo}
+                    </if>
+                    <if test="opThroughRateDTO.itemBo != null and opThroughRateDTO.itemBo != ''">
+                        and wip.ITEM_BO = #{opThroughRateDTO.itemBo}
+                    </if>
+                    <if test="opThroughRateDTO.workShopBo != null and opThroughRateDTO.workShopBo != ''">
+                        and wip.WORK_SHOP_BO = #{opThroughRateDTO.workShopBo}
+                    </if>
+                    <if test="opThroughRateDTO.startTime != null">
+                        and wip.OUT_TIME >= #{opThroughRateDTO.startTime}
+                    </if>
+                    <if test="opThroughRateDTO.endTime != null">
+                        <![CDATA[ and wip.OUT_TIME <= #{opThroughRateDTO.endTime} ]]>
+                    </if>
+                </where>
+                GROUP BY
+                    wip.OPERATION_BO
+            ) wip_log
+                LEFT JOIN m_operation op ON wip_log.operationBo = op.bo
+    </select>
+    <select id="selectWipNcByOperationBo" resultType="com.itl.mes.core.api.vo.OpThroughRateVo$NcDetails">
+        SELECT
+            wip.sfc AS sfc,
+            nc.nc_code AS ncCode,
+            nc.nc_name AS ncName,
+            wip.NC_QTY ncQty,
+            md.DEVICE AS device,
+            md.device_name AS deviceName,
+            su.user_name AS userId,
+            su.real_name AS userName
+        FROM
+            me_sfc_wip_log wip
+                LEFT JOIN m_device md ON wip.DEVICE_BO = md.bo
+                LEFT JOIN iap_sys_user_t su ON wip.USER_BO = su.user_name
+                LEFT JOIN me_sfc_nc_log nc_log ON wip.bo = nc_log.WIP_LOG_BO
+                LEFT JOIN m_nc_code nc ON nc_log.nc_code_bo = nc.bo
+        <where>
+            wip.NC_QTY != 0 and wip.operation_bo = #{operationBo}
+            <if test="startTime != null">
+                and wip.OUT_TIME >= #{startTime}
+            </if>
+            <if test="endTime != null">
+                <![CDATA[ and wip.OUT_TIME <= #{endTime} ]]>
+            </if>
+        </where>
+    </select>
+    <select id="selectWipScByOperationBo" resultType="com.itl.mes.core.api.vo.OpThroughRateVo$ScrapDetails">
+        SELECT
+            wip.sfc AS sfc,
+            nc.nc_code AS ncCode,
+            nc.nc_name AS ncName,
+            wip.SCRAP_QTY ncQty,
+            md.DEVICE AS device,
+            md.device_name AS deviceName,
+            su.user_name AS userId,
+            su.real_name AS userName
+        FROM
+            me_sfc_wip_log wip
+                LEFT JOIN m_device md ON wip.DEVICE_BO = md.bo
+                LEFT JOIN iap_sys_user_t su ON wip.USER_BO = su.user_name
+                LEFT JOIN me_sfc_repair re ON wip.bo = re.WIP_LOG_BO
+                LEFT JOIN m_nc_code nc ON re.nc_code_bo = nc.bo
+        <where>
+            wip.SCRAP_QTY != 0 and wip.operation_bo = #{operationBo}
+            <if test="startTime != null">
+                and wip.OUT_TIME >= #{startTime}
+            </if>
+            <if test="endTime != null">
+                <![CDATA[ and wip.OUT_TIME <= #{endTime} ]]>
+            </if>
+        </where>
+    </select>
+    <select id="getOpThroughRateByCon" resultType="com.itl.mes.core.api.vo.OpThroughRateVo">
+        SELECT
+        wip_log.operationBo,
+        op.operation,
+        op.operation_name,
+        wip_log.inputQty,
+        wip_log.doneQty,
+        wip_log.ncTotalQty,
+        wip_log.scrapQty,
+        CAST (
+        wip_log.doneQty/ wip_log.inputQty AS DECIMAL ( 18, 2 )) * 100 AS throughRate
+        FROM
+        (
+        SELECT
+        wip.OPERATION_BO AS operationBo,
+        SUM ( wip.INPUT_QTY ) AS inputQty,
+        SUM ( wip.DONE_QTY ) AS doneQty,
+        SUM ( wip.NC_QTY ) AS ncTotalQty,
+        SUM ( wip.SCRAP_QTY ) AS scrapQty
+        FROM
+        me_sfc_wip_log wip
+        <where>
+            <if test="opThroughRateDTO.operationBo != null and opThroughRateDTO.operationBo != ''">
+                and wip.OPERATION_BO = #{opThroughRateDTO.operationBo}
+            </if>
+            <if test="opThroughRateDTO.state != null and opThroughRateDTO.state != ''">
+                and wip.STATE = #{opThroughRateDTO.state}
+            </if>
+            <if test="opThroughRateDTO.shopOrderBo != null and opThroughRateDTO.shopOrderBo != ''">
+                and wip.SHOP_ORDER_BO = #{opThroughRateDTO.shopOrderBo}
+            </if>
+            <if test="opThroughRateDTO.itemBo != null and opThroughRateDTO.itemBo != ''">
+                and wip.ITEM_BO = #{opThroughRateDTO.itemBo}
+            </if>
+            <if test="opThroughRateDTO.workShopBo != null and opThroughRateDTO.workShopBo != ''">
+                and wip.WORK_SHOP_BO = #{opThroughRateDTO.workShopBo}
+            </if>
+            <if test="opThroughRateDTO.startTime != null">
+                and wip.OUT_TIME >= #{opThroughRateDTO.startTime}
+            </if>
+            <if test="opThroughRateDTO.endTime != null">
+                <![CDATA[ and wip.OUT_TIME <= #{opThroughRateDTO.endTime} ]]>
+            </if>
+        </where>
+        GROUP BY
+        wip.OPERATION_BO
+        ) wip_log
+        LEFT JOIN m_operation op ON wip_log.operationBo = op.bo
+    </select>
+</mapper>

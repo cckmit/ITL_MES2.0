@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.itl.mes.core.provider.mapper.ScadaStateMapper">
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.itl.mes.core.api.entity.ScadaStateEntity">
+        <id column="FGUID"  property="fguid"/>
+        <result column="FMachNo" property="fmachno"/>
+        <result column="FMachState" property="fmachState"/>
+        <result column="ContinuedTime" property="continuedTime"/>
+        <result column="CreateDate" property="createDate"/>
+        <result column="ScadaData_FGUID" property="ScadaData_fguid"/>
+    </resultMap>
+
+    <select id="selectScadaList" resultType="com.itl.mes.core.api.dto.ScadaStateDTO">
+        select FMachNo , FMachState
+        from
+             TScadaDataState A
+        where
+               CreateDate = (
+        select MAX(CreateDate)
+        FROM
+             TScadaDataState B
+        where
+             A.[FMachNo] = B.[FMachNo])
+
+    </select>
+
+
+</mapper>

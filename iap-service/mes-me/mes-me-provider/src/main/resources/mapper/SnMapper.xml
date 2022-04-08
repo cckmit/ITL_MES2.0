@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.itl.mes.me.provider.mapper.SnMapper">
+
+
+    <resultMap type="com.itl.mes.me.api.entity.Sn" id="SnMap">
+        <result property="bo" column="BO"/>
+        <result property="site" column="SITE"/>
+        <result property="sn" column="SN"/>
+        <result property="oldSn" column="OLD_SN"/>
+        <result property="complementCodeState" column="COMPLEMENT_CODE_STATE"/>
+        <result property="itemBo" column="ITEM_BO"/>
+        <result property="originalItemBo" column="ORIGINAL_ITEM_BO"/>
+        <result property="qty" column="QTY"/>
+        <result property="shopOrder" column="SHOP_ORDER"/>
+        <result property="taskNo" column="TASK_NO"/>
+        <result property="bomBo" column="BOM_BO"/>
+        <result property="shapOrderBo" column="SHAP_ORDER_BO"/>
+        <result property="paintOrderBo" column="PAINT_ORDER_BO"/>
+        <result property="fireOrderBo" column="FIRE_ORDER_BO"/>
+        <result property="packOrderBo" column="PACK_ORDER_BO"/>
+        <result property="productLineBo" column="PRODUCT_LINE_BO"/>
+        <result property="state" column="STATE"/>
+        <result property="inputQty" column="INPUT_QTY"/>
+        <result property="outQty" column="OUT_QTY"/>
+        <result property="scrapQty" column="SCRAP_QTY"/>
+        <result property="latelyPassDate" column="LATELY_PASS_DATE"/>
+        <result property="latelyPassOperation" column="LATELY_PASS_OPERATION"/>
+        <result property="latelyPassStation" column="LATELY_PASS_STATION"/>
+        <result property="completeDate" column="COMPLETE_DATE"/>
+        <result property="itemType" column="ITEM_TYPE"/>
+        <result property="maxSerialNumber" column="MAX_SERIAL_NUMBER"/>
+        <result property="createUser" column="CREATE_USER"/>
+        <result property="createDate" column="CREATE_DATE"/>
+        <result property="modifyUser" column="MODIFY_USER"/>
+        <result property="modifyDate" column="MODIFY_DATE"/>
+        <result property="isBoutique" column="IS_BOUTIQUE"/>
+        <result property="getUser" column="GET_USER"/>
+        <result property="getTime" column="GET_TIME"/>
+        <result property="deadline" column="DEADLINE"/>
+        <result property="itemName" column="ITEM_NAME"/>
+        <result property="workShop" column="WORK_SHOP"/>
+        <result property="productLine" column="PRODUCT_LINE"/>
+        <result property="workShopBo" column="WORK_SHOP_BO"/>
+    </resultMap>
+
+    <select id="getAll" resultMap="SnMap">
+        select z_sn.BO,
+               z_sn.SITE,
+               z_sn.WORK_SHOP_BO,
+               PRODUCT_LINE,
+               ITEM_BO,
+               ITEM_NAME,
+               SN,
+               z_sn.GET_USER,
+               z_sn.GET_TIME,
+               z_sn.DEADLINE
+        from z_sn
+                 left join master.dbo.m_product_line mpl on mpl.BO = z_sn.PRODUCT_LINE_BO
+                 left join master.dbo.m_work_shop mws on mws.BO = mpl.WORK_SHOP_BO
+                 left join master.dbo.m_item mi on mi.BO = z_sn.ITEM_BO
+        <where>
+            <if test="snDto.workShop!=null and snDto.workShop!=''">
+                mws.WORK_SHOP = #{snDto.workShop}
+            </if>
+            <if test="snDto.productLine!=null and snDto.productLine!=''">
+                and mpl.PRODUCT_LINE = #{snDto.productLine}
+            </if>
+            <if test="snDto.getUser!=null and snDto.getUser!=''">
+                and z_sn.GET_USER = #{snDto.getUser}
+            </if>
+            <if test="snDto.startSn != null and snDto.endSn !=null and snDto.startSn != '' and snDto.endSn !=''">
+                and z_sn.SN BETWEEN #{snDto.startSn} and #{snDto.endSn}
+            </if>
+        </where>
+    </select>
+
+    <select id="getItem" resultType="java.util.Map">
+        select mi.ITEM,mi.VERSION
+        from z_sn zs
+        left join m_item mi on mi.BO=zs.ITEM_BO
+        where zs.sn=#{sn}
+    </select>
+</mapper>

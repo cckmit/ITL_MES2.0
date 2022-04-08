@@ -1,0 +1,826 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.itl.iap.report.provider.mapper.SfcWipLogReportMapper">
+
+    <select id="queryList" resultType="com.itl.iap.report.api.entity.SfcWipLog" parameterType="string">
+        select m.sfc,n.shop_order,m.operation_order,p.operation_name,q.item,q.item_name,
+        m.input_qty,m.done_qty,m.nc_qty,m.scrap_qty,r.device_name,s.real_name,
+        m.state,m.in_time,m.stop_time,m.out_time,r.device,q.item_desc
+        from me_sfc_wip_log m
+        left join m_shop_order n on m.shop_order_bo= n.bo
+        left join m_operation p on m.operation_bo=p.bo
+        left join m_item q on m.item_bo = q.bo
+        left join m_device r on m.device_bo=r.bo
+        left join iap_sys_user_t s on m.user_bo=s.user_name
+        <where>
+            1=1
+            <if test="sfcWipLogReportDto.shopOrder !=null and sfcWipLogReportDto.shopOrder !=''">
+                and n.shop_order like concat('%',#{sfcWipLogReportDto.shopOrder},'%')
+            </if>
+            <if test="sfcWipLogReportDto.device !=null and sfcWipLogReportDto.device !=''">
+                and r.device like concat('%',#{sfcWipLogReportDto.device},'%')
+            </if>
+            <if test="sfcWipLogReportDto.itemDesc !=null and sfcWipLogReportDto.itemDesc !=''">
+                and q.item_desc like concat('%',#{sfcWipLogReportDto.itemDesc},'%')
+            </if>
+            <if test="sfcWipLogReportDto.item !=null and sfcWipLogReportDto.item !=''">
+                and q.item like concat('%',#{sfcWipLogReportDto.item},'%')
+            </if>
+            <if test="sfcWipLogReportDto.operationOrder !=null and sfcWipLogReportDto.operationOrder !=''">
+                and m.operation_order like concat('%',#{sfcWipLogReportDto.operationOrder},'%')
+            </if>
+            <if test="sfcWipLogReportDto.operationName !=null and sfcWipLogReportDto.operationName !=''">
+                and p.operation_name like concat('%',#{sfcWipLogReportDto.operationName},'%')
+            </if>
+            <if test="sfcWipLogReportDto.deviceName !=null and sfcWipLogReportDto.deviceName !=''">
+                and r.device_name like concat('%',#{sfcWipLogReportDto.deviceName},'%')
+            </if>
+            <if test="sfcWipLogReportDto.realName !=null and sfcWipLogReportDto.realName !=''">
+                and s.real_name like concat('%',#{sfcWipLogReportDto.realName},'%')
+            </if>
+            <if test="sfcWipLogReportDto.sfc !=null and sfcWipLogReportDto.sfc !=''">
+                and m.sfc like concat('%',#{sfcWipLogReportDto.sfc},'%')
+            </if>
+            <if test="sfcWipLogReportDto.inTime !=null and  sfcWipLogReportDto.outTime ==null ">
+                and CONVERT(varchar(100), m.in_time, 23) like concat('%',#{sfcWipLogReportDto.inTime},'%')
+            </if>
+            <if test="sfcWipLogReportDto.outTime !=null and sfcWipLogReportDto.inTime ==null ">
+                and CONVERT(varchar(100), m.out_time, 23) like concat('%',#{sfcWipLogReportDto.outTime},'%')
+            </if>
+            <if test="sfcWipLogReportDto.outTime !=null and sfcWipLogReportDto.inTime !=null ">
+                <![CDATA[ and #{sfcWipLogReportDto.inTime}<=CONVERT(varchar(100), m.in_time, 23) and CONVERT(varchar(100), m.in_time, 23) <=#{sfcWipLogReportDto.outTime}
+
+                and #{sfcWipLogReportDto.inTime}<=CONVERT(varchar(100), m.out_time, 23) and CONVERT(varchar(100), m.out_time, 23)<=#{sfcWipLogReportDto.outTime}]]>
+            </if>
+        </where>
+        order by m.in_time desc
+    </select>
+
+
+    <select id="queryPullIn" resultType="com.itl.mes.core.api.vo.SfcDeviceVO">
+        select a.device_bo,a.sfc,a.create_date as inTime,a.shop_order_bo
+        ,a.operation_order,a.user_bo,a.dispatch_code,a.operation_bo
+        ,c.item,c.item_name,c.item_desc
+        ,d.device_name,d.device_desc,d.device
+        ,s.real_name,n.shop_order,p.operation_name
+        from me_sfc_device a
+        left join me_sfc b on a.sfc=b.sfc
+        left join m_item c on c.bo=b.item_bo
+        left join m_device d on a.device_bo=d.bo
+        left join iap_sys_user_t s on a.user_bo=s.user_name
+        left join m_shop_order n on a.shop_order_bo= n.bo
+        left join m_operation p on a.operation_bo=p.bo
+        <where>
+            a.OPERATION_ORDER is not null and a.operation_order != ''
+            <if test="sfcDeviceVO!=null">
+                <if test="sfcDeviceVO.deviceBo !=null and sfcDeviceVO.deviceBo !=''">
+                    and a.device_bo like concat('%',#{sfcDeviceVO.deviceBo},'%')
+                </if>
+                <if test="sfcDeviceVO.sfc !=null and sfcDeviceVO.sfc !=''">
+                    and a.sfc like concat('%',#{sfcDeviceVO.sfc},'%')
+                </if>
+                <if test="sfcDeviceVO.shopOrderBo !=null and sfcDeviceVO.shopOrderBo !=''">
+                    and a.shop_order_bo like concat('%',#{sfcDeviceVO.shopOrderBo},'%')
+                </if>
+                <if test="sfcDeviceVO.operationOrder !=null and sfcDeviceVO.operationOrder !=''">
+                    and a.operation_order like concat('%',#{sfcDeviceVO.operationOrder},'%')
+                </if>
+                <if test="sfcDeviceVO.userBo !=null and sfcDeviceVO.userBo !=''">
+                    and a.user_bo like concat('%',#{sfcDeviceVO.userBo},'%')
+                </if>
+                <if test="sfcDeviceVO.operationBo !=null and sfcDeviceVO.operationBo !=''">
+                    and a.operation_bo like concat('%',#{sfcDeviceVO.operationBo},'%')
+                </if>
+                <if test="sfcDeviceVO.shopOrder !=null and sfcDeviceVO.shopOrder !=''">
+                    and n.shop_order like concat('%',#{sfcDeviceVO.shopOrder},'%')
+                </if>
+                <if test="sfcDeviceVO.operationName !=null and sfcDeviceVO.operationName !=''">
+                    and p.operation_name like concat('%',#{sfcDeviceVO.operationName},'%')
+                </if>
+                <if test="sfcDeviceVO.deviceName !=null and sfcDeviceVO.deviceName !=''">
+                    and d.device_name like concat('%',#{sfcDeviceVO.deviceName},'%')
+                </if>
+                <if test="sfcDeviceVO.realName !=null and sfcDeviceVO.realName !=''">
+                    and s.real_name like concat('%',#{sfcDeviceVO.realName},'%')
+                </if>
+                <if test="sfcDeviceVO.selectInTime != null and sfcDeviceVO.selectInTime !=''">
+                    and CONVERT(varchar(100), a.create_date, 23) like concat('%',#{sfcDeviceVO.selectInTime},'%')
+                </if>
+                <if test="sfcDeviceVO.itemDesc !=null and sfcDeviceVO.itemDesc !=''">
+                    and c.item_desc like concat('%',#{sfcDeviceVO.itemDesc},'%')
+                </if>
+                <if test="sfcDeviceVO.device !=null and sfcDeviceVO.device !=''">
+                    and d.device like concat('%',#{sfcDeviceVO.device},'%')
+                </if>
+            </if>
+        </where>
+        order by a.create_date desc
+    </select>
+    
+    <select id="selectProductInfo" resultType="com.itl.iap.report.api.vo.ProductVo">
+        select t4.work_shop_desc as workShopName,t4.product_line_desc as productLineName,t4.operation_name,t3.operation_bo,t3.doneQty,t3.scrapQty,t3.ncQty from (
+        select t2.operation_bo,t2.doneQty,t2.scrapQty,t2.ncQty from (
+        select t1.operation_bo,sum(t1.DONE_QTY) as doneQty,sum(t1.SCRAP_QTY) as scrapQty,sum(t1.NC_QTY) as ncQty from(
+        select p.operation_bo,p.DONE_QTY,p.SCRAP_QTY,p.NC_QTY from (
+        select n.bo,n.vals from M_CUSTOM_DATA m
+        left join M_CUSTOM_DATA_VAL n on m.bo=n.CUSTOM_DATA_BO
+        where m.cd_field='CAPACITY_PROCESS' and n.vals='yes') md
+        left join me_sfc_wip_log p on md.bo=p.operation_bo
+        <where>
+            1=1
+            <!--开始日期不为空，结束日期为空-->
+            <if test="productDto.startDate !=null and productDto.startDate !='' and productDto.endDate ==null ">
+                and OUT_TIME between #{productDto.startDate} and getdate()
+            </if>
+            <!--结束日期不为空，开始日期为空-->
+            <if test="productDto.endDate !=null and productDto.endDate !='' and productDto.startDate ==null ">
+                and OUT_TIME &lt; #{productDto.endDate}
+            </if>
+            <!--开始日期和结束日期都不为空-->
+            <if test="productDto.startDate !=null and productDto.startDate !='' and productDto.endDate !=null and productDto.endDate !=''">
+                and OUT_TIME between  #{productDto.startDate} and #{productDto.endDate}
+            </if>
+            <if test="productDto.startDate ==null and productDto.endDate ==null ">
+                and Convert(varchar(10),OUT_TIME,23) = Convert(varchar(10),GETDATE(),23)
+            </if>
+        </where>
+        )t1
+        group by t1.operation_bo
+        )t2
+        )t3
+        inner join (
+        select distinct m.bo,mpl.product_line_desc,n.work_shop_desc,m.operation_name from m_operation m
+        left join m_work_shop n on m.work_shop=n.work_shop
+        left join m_station ms on m.bo=ms.operation_bo
+        left join m_product_line mpl on ms.product_line_bo=mpl.bo
+        <where>
+            1=1
+            <if test="productDto.productLineName !=null and productDto.productLineName !=''">
+                and mpl.product_line_desc like concat('%',#{productDto.productLineName},'%')
+            </if>
+            <if test="productDto.workShopName !=null and productDto.workShopName !=''">
+                and n.work_shop_desc like concat('%',#{productDto.workShopName},'%')
+            </if>
+        </where>
+        ) t4 on t3.operation_bo=t4.bo
+    </select>
+    <select id="selectProductInfoByOperationBo" resultType="com.itl.iap.report.api.vo.ProductOperationVo">
+        select m.item_bo,n.item,n.item_name,n.item_desc,m.doneQty,m.scrapQty,m.ncQty from (
+        select item_bo,sum(DONE_QTY) as doneQty,sum(SCRAP_QTY) as scrapQty,sum(NC_QTY) as ncQty from me_sfc_wip_log m
+        <where>
+            operation_bo=#{productDto.operationBo}
+            <!--开始日期不为空，结束日期为空-->
+            <if test="productDto.startDate !=null and productDto.startDate !='' and productDto.endDate ==null ">
+                and OUT_TIME between #{productDto.startDate} and getdate()
+            </if>
+            <!--结束日期不为空，开始日期为空-->
+            <if test="productDto.endDate !=null and productDto.endDate !='' and productDto.startDate ==null ">
+                and OUT_TIME &lt; #{productDto.endDate}
+            </if>
+            <!--开始日期和结束日期都不为空-->
+            <if test="productDto.startDate !=null and productDto.startDate !='' and productDto.endDate !=null and productDto.endDate !=''">
+                and OUT_TIME between  #{productDto.startDate} and #{productDto.endDate}
+            </if>
+            <if test="productDto.startDate ==null and productDto.endDate ==null ">
+                and Convert(varchar(10),OUT_TIME,23) = Convert(varchar(10),GETDATE(),23)
+            </if>
+        </where>
+        group by item_bo) m
+        left join m_item n on m.item_bo=n.bo
+    </select>
+    <select id="selectProductShopOrderInfo" resultType="com.itl.iap.report.api.vo.ProductShopOrderVo">
+        select m.shop_order_bo,n.shop_order,n.order_qty,m.doneQty,m.scrapQty,m.ncQty from(
+        select shop_order_bo,sum(DONE_QTY) as doneQty,sum(SCRAP_QTY) as scrapQty,sum(NC_QTY) as ncQty from me_sfc_wip_log
+        <where>
+            operation_bo=#{productDto.operationBo}  and item_bo=#{productDto.itemBo}
+            <!--开始日期不为空，结束日期为空-->
+            <if test="productDto.startDate !=null and productDto.startDate !='' and productDto.endDate ==null ">
+                and OUT_TIME between #{productDto.startDate} and getdate()
+            </if>
+            <!--结束日期不为空，开始日期为空-->
+            <if test="productDto.endDate !=null and productDto.endDate !='' and productDto.startDate ==null ">
+                and OUT_TIME &lt; #{productDto.endDate}
+            </if>
+            <!--开始日期和结束日期都不为空-->
+            <if test="productDto.startDate !=null and productDto.startDate !='' and productDto.endDate !=null and productDto.endDate !=''">
+                and OUT_TIME between  #{productDto.startDate} and #{productDto.endDate}
+            </if>
+            <if test="productDto.startDate ==null and productDto.endDate ==null ">
+                and Convert(varchar(10),OUT_TIME,23) = Convert(varchar(10),GETDATE(),23)
+            </if>
+        </where>
+        group by shop_order_bo)m
+        left join m_shop_order n on m.shop_order_bo=n.bo
+    </select>
+    <select id="selectUserProduct" resultType="com.itl.iap.report.api.vo.UserProduct">
+
+        /*select  m.bo,m.workShopName,m.real_name,m.user_name,m.time,m.shop_order,m.item,m.item_name,m.item_desc,m.sfc,m.operation_name,m.work_step_name,m.qty,m.tableName,m.isReform from (
+        select distinct t.workShopName,t.bo,t.real_name,t.user_name,substring(Convert(varchar(19),t.time,25),1,19) as time,t.shop_order,t.item,t.item_name,t.item_desc,t.sfc,t.operation_name,t.work_step_name,t.qty,t.tableName,t.isReform from (
+        (
+        select m.bo,n.work_shop_desc as workShopName,o.real_name,o.user_name,m.out_time as time,p.shop_order,q.item,q.item_name,q.item_desc,m.sfc,r.operation_name,t.work_step_name,m.done_qty as qty,'me_sfc_wip_log' as tableName,m.isReform
+        from me_sfc_wip_log m
+        left join m_work_shop n on m.work_shop_bo=n.bo
+        left join iap_sys_user_t o on m.user_bo=o.user_name
+        left join m_shop_order p on m.SHOP_ORDER_BO=p.bo
+        left join m_item q on m.item_bo=q.bo
+        left join m_operation r on m.OPERATION_BO=r.bo
+        left join m_station s on m.station_bo=s.bo
+        left join d_dy_workstation t on s.WORKSTATION_BO=t.bo
+        )
+        union all
+        (
+        select m.bo,o.work_shop_desc as workShopName,n.real_name,n.user_name,m.create_date as time ,p.shop_order,q.item,q.item_name,q.item_desc,m.sfc,s.operation_name,r.work_step_name,m.qty,'d_dy_report_work' as tableName,m.isReform
+        from d_dy_report_work m
+        left join iap_sys_user_t n on m.user_bo=n.user_name
+        left join m_work_shop o on n.work_shop_bo=o.bo
+        left join m_shop_order p on m.SHOP_ORDER_BO=p.bo
+        left join m_item q on m.item_bo=q.bo
+        left join d_dy_workstation r on m.WORK_STEP_CODE_BO=r.bo
+        left join m_operation s on m.operation_bo=s.bo
+
+        )) t) m*/
+        select  m.bo,m.workShopName,m.real_name,m.user_name,m.time,m.shop_order,m.item,m.item_name,m.item_desc,m.sfc,m.operation_name,m.work_step_name,m.qty,m.isReform from (
+        select distinct t.bo,t.workShopName,t.real_name,t.user_name,substring(Convert(varchar(19),t.time,25),1,19) as time,t.shop_order,t.item,t.item_name,t.item_desc,t.sfc,t.operation_name,t.work_step_name,t.qty,t.isReform from (
+        (
+        select m.bo,o.work_shop_desc as workShopName,n.real_name,n.user_name,m.create_date as time ,p.shop_order,q.item,q.item_name,q.item_desc,m.sfc,s.operation_name,r.work_step_name,m.qty,m.isReform
+        from d_dy_report_work m
+        left join iap_sys_user_t n on m.user_bo=n.user_name
+        left join m_work_shop o on n.work_shop_bo=o.bo
+        left join m_shop_order p on m.SHOP_ORDER_BO=p.bo
+        left join m_item q on m.item_bo=q.bo
+        left join d_dy_workstation r on m.WORK_STEP_CODE_BO=r.bo
+        left join m_operation s on m.operation_bo=s.bo
+        )) t) m
+        <where>
+            1=1
+            <if test="userProductDto.workShopName !=null and userProductDto.workShopName !=''">
+                and m.workShopName like concat('%',#{userProductDto.workShopName},'%')
+            </if>
+            <if test="userProductDto.realName !=null and userProductDto.realName !=''">
+                and m.real_name like concat('%',#{userProductDto.realName},'%')
+            </if>
+            <if test="userProductDto.startDate !=null and userProductDto.startDate !=''">
+                and m.time > #{userProductDto.startDate}
+            </if>
+            <if test="userProductDto.endDate !=null and userProductDto.endDate !=''">
+                and m.time &lt; #{userProductDto.endDate}
+            </if>
+            <if test="userProductDto.userName !='' and userProductDto.userName !='' ">
+                and m.user_name like concat('%',#{userProductDto.userName},'%')
+            </if>
+        </where>
+        order by m.time desc
+    </select>
+
+    <select id="selectAllQtyByUser" resultType="int">
+        /*select isnull(sum(o.qty),0) from (
+            select m.real_name,m.user_name,m.time,m.qty from (
+            select distinct t.workShopName,t.real_name,t.user_name,substring(Convert(varchar(19),t.time,25),1,19) as time,t.shop_order,t.item,t.item_name,t.item_desc,t.sfc,t.operation_name,t.work_step_name,t.qty from (
+            (
+            select n.work_shop_desc as workShopName,o.real_name,o.user_name,m.out_time as time,p.shop_order,q.item,q.item_name,q.item_desc,m.sfc,r.operation_name,t.work_step_name,m.done_qty as qty
+            from me_sfc_wip_log m
+            left join m_work_shop n on m.work_shop_bo=n.bo
+            left join iap_sys_user_t o on m.user_bo=o.user_name
+            left join m_shop_order p on m.SHOP_ORDER_BO=p.bo
+            left join m_item q on m.item_bo=q.bo
+            left join m_operation r on m.OPERATION_BO=r.bo
+            left join m_station s on m.station_bo=s.bo
+            left join d_dy_workstation t on s.WORKSTATION_BO=t.bo
+            )
+            union all
+            (
+            select o.work_shop_desc as workShopName,n.real_name,n.user_name,m.create_date as time ,p.shop_order,q.item,q.item_name,q.item_desc,m.sfc,s.operation_name,r.work_step_name,m.qty from d_dy_report_work m
+            left join iap_sys_user_t n on m.user_bo=n.user_name
+            left join m_work_shop o on n.work_shop_bo=o.bo
+            left join m_shop_order p on m.SHOP_ORDER_BO=p.bo
+            left join m_item q on m.item_bo=q.bo
+            left join d_dy_workstation r on m.WORK_STEP_CODE_BO=r.bo
+            left join m_operation s on m.operation_bo=s.bo
+            )) t) m*/
+            select isnull(sum(o.qty),0) from (
+            select m.real_name,m.user_name,m.time,m.qty from (
+            select distinct t.bo,t.workShopName,t.real_name,t.user_name,substring(Convert(varchar(19),t.time,25),1,19) as time,t.shop_order,t.item,t.item_name,t.item_desc,t.sfc,t.operation_name,t.work_step_name,t.qty
+            from (
+                select m.bo,o.work_shop_desc as workShopName,n.real_name,n.user_name,m.create_date as time ,p.shop_order,q.item,q.item_name,q.item_desc,m.sfc,s.operation_name,r.work_step_name,m.qty
+                from d_dy_report_work m
+                left join iap_sys_user_t n on m.user_bo=n.user_name
+                left join m_work_shop o on n.work_shop_bo=o.bo
+                left join m_shop_order p on m.SHOP_ORDER_BO=p.bo
+                left join m_item q on m.item_bo=q.bo
+                left join d_dy_workstation r on m.WORK_STEP_CODE_BO=r.bo
+                left join m_operation s on m.operation_bo=s.bo
+            ) t) m
+            <where>
+                1=1
+                <if test="userProductDto.realName !=null and userProductDto.realName !=''">
+                    and m.real_name like concat('%',#{userProductDto.realName},'%')
+                </if>
+                <if test="userProductDto.startDate !=null and userProductDto.startDate !=''">
+                    and m.time > #{userProductDto.startDate}
+                </if>
+                <if test="userProductDto.endDate !=null and userProductDto.endDate !=''">
+                    and m.time &lt; #{userProductDto.endDate}
+                </if>
+                <if test="userProductDto.userName !=null and userProductDto.userName !='' ">
+                    and m.user_name like concat('%',#{userProductDto.userName},'%')
+                </if>
+            </where>
+        ) o
+    </select>
+
+    <select id="listOperationCapacity" resultType="com.itl.iap.report.api.vo.OperationCapacityVo">
+        SELECT
+            wip.OPERATION_BO as operationBo,
+            wip.ITEM_BO as itemBo,
+            wip.WORK_SHOP_BO as workShopBo,
+            wip.outStationQty as outStationQty,
+            wip.productTime as productTime,
+            op.operation as operation,
+            op.operation_name as operationName,
+            mi.item as item,
+            mi.item_name as itemName,
+            mi.item_desc as itemDesc,
+            ws.WORK_SHOP_DESC as workShopDesc,
+            ws.work_shop as workShop
+        FROM
+            (
+                SELECT
+                    OPERATION_BO,
+                    ITEM_BO,
+                    WORK_SHOP_BO,
+                    (
+                        SUM ( DONE_QTY ) + SUM ( SCRAP_QTY ) + SUM ( NC_QTY )) AS outStationQty,
+                    SUM (
+                            DATEDIFF( ss, IN_TIME, OUT_TIME )) AS productTime
+                FROM
+                    me_sfc_wip_log
+                <where>
+                    1=1
+                    <if test="operationCapacityDto.workShopBo != null and operationCapacityDto.workShopBo != ''">
+                        and WORK_SHOP_BO like concat('%',#{operationCapacityDto.workShopBo},'%')
+                    </if>
+                    <if test="operationCapacityDto.operationBo != null and operationCapacityDto.operationBo != ''">
+                        and OPERATION_BO like concat('%',#{operationCapacityDto.operationBo},'%')
+                    </if>
+                    <if test="operationCapacityDto.itemBo != null and operationCapacityDto.itemBo != ''">
+                        and ITEM_BO like concat('%',#{operationCapacityDto.itemBo},'%')
+                    </if>
+                    <if test="operationCapacityDto.startTime != null">
+                        and OUT_TIME > #{operationCapacityDto.startTime}
+                    </if>
+                    <if test="operationCapacityDto.endTime != null">
+                        and OUT_TIME &lt; #{operationCapacityDto.endTime}
+                    </if>
+                </where>
+                GROUP BY
+                    OPERATION_BO,
+                    ITEM_BO,
+                    WORK_SHOP_BO
+            ) wip
+                LEFT JOIN m_operation op ON wip.OPERATION_BO = op.bo
+                LEFT JOIN m_item mi ON wip.ITEM_BO = mi.bo
+                LEFT JOIN m_work_shop ws ON wip.WORK_SHOP_BO = ws.bo
+    </select>
+    <select id="getOperationCapacityDetailed" resultType="com.itl.iap.report.api.vo.OperationCapacityDetailedVo">
+        SELECT
+            so.shop_order,
+            wip.sfc,
+            wip.USER_BO,
+            su.real_name as userName,
+            wip.STATION_BO,
+            ms.station,
+            ms.station_desc,
+            wip.IN_TIME,
+            wip.OUT_TIME,
+            wip.DONE_QTY,
+            wip.NC_QTY,
+            wip.SCRAP_QTY
+        FROM
+            me_sfc_wip_log wip
+                LEFT JOIN m_shop_order so ON wip.SHOP_ORDER_BO = so.bo
+                LEFT JOIN iap_sys_user_t su ON wip.user_bo = su.user_name
+                LEFT JOIN m_station ms ON wip.STATION_BO = ms.bo
+        WHERE
+            wip.ITEM_BO = #{operationCapacityDto.itemBo}
+          AND wip.WORK_SHOP_BO = #{operationCapacityDto.workShopBo}
+          AND wip.OPERATION_BO = #{operationCapacityDto.operationBo}
+        <if test="operationCapacityDto.startTime != null">
+            and wip.OUT_TIME > #{operationCapacityDto.startTime}
+        </if>
+        <if test="operationCapacityDto.endTime != null">
+            and wip.OUT_TIME &lt; #{operationCapacityDto.endTime}
+        </if>
+    </select>
+
+    <select id="listStaffAttendance" resultType="com.itl.iap.report.api.vo.StaffAttendanceVo">
+        SELECT
+            l.*,
+            pl.product_line_desc AS productLineDesc,
+            ws.work_shop_desc AS workShopDesc
+        FROM
+        (
+            SELECT COUNT
+            ( DISTINCT ( s.user_id ) ) AS absenceFromDutyPeoples,
+            CONVERT ( VARCHAR ( 10 ), s.create_date, 120 ) AS attendanceDate,
+            t.work_shop_bo AS workShopBo,
+            t.product_line_bo AS productLineBo
+            FROM
+            iap_user_login_log_t s
+            LEFT JOIN iap_sys_user_t t ON s.user_id = t.user_name
+            WHERE t.work_shop_bo is not null and t.product_line_bo is not null
+            <if test="staffAttendanceDto.workShopBo != null and staffAttendanceDto.workShopBo != ''">
+                and t.work_shop_bo like concat('%',#{staffAttendanceDto.workShopBo},'%')
+            </if>
+            <if test="staffAttendanceDto.productLineBo != null and staffAttendanceDto.productLineBo != ''">
+                and t.product_line_bo like concat('%',#{staffAttendanceDto.productLineBo},'%')
+            </if>
+            <if test="staffAttendanceDto.startTime != null">
+                and s.create_date > #{staffAttendanceDto.startTime}
+            </if>
+            <if test="staffAttendanceDto.endTime != null">
+                and s.create_date &lt; #{staffAttendanceDto.endTime}
+            </if>
+            GROUP BY
+            CONVERT ( VARCHAR ( 10 ), s.create_date, 120 ),
+            t.work_shop_bo,
+            t.product_line_bo
+        ) l
+            LEFT JOIN m_product_line pl ON l.productLineBo = pl.bo
+            LEFT JOIN m_work_shop ws ON l.workShopBo = ws.bo
+            ORDER BY l.attendanceDate DESC
+    </select>
+    <select id="getWorkShopDescByBo" resultType="String">
+        SELECT WORK_SHOP_DESC FROM m_work_shop where bo = #{bo}
+    </select>
+    <select id="getProductLineDescByBo" resultType="String">
+        SELECT PRODUCT_LINE_DESC FROM m_product_line where bo = #{bo}
+    </select>
+    <select id="getTotalPeoplesByCondition" resultType="String">
+        SELECT count(*) FROM iap_sys_user_t
+            WHERE work_shop_bo = #{workShopBo} and product_line_bo = #{productLineBo} and create_date &lt; concat(#{dTime},' 23:59:59')
+    </select>
+    <select id="getNotAttendanceDetailed" resultType="com.itl.iap.report.api.entity.NotAttendanceDetailed">
+        SELECT
+            ut.user_name AS userBo,
+            ut.real_name AS userName
+        FROM
+            iap_sys_user_t ut
+        WHERE
+            work_shop_bo = #{ workShopBo }
+          AND product_line_bo = #{ productLineBo }
+          AND create_date &lt; concat ( #{ dTime }, ' 23:59:59' )
+        AND ut.user_name NOT IN (
+        SELECT
+        user_id
+        FROM
+        iap_user_login_log_t s
+        LEFT JOIN iap_sys_user_t t ON s.user_id = t.user_name
+        WHERE
+        t.work_shop_bo = #{ workShopBo }
+        AND t.product_line_bo = #{ productLineBo }
+        AND s.create_date > concat ( #{ dTime }, ' 00:00:00' )
+        AND s.create_date &lt; concat ( #{ dTime }, ' 23:59:59' ))
+    </select>
+
+    <select id="currentDayIsAttendance" resultType="int">
+        SELECT
+            count(*)
+        FROM
+            iap_user_login_log_t s
+        WHERE
+            s.create_date > concat ( #{ dTime }, ' 00:00:00' )
+          AND s.create_date &lt;
+        concat ( #{ dTime }, ' 23:59:59' )
+        AND s.user_id = #{userId}
+    </select>
+    <select id="getStaffDailyEnergyPageList" resultType="com.itl.iap.report.api.vo.StaffDailyEnergyVo">
+        SELECT
+            ms.bo as workShopBo,
+            ms.work_shop_desc as workShopName,
+            ms.work_shop as workShop,
+            t.item_bo AS itemBo,
+            mi.item AS item,
+            mi.item_name AS itemName,
+            mi.item_desc AS itemDesc,
+            t.user_bo AS userBo,
+            su.real_name AS userName,
+            t.operation_bo AS operationBo,
+            op.operation_name AS operationName,
+            op.operation AS operation,
+            t.WORK_STEP_CODE_BO AS workStepCodeBo,
+            ws.WORK_STEP_NAME AS workStepName,
+            t.qty AS qty
+        FROM
+            (
+                SELECT
+                    rw.item_bo,
+                    rw.user_bo,
+                    rw.operation_bo,
+                    rw.WORK_STEP_CODE_BO,
+                    SUM ( rw.qty ) AS qty
+                FROM
+                    d_dy_report_work rw
+                        LEFT JOIN m_operation p ON rw.OPERATION_BO = p.bo
+                <trim prefix="WHERE" prefixOverrides="AND">
+                    <if test="staffDailyEnergyVo.userBo != null and staffDailyEnergyVo.userBo != ''">
+                        rw.user_bo = #{staffDailyEnergyVo.userBo}
+                    </if>
+                    <if test="staffDailyEnergyVo.itemBo != null and staffDailyEnergyVo.itemBo != ''">
+                        AND rw.item_bo = #{staffDailyEnergyVo.itemBo}
+                    </if>
+                    <if test="staffDailyEnergyVo.workStepCodeBo != null and staffDailyEnergyVo.workStepCodeBo != ''">
+                        AND rw.WORK_STEP_CODE_BO = #{staffDailyEnergyVo.workStepCodeBo}
+                    </if>
+                    <if test="staffDailyEnergyVo.startTime != null and staffDailyEnergyVo.startTime != ''">
+                        AND rw.create_date >= #{staffDailyEnergyVo.startTime}
+                    </if>
+                    <if test="staffDailyEnergyVo.endTime != null and staffDailyEnergyVo.endTime != ''">
+                        AND rw.create_date &lt;= #{staffDailyEnergyVo.endTime}
+                    </if>
+                    <if test="staffDailyEnergyVo.workShop != null and staffDailyEnergyVo.workShop != ''">
+                        AND p.work_shop = #{staffDailyEnergyVo.workShop}
+                    </if>
+                </trim>
+                GROUP BY
+                    rw.item_bo,
+                    rw.user_bo,
+                    rw.operation_bo,
+                    rw.WORK_STEP_CODE_BO
+            ) t
+                LEFT JOIN m_item mi ON t.item_bo = mi.bo
+                LEFT JOIN m_operation op ON t.operation_bo = op.bo
+                LEFT JOIN d_dy_workstation ws ON t.WORK_STEP_CODE_BO = ws.bo
+                LEFT JOIN iap_sys_user_t su ON t.user_bo = su.user_name
+                LEFT JOIN m_work_shop ms ON op.WORK_SHOP = ms.WORK_SHOP
+    </select>
+    <select id="staffDailyEnergyMachiningDetails" resultType="com.itl.iap.report.api.vo.StaffDailyEnergyVo">
+        SELECT
+            t.qty,
+            t.machiningDate
+        FROM
+            (
+                SELECT SUM
+                           ( qty ) AS qty,
+                       CONVERT ( VARCHAR ( 10 ), create_date, 120 ) AS machiningDate
+                FROM
+                    d_dy_report_work
+                WHERE
+                    ITEM_BO = #{staffDailyEnergyVo.itemBo}
+                  AND user_bo = #{staffDailyEnergyVo.userBo}
+                  AND OPERATION_BO = #{staffDailyEnergyVo.operationBo}
+                  AND WORK_STEP_CODE_BO = #{staffDailyEnergyVo.workStepCodeBo}
+                  <if test="staffDailyEnergyVo.startTime != null and staffDailyEnergyVo.startTime != ''">
+                    AND create_date >= #{staffDailyEnergyVo.startTime}
+                  </if>
+                  <if test="staffDailyEnergyVo.endTime != null and staffDailyEnergyVo.endTime != ''">
+                    AND create_date &lt;= #{staffDailyEnergyVo.endTime}
+                  </if>
+                GROUP BY
+                    CONVERT ( VARCHAR ( 10 ), create_date, 120 )) t
+        ORDER BY
+            t.machiningDate DESC
+    </select>
+    <select id="staffDailyEnergyAndonDetails" resultType="com.itl.iap.report.api.vo.StaffDailyEnergyAndonDetailsVo">
+        SELECT
+            andon_type_name,
+            andon_detail,
+            trigger_time,
+            relieve_time,
+            DATEDIFF(ss, trigger_time, relieve_time) AS processingTime
+        FROM
+            andon_exception
+        WHERE
+            trigger_user = #{staffDailyEnergyAndonDetailsVo.userBo}
+        ORDER BY
+            trigger_time DESC
+    </select>
+    <select id="listPlanReached" resultType="com.itl.iap.report.api.vo.PlanReachedVo">
+        SELECT
+            ws.bo AS workShopBo,
+            ws.WORK_SHOP AS workShop,
+            ws.WORK_SHOP_DESC AS workName,
+            mi.bo AS itemBo,
+            mi.item AS item,
+            mi.item_name AS itemName,
+            mi.ITEM_DESC AS itemDesc,
+            t.qty AS planTotalQty
+        FROM
+            ( SELECT
+                     ITEM_BO,
+                     WORK_SHOP,
+                     SUM ( ORDER_QTY ) AS qty
+            FROM m_shop_order
+                <trim prefix="WHERE" prefixOverrides="AND">
+                    <if test="planReachedDto.workShop != null and planReachedDto.workShop != ''">
+                        work_shop = #{planReachedDto.workShop}
+                    </if>
+                    <if test="planReachedDto.itemBo != null and planReachedDto.itemBo != ''">
+                        AND item_bo = #{planReachedDto.itemBo}
+                    </if>
+                    <if test="planReachedDto.planStartTimeStart != null and planReachedDto.planStartTimeStart != ''">
+                        AND plan_start_date >= #{planReachedDto.planStartTimeStart}
+                    </if>
+                    <if test="planReachedDto.planStartTimeEnd != null and planReachedDto.planStartTimeEnd != ''">
+                        AND plan_start_date &lt;= #{planReachedDto.planStartTimeEnd}
+                    </if>
+                    <if test="planReachedDto.planEndTimeStart != null and planReachedDto.planEndTimeStart != ''">
+                        AND plan_end_date >= #{planReachedDto.planEndTimeStart}
+                    </if>
+                    <if test="planReachedDto.planEndTimeEnd != null and planReachedDto.planEndTimeEnd != ''">
+                        AND plan_end_date &lt;= #{planReachedDto.planEndTimeEnd}
+                    </if>
+                </trim>
+                    GROUP BY ITEM_BO, WORK_SHOP) t
+                LEFT JOIN m_work_shop ws ON t.WORK_SHOP = ws.WORK_SHOP
+                LEFT JOIN m_item mi ON t.ITEM_BO = mi.bo
+    </select>
+    <select id="sumDoneQtyByItem" resultType="string">
+        SELECT
+            ISNULL(sum(s.SFC_QTY), 0)
+        FROM
+            me_sfc s
+        left join m_shop_order o on s.shop_order_bo = o.bo
+        WHERE
+            s.item_bo = #{planReachedDto.itemBo}
+          AND s.STATE = '已完成'
+        <if test="planReachedDto.shopOrderBo != null and planReachedDto.shopOrderBo != ''">
+            AND s.shop_order_bo = #{planReachedDto.shopOrderBo}
+        </if>
+        <if test="planReachedDto.planStartTimeStart != null and planReachedDto.planStartTimeStart != ''">
+            AND o.plan_start_date >= #{planReachedDto.planStartTimeStart}
+        </if>
+        <if test="planReachedDto.planStartTimeEnd != null and planReachedDto.planStartTimeEnd != ''">
+            AND o.plan_start_date &lt;= #{planReachedDto.planStartTimeEnd}
+        </if>
+        <if test="planReachedDto.planEndTimeStart != null and planReachedDto.planEndTimeStart != ''">
+            AND o.plan_end_date >= #{planReachedDto.planEndTimeStart}
+        </if>
+        <if test="planReachedDto.planEndTimeEnd != null and planReachedDto.planEndTimeEnd != ''">
+            AND o.plan_end_date &lt;= #{planReachedDto.planEndTimeEnd}
+        </if>
+    </select>
+    <select id="sumStockQtyByItem" resultType="string">
+        SELECT
+            ISNULL(sum(s.OK_QTY), 0)
+        FROM
+            m_dy_stock s
+        left join m_shop_order o on s.shop_order_bo = o.bo
+        WHERE
+            s.ITEM_BO = #{planReachedDto.itemBo}
+          AND s.SUCCESS_FLAG = '1'
+        <if test="planReachedDto.shopOrderBo != null and planReachedDto.shopOrderBo != ''">
+            AND s.shop_order_bo = #{planReachedDto.shopOrderBo}
+        </if>
+        <if test="planReachedDto.planStartTimeStart != null and planReachedDto.planStartTimeStart != ''">
+            AND o.plan_start_date >= #{planReachedDto.planStartTimeStart}
+        </if>
+        <if test="planReachedDto.planStartTimeEnd != null and planReachedDto.planStartTimeEnd != ''">
+            AND o.plan_start_date &lt;= #{planReachedDto.planStartTimeEnd}
+        </if>
+        <if test="planReachedDto.planEndTimeStart != null and planReachedDto.planEndTimeStart != ''">
+            AND o.plan_end_date >= #{planReachedDto.planEndTimeStart}
+        </if>
+        <if test="planReachedDto.planEndTimeEnd != null and planReachedDto.planEndTimeEnd != ''">
+            AND o.plan_end_date &lt;= #{planReachedDto.planEndTimeEnd}
+        </if>
+    </select>
+    <select id="sumMakingQtyByItem" resultType="string">
+        SELECT
+            ISNULL(sum(s.SFC_QTY), 0)
+        FROM
+            me_sfc s
+        left join m_shop_order o on s.shop_order_bo = o.bo
+        WHERE
+            s.ITEM_BO = #{planReachedDto.itemBo}
+          AND s.STATE NOT IN ('已完成','新建')
+        <if test="planReachedDto.shopOrderBo != null and planReachedDto.shopOrderBo != ''">
+            AND s.shop_order_bo = #{planReachedDto.shopOrderBo}
+        </if>
+        <if test="planReachedDto.planStartTimeStart != null and planReachedDto.planStartTimeStart != ''">
+            AND o.plan_start_date >= #{planReachedDto.planStartTimeStart}
+        </if>
+        <if test="planReachedDto.planStartTimeEnd != null and planReachedDto.planStartTimeEnd != ''">
+            AND o.plan_start_date &lt;= #{planReachedDto.planStartTimeEnd}
+        </if>
+        <if test="planReachedDto.planEndTimeStart != null and planReachedDto.planEndTimeStart != ''">
+            AND o.plan_end_date >= #{planReachedDto.planEndTimeStart}
+        </if>
+        <if test="planReachedDto.planEndTimeEnd != null and planReachedDto.planEndTimeEnd != ''">
+            AND o.plan_end_date &lt;= #{planReachedDto.planEndTimeEnd}
+        </if>
+    </select>
+    <select id="planReachedOrderDetails" resultType="com.itl.iap.report.api.vo.PlanReachedOrderDetailsVo">
+        SELECT
+            BO as shopOrderBo,
+            SHOP_ORDER as shopOrder,
+            ORDER_QTY as orderQty,
+            PLAN_START_DATE as planStartTime,
+            PLAN_END_DATE as planEndTime
+        FROM
+            m_shop_order
+        <trim prefix="WHERE" prefixOverrides="AND">
+            <if test="planReachedDto.workShop != null and planReachedDto.workShop != ''">
+                work_shop = #{planReachedDto.workShop}
+            </if>
+            <if test="planReachedDto.itemBo != null and planReachedDto.itemBo != ''">
+                AND item_bo = #{planReachedDto.itemBo}
+            </if>
+            <if test="planReachedDto.planStartTimeStart != null and planReachedDto.planStartTimeStart != ''">
+                AND plan_start_date >= #{planReachedDto.planStartTimeStart}
+            </if>
+            <if test="planReachedDto.planStartTimeEnd != null and planReachedDto.planStartTimeEnd != ''">
+                AND plan_start_date &lt;= #{planReachedDto.planStartTimeEnd}
+            </if>
+            <if test="planReachedDto.planEndTimeStart != null and planReachedDto.planEndTimeStart != ''">
+                AND plan_end_date >= #{planReachedDto.planEndTimeStart}
+            </if>
+            <if test="planReachedDto.planEndTimeEnd != null and planReachedDto.planEndTimeEnd != ''">
+                AND plan_end_date &lt;= #{planReachedDto.planEndTimeEnd}
+            </if>
+        </trim>
+    </select>
+    <select id="planReachedMakingDetails" resultType="com.itl.iap.report.api.vo.PlanReachedMakingDetailsVo">
+        SELECT
+            t.qty as makingQty,
+            o.operation as operation,
+            o.operation_name as operationName
+        FROM
+            (
+                SELECT
+                    ISNULL( SUM ( s.SFC_QTY ), 0 ) AS qty,
+                    s.OPERATION_BO
+                FROM
+                    me_sfc s
+                left join m_shop_order o on s.shop_order_bo = o.bo
+                WHERE
+                    s.ITEM_BO = #{planReachedDto.itemBo}
+                    AND s.STATE NOT IN ( '已完成', '新建' )
+                <if test="planReachedDto.planStartTimeStart != null and planReachedDto.planStartTimeStart != ''">
+                    AND o.plan_start_date >= #{planReachedDto.planStartTimeStart}
+                </if>
+                <if test="planReachedDto.planStartTimeEnd != null and planReachedDto.planStartTimeEnd != ''">
+                    AND o.plan_start_date &lt;= #{planReachedDto.planStartTimeEnd}
+                </if>
+                <if test="planReachedDto.planEndTimeStart != null and planReachedDto.planEndTimeStart != ''">
+                    AND o.plan_end_date >= #{planReachedDto.planEndTimeStart}
+                </if>
+                <if test="planReachedDto.planEndTimeEnd != null and planReachedDto.planEndTimeEnd != ''">
+                    AND o.plan_end_date &lt;= #{planReachedDto.planEndTimeEnd}
+                </if>
+                GROUP BY
+                    s.OPERATION_BO
+            ) t
+                LEFT JOIN m_operation o ON t.OPERATION_BO = o.bo
+    </select>
+
+    <select id="getSumStaffDailyEnergy" resultType="string">
+        SELECT
+            ISNULL(sum(t.qty), 0)
+        FROM
+        (
+        SELECT
+            rw.item_bo,
+            rw.user_bo,
+            rw.operation_bo,
+            rw.WORK_STEP_CODE_BO,
+            SUM ( rw.qty ) AS qty
+        FROM
+            d_dy_report_work rw
+        LEFT JOIN m_operation p ON rw.OPERATION_BO = p.bo
+        <trim prefix="WHERE" prefixOverrides="AND">
+            <if test="staffDailyEnergyVo.userBo != null and staffDailyEnergyVo.userBo != ''">
+                rw.user_bo = #{staffDailyEnergyVo.userBo}
+            </if>
+            <if test="staffDailyEnergyVo.itemBo != null and staffDailyEnergyVo.itemBo != ''">
+                AND rw.item_bo = #{staffDailyEnergyVo.itemBo}
+            </if>
+            <if test="staffDailyEnergyVo.workStepCodeBo != null and staffDailyEnergyVo.workStepCodeBo != ''">
+                AND rw.WORK_STEP_CODE_BO = #{staffDailyEnergyVo.workStepCodeBo}
+            </if>
+            <if test="staffDailyEnergyVo.startTime != null and staffDailyEnergyVo.startTime != ''">
+                AND rw.create_date >= #{staffDailyEnergyVo.startTime}
+            </if>
+            <if test="staffDailyEnergyVo.endTime != null and staffDailyEnergyVo.endTime != ''">
+                AND rw.create_date &lt;= #{staffDailyEnergyVo.endTime}
+            </if>
+            <if test="staffDailyEnergyVo.workShop != null and staffDailyEnergyVo.workShop != ''">
+                AND p.work_shop = #{staffDailyEnergyVo.workShop}
+            </if>
+        </trim>
+        GROUP BY
+            rw.item_bo,
+            rw.user_bo,
+            rw.operation_bo,
+            rw.WORK_STEP_CODE_BO
+        ) t
+        LEFT JOIN m_item mi ON t.item_bo = mi.bo
+        LEFT JOIN m_operation op ON t.operation_bo = op.bo
+        LEFT JOIN d_dy_workstation ws ON t.WORK_STEP_CODE_BO = ws.bo
+        LEFT JOIN iap_sys_user_t su ON t.user_bo = su.user_name
+        LEFT JOIN m_work_shop ms ON op.WORK_SHOP = ms.WORK_SHOP
+    </select>
+
+    <update id="updateUserReform">
+        update d_dy_report_work set isReform = 1 where bo=#{bo}
+    </update>
+</mapper>

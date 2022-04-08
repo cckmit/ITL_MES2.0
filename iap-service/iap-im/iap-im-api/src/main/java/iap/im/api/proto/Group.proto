@@ -1,0 +1,10 @@
+syntax = "proto3";
+package com.farsunset.lvxin.model.proto;
+option java_outer_classname="GroupProto";
+message Model {
+   int64 groupId = 1;
+   string name = 2;
+   string founder = 3;
+   string category = 4;
+   string summary = 5;
+}

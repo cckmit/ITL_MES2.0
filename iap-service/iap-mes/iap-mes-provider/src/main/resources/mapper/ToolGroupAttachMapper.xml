@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.itl.iap.mes.provider.mapper.ToolGroupAttachMapper">
+
+    <select id="findList" resultType="com.itl.iap.mes.api.dto.toolgroup.ToolGroupAttachResDTO">
+
+            select
+            a.BO as bo,
+            a.TYPE as type,
+            case
+            when a.TYPE = 1 then b.ROUTER
+            when a.TYPE = 2 then c.SHOP_ORDER
+            when a.TYPE = 3 then d.ITEM
+            when a.TYPE = 4 then e.DEVICE
+            when a.TYPE = 5 then f.DEVICE_TYPE
+            when a.TYPE = 6 then g.OPERATION
+            else ''  end as contextName,
+            case
+            when a.TYPE = 1 then b.ROUTER_DESC
+            when a.TYPE = 2 then c.ORDER_DESC
+            when a.TYPE = 3 then d.ITEM_DESC
+            when a.TYPE = 4 then e.DEVICE_DESC
+            when a.TYPE = 5 then f.DEVICE_TYPE_DESC
+            when a.TYPE = 6 then g.OPERATION_DESC
+            else '' end as contextDesc,
+            a.QTY as qty
+            from m_tool_group_attach a
+            left join m_router b on a.CONTEXT_BO = b.BO
+            LEFT JOIN m_shop_order c on a.CONTEXT_BO = c.BO
+            LEFT JOIN m_item d on a.CONTEXT_BO = d.BO
+            LEFT JOIN m_device e on a.CONTEXT_BO = e.BO
+            LEFT JOIN m_device_type f on a.CONTEXT_BO = f.BO
+            LEFT JOIN m_operation g on a.CONTEXT_BO = g.BO
+            WHERE a.TOOL_GROUP_BO = #{toolGroupAttachQueryDTO.toolGroupBo}
+            AND a.SITE = #{toolGroupAttachQueryDTO.site}
+    </select>
+
+    <select id="findById" resultType="com.itl.iap.mes.api.dto.toolgroup.ToolGroupAttachResDTO">
+        select
+            a.TYPE as type,
+            case
+            when a.TYPE = 1 then b.ROUTER
+            when a.TYPE = 2 then c.SHOP_ORDER
+            when a.TYPE = 3 then d.ITEM
+            when a.TYPE = 4 then e.DEVICE
+            when a.TYPE = 5 then f.DEVICE_TYPE
+            when a.TYPE = 6 then g.OPERATION
+            else ''  end as contextName,
+            a.CONTEXT_BO as contextBo,
+            a.QTY as qty
+            from m_tool_group_attach a
+            left join m_router b on a.CONTEXT_BO = b.BO
+            LEFT JOIN m_shop_order c on a.CONTEXT_BO = c.BO
+            LEFT JOIN m_item d on a.CONTEXT_BO = d.BO
+            LEFT JOIN m_device e on a.CONTEXT_BO = e.BO
+            LEFT JOIN m_device_type f on a.CONTEXT_BO = f.BO
+            LEFT JOIN m_operation g on a.CONTEXT_BO = g.BO
+            WHERE a.BO = #{id}
+
+    </select>
+</mapper>

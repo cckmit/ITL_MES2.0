@@ -1,0 +1,159 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.itl.mes.core.provider.mapper.DispatchMapper">
+
+    <select id="queryAllDispatchTask" resultType="com.itl.mes.core.api.entity.Dispatch">
+        select * from (SELECT DISTINCT
+            md.DISPATCH_CODE AS dispatchCode,
+            oo.IS_URGENT AS isUrgent,
+            md.OPERATION_ORDER,
+            md.OPERATION_ORDER_QTY,
+            md.ITEM,
+            mi.item_name AS itemName,
+            mi.item_desc AS itemDesc,
+            mi.drawing_no AS drawingNo,
+            md.OPERATION_BO,
+            mp.OPERATION AS operation,
+            mp.operation_name AS operationName,
+            md.DEVICE,
+            md.DISPATCH_OP,
+            su.real_name AS dispatchOpName,
+            md.DISPATCH_QTY,
+            md.WAIT_IN,
+            md.create_date,
+            ms.DEVICE_NAME AS deviceName,
+            md.SHOP_ORDER_BO,
+            CASE WHEN
+            CAN_PRINT_QTY = 0 THEN 0
+            WHEN CAN_PRINT_QTY > 0 THEN 1
+            end CAN_PRINT_QTY
+        FROM
+        m_dispatch md
+            LEFT JOIN m_operation_order oo ON md.OPERATION_ORDER = oo.OPERATION_ORDER
+            LEFT JOIN m_item mi ON md.ITEM_BO = mi.BO
+            LEFT JOIN m_operation mp ON md.OPERATION_BO = mp.BO
+            LEFT JOIN me_sfc sfc ON md.DISPATCH_CODE = sfc.DISPATCH_CODE
+            LEFT JOIN iap_sys_user_t su ON md.DISPATCH_OP = su.user_name
+            LEFT JOIN m_device ms ON md.DEVICE= ms.DEVICE
+        WHERE
+        md.is_need_dispatch = '1'
+        AND md.DISPATCH_QTY != 0
+        AND md.DISPATCH_CODE is not null
+            <if test="dispatchDTO.operationBo != null and dispatchDTO.operationBo != ''">
+                and md.OPERATION_BO like concat('%',#{dispatchDTO.operationBo},'%')
+            </if>
+            <if test="dispatchDTO.operation != null and dispatchDTO.operation != ''">
+                and mp.OPERATION like concat('%',#{dispatchDTO.operation},'%')
+            </if>
+            <if test="dispatchDTO.deviceList !=null and dispatchDTO.deviceList.length > 0">
+                and md.DEVICE in
+                <foreach collection="dispatchDTO.deviceList" item="item" open="(" separator="," close=")">
+                    #{item}
+                </foreach>
+            </if>
+            <if test="dispatchDTO.itemDesc != null and dispatchDTO.itemDesc != ''">
+                and mi.item_desc like concat('%',#{dispatchDTO.itemDesc},'%')
+            </if>
+            <if test="dispatchDTO.operationOrder != null and dispatchDTO.operationOrder != ''">
+                and md.OPERATION_ORDER like concat('%',#{dispatchDTO.operationOrder},'%')
+            </if>
+            <if test="dispatchDTO.taskState != null and dispatchDTO.taskState != '' and dispatchDTO.taskState == 1">
+                and (sfc.state in ('排队中','暂停') or (md.IS_FIRST_OPERATION = '1' and md.wait_in > '0'))
+            </if>
+            <if test="dispatchDTO.canPrintQty != null and dispatchDTO.canPrintQty ==0">
+                and md.CAN_PRINT_QTY = 0
+            </if>
+            <if test="dispatchDTO.canPrintQty != null and dispatchDTO.canPrintQty ==1">
+                and md.CAN_PRINT_QTY > 0
+            </if>
+            <if test="dispatchDTO.taskState != null and dispatchDTO.taskState != '' and dispatchDTO.taskState == 2">
+                and md.wait_in > '0'
+            </if>) t
+        order by t.isUrgent DESC ,t.create_date DESC
+    </select>
+
+    <select id="okDispatchList" resultType="com.itl.mes.core.api.entity.Dispatch">
+          SELECT
+	        md.*,
+            su.real_name as dispatchOpName,
+            de.device_name as deviceName,
+            de.device_desc as deviceDesc
+          FROM
+            m_dispatch md
+            LEFT JOIN iap_sys_user_t su ON md.DISPATCH_OP = su.user_name
+            LEFT JOIN m_device de ON md.device = de.device
+          <where>
+              md.is_need_dispatch = '1'
+              and md.dispatch_qty != 0
+              and md.operation_order = #{dispatchDTO.operationOrder}
+              and md.operation_bo = #{dispatchDTO.operationBo}
+          </where>
+    </select>
+    <select id="getAllCanPrintDispatch" resultType="com.itl.mes.core.api.vo.DispatchVo">
+        SELECT
+            md.dispatch_code,
+            md.operation_order,
+            md.item_bo,
+            mi.item,
+            mi.item_name,
+            mi.item_desc,
+            md.operation_order_qty,
+            oo.workshop,
+            md.device,
+            md.dispatch_qty as dispatchQty,
+            oo.shop_order
+        FROM
+            m_dispatch md
+                LEFT JOIN m_item mi ON md.ITEM_BO = mi.bo
+                LEFT JOIN m_operation_order oo ON md.OPERATION_ORDER = oo.OPERATION_ORDER
+        where md.dispatch_code is not null and md.dispatch_qty != '0' and is_first_operation = '1'
+        and md.can_print_qty>0 and md.can_print_qty is not null
+        <if test="dispatchDTO.item != null and dispatchDTO.item != ''">
+            and mi.item like concat('%',#{dispatchDTO.item},'%')
+        </if>
+        <if test="dispatchDTO.itemDesc != null and dispatchDTO.itemDesc != ''">
+            and mi.item_desc like concat('%',#{dispatchDTO.itemDesc},'%')
+        </if>
+        <if test="dispatchDTO.operationOrder != null and dispatchDTO.operationOrder != ''">
+            and md.operation_order like concat('%',#{dispatchDTO.operationOrder},'%')
+        </if>
+        <if test="dispatchDTO.dispatchCode != null and dispatchDTO.dispatchCode != ''">
+            and md.dispatch_code like concat('%',#{dispatchDTO.dispatchCode},'%')
+        </if>
+        <if test="dispatchDTO.workShop != null and dispatchDTO.workShop != ''">
+            and oo.workshop = #{dispatchDTO.workShop}
+        </if>
+        <if test="dispatchDTO.isShowDoneOrder != null and dispatchDTO.isShowDoneOrder != '' and dispatchDTO.isShowDoneOrder == 1">
+            and md.wait_in > '0'
+        </if>
+    </select>
+    <select id="selectSfcByDispatchCode" resultType="String">
+        SELECT
+            s.sfc
+        FROM
+            me_sfc s
+        where s.dispatch_code = #{dispatchDTO.dispatchCode}
+        <if test="dispatchDTO.operation != null and dispatchDTO.operation != ''">
+            and s.OPERATION_BO like concat('%',#{dispatchDTO.operation},'%')
+        </if>
+        <if test="dispatchDTO.taskState != null and dispatchDTO.taskState != '' and dispatchDTO.taskState == 1">
+            and s.state in ('排队中','暂停')
+        </if>
+    </select>
+    <select id="selectBomDetailByBomBo" resultType="com.itl.mes.core.api.entity.Item" parameterType="string">
+        select n.item,n.item_desc as itemDesc,n.item_name from m_bom_componnet m
+        left join m_item n on m.COMPONENT_BO=n.BO
+        where m.BOM_BO=#{bomBo}
+    </select>
+    <select id="getDispatchTotalCountByOpAndOrder" resultType="string">
+        SELECT
+            SUM( DISPATCH_QTY ) AS disTotalCount
+        FROM
+            m_dispatch
+        WHERE
+            is_need_dispatch = '1'
+          AND dispatch_qty != 0
+          AND OPERATION_BO = #{operationBo}
+          AND OPERATION_ORDER = #{operationOrder}
+    </select>
+</mapper>
